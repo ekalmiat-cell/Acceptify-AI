@@ -28,9 +28,18 @@ libpq-style URLs for asyncpg automatically (scheme, `sslmode`,
 
 1. New project → Deploy from GitHub → `ekalmiat-cell/Acceptify-AI`.
 2. Nothing to configure about paths: `railway.json` sits at the repository
-   root, points the build at `backend/Dockerfile`, and runs
-   `alembic upgrade head` before starting uvicorn, with a health check on
-   `/health`. The Dockerfile expects the repo root as its build context.
+   root, points the build at `backend/Dockerfile`, and health-checks `/health`.
+   The Dockerfile expects the repo root as its build context.
+
+   Migrations are **not** part of the start command on purpose. Chaining
+   `alembic upgrade head && uvicorn …` made the container sit silently after
+   Alembic's first two log lines until the health check gave up — uvicorn
+   never got to start. Run them as a separate step instead, before or right
+   after a deploy:
+
+   ```
+   railway run alembic upgrade head
+   ```
 3. Variables:
 
    | Variable | Value |
