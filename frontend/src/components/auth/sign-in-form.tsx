@@ -7,11 +7,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, LogIn } from "lucide-react";
+import { Loader2, LogIn, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -34,6 +35,9 @@ type SignInValues = z.infer<typeof schema>;
 export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: string }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [failure, setFailure] = useState<"credentials" | "throttled" | null>(
+    null,
+  );
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(schema),
@@ -73,11 +77,16 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
     }
 
     if (error) {
+      // 429 means the attempt never reached the password check at all —
+      // saying "invalid password" there sends people off resetting a password
+      // that was probably right.
+      setFailure(error.status === 429 ? "throttled" : "credentials");
       toast.error(formatAuthError(error.message, "Invalid email or password."));
       setIsSubmitting(false);
       return;
     }
 
+    setFailure(null);
     toast.success("Welcome back!");
     router.push(callbackURL);
   }
@@ -85,6 +94,45 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        {/*
+          The server answers "Invalid email or password" for both a wrong
+          password and an address that was never registered — deliberately, so
+          the form can't be used to discover who has an account. That leaves
+          people stuck retrying a correct password for an account that doesn't
+          exist here, so spell out both ways forward instead.
+        */}
+        {failure === "credentials" ? (
+          <Alert variant="destructive">
+            <TriangleAlert />
+            <AlertDescription>
+              <span>
+                We couldn&apos;t sign you in. Either the password is wrong, or
+                this email has no account yet.
+              </span>
+              <span className="mt-1 block">
+                <Link href="/forgot-password" className="font-medium underline">
+                  Reset your password
+                </Link>{" "}
+                or{" "}
+                <Link href="/sign-up" className="font-medium underline">
+                  create an account
+                </Link>
+                .
+              </span>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {failure === "throttled" ? (
+          <Alert>
+            <TriangleAlert />
+            <AlertDescription>
+              Too many attempts in a row — your password may well be right.
+              Wait about a minute and try again.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <FormField
           control={form.control}
           name="email"
