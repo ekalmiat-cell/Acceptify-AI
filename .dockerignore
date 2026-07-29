@@ -1,0 +1,29 @@
+# The backend image builds with the repository root as its context (see
+# railway.json -> backend/Dockerfile), so everything the frontend and the
+# tooling drag along would otherwise be shipped into the build.
+.git
+.claude
+.vercel
+
+# Frontend — never part of the backend image
+frontend
+
+# Python
+**/__pycache__
+**/*.pyc
+.venv
+backend/.venv
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local environment and editor noise
+**/.env
+**/.env.*
+!**/.env.example
+.vscode
+.idea
+
+# Docs and generated artefacts
+*.md
+better-auth-schema.sql
