@@ -27,9 +27,10 @@ libpq-style URLs for asyncpg automatically (scheme, `sslmode`,
 ## 2. Backend (Railway)
 
 1. New project → Deploy from GitHub → `ekalmiat-cell/Acceptify-AI`.
-2. Set **Root Directory** to `backend`. Railway picks up `railway.json`, which
-   builds the Dockerfile and runs `alembic upgrade head` before starting
-   uvicorn, with a health check on `/health`.
+2. Nothing to configure about paths: `railway.json` sits at the repository
+   root, points the build at `backend/Dockerfile`, and runs
+   `alembic upgrade head` before starting uvicorn, with a health check on
+   `/health`. The Dockerfile expects the repo root as its build context.
 3. Variables:
 
    | Variable | Value |
