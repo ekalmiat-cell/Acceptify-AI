@@ -10,6 +10,10 @@ COPY pyproject.toml ./
 COPY app ./app
 COPY alembic.ini ./
 COPY alembic ./alembic
+# Ships the university seeder with the image so the catalog can be loaded
+# into a fresh production database:
+#   railway run python -m scripts.seed_universities
+COPY scripts ./scripts
 
 RUN pip install --no-cache-dir .
 
