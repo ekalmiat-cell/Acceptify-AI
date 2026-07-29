@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, TriangleAlert } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,12 @@ const schema = z.object({
 
 type ForgotPasswordValues = z.infer<typeof schema>;
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({
+  /** Whether the server can actually deliver mail — see lib/email.ts. */
+  mailConfigured,
+}: {
+  mailConfigured: boolean;
+}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [devLink, setDevLink] = useState<string | null>(null);
@@ -70,11 +75,24 @@ export function ForgotPasswordForm() {
   if (sentTo) {
     return (
       <div className="flex flex-col gap-4">
-        <Alert>
-          <Mail />
+        <Alert variant={mailConfigured ? "default" : "destructive"}>
+          {mailConfigured ? <Mail /> : <TriangleAlert />}
           <AlertDescription>
-            If an account exists for <strong>{sentTo}</strong>, a reset link is
-            on its way. It works for one hour — check your spam folder too.
+            {mailConfigured ? (
+              <>
+                If an account exists for <strong>{sentTo}</strong>, a reset
+                link is on its way. It works for one hour — check your spam
+                folder too.
+              </>
+            ) : (
+              // Saying "check your email" when no mail provider is configured
+              // just makes people wait for something that will never arrive.
+              <>
+                Email delivery isn&apos;t set up on this site yet, so no
+                message can be sent. The reset link was recorded in the server
+                log — ask whoever runs Acceptify to pass it to you.
+              </>
+            )}
           </AlertDescription>
         </Alert>
 
@@ -106,6 +124,19 @@ export function ForgotPasswordForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-4"
       >
+        {/* Warn before the click, not after — nobody should wait on an inbox
+            for a message the server cannot send. */}
+        {!mailConfigured ? (
+          <Alert variant="destructive">
+            <TriangleAlert />
+            <AlertDescription>
+              Email delivery isn&apos;t configured yet, so a reset link cannot
+              be emailed to you. Ask the site owner to set it up, or sign in
+              with a different method.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <FormField
           control={form.control}
           name="email"

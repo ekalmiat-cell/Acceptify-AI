@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { Logo } from "@/components/shared/logo";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
+import { isMailConfigured } from "@/lib/email";
 
 export const metadata: Metadata = {
   title: "Reset your password",
@@ -23,7 +24,13 @@ export default function ForgotPasswordPage() {
       </p>
 
       <div className="mt-6">
-        <ForgotPasswordForm />
+        {/*
+          Server component: whether mail can actually go out is a server-side
+          fact (RESEND_API_KEY / EMAIL_FROM are not NEXT_PUBLIC_), so it is
+          resolved here and handed down. Without it the form would promise a
+          message that never arrives.
+        */}
+        <ForgotPasswordForm mailConfigured={isMailConfigured()} />
       </div>
     </div>
   );
