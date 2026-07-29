@@ -46,6 +46,38 @@ export interface University {
   website: string;
 }
 
+/** A field of study offered at a university — sits between University and
+ * EvaluationProfile. `parentProgramId`/`level` are unused today but let a
+ * Program become a Specialization of another Program (e.g. "Artificial
+ * Intelligence" under "Computer Science") without a schema change. */
+export interface Program {
+  id: string;
+  universityId: string;
+  slug: string;
+  name: string;
+  field: string;
+  parentProgramId: string | null;
+  level: "program" | "specialization";
+  description: string | null;
+}
+
+export interface EvaluationWeightEntry {
+  criterionKey: string;
+  weight: number;
+}
+
+/** A program's admission-scoring configuration, stored in Postgres and
+ * editable from the admin panel — see `lib/predict.ts` for how the weights
+ * are applied. */
+export interface EvaluationProfile {
+  id: string;
+  programId: string;
+  name: string;
+  description: string | null;
+  isActive: boolean;
+  weights: EvaluationWeightEntry[];
+}
+
 export interface PredictionHistoryEntry {
   id: string;
   universityId: string;
@@ -76,6 +108,7 @@ export interface AcademicProfile {
   toeflScore: number | null;
   entScore: number | null;
   dreamUniversityId: string | null;
+  dreamProgramId: string | null;
 }
 
 /** The result of running the admission scoring engine for one university —

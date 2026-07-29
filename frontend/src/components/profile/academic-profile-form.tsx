@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateAcademicProfile } from "@/lib/profile-client";
 import type { AcademicProfile } from "@/types/domain";
+import { describeApiError } from "@/lib/api-error";
 
 function toInputValue(value: number | null): string {
   return value === null ? "" : String(value);
@@ -50,11 +51,12 @@ export function AcademicProfileForm({ profile }: { profile: AcademicProfile }) {
         toeflScore: toNumberOrNull(toeflScore),
         entScore: toNumberOrNull(entScore),
         dreamUniversityId: profile.dreamUniversityId,
+        dreamProgramId: profile.dreamProgramId,
       });
       toast.success("Academic profile updated");
       router.refresh();
-    } catch {
-      toast.error("Could not update your academic profile.");
+    } catch (error) {
+      toast.error(describeApiError(error, "Could not update your academic profile."));
     } finally {
       setIsSaving(false);
     }

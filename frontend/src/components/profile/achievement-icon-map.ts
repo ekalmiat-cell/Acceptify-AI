@@ -17,6 +17,9 @@ import {
   Dumbbell,
   Music,
   Palette,
+  BookOpen,
+  Award,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 
@@ -39,4 +42,7 @@ export const achievementIconMap: Record<string, LucideIcon> = {
   Dumbbell,
   Music,
   Palette,
+  BookOpen,
+  Award,
+  Mail,
 };

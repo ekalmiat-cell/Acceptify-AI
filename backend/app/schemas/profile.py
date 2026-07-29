@@ -14,6 +14,7 @@ class AcademicProfileRead(BaseSchema):
     toefl_score: int | None = None
     ent_score: int | None = None
     dream_university_id: str | None = None
+    dream_program_id: str | None = None
 
 
 class AcademicProfileUpdate(BaseSchema):
@@ -26,6 +27,7 @@ class AcademicProfileUpdate(BaseSchema):
     toefl_score: int | None = None
     ent_score: int | None = None
     dream_university_id: str | None = None
+    dream_program_id: str | None = None
 
 
 class AchievementRead(BaseSchema):

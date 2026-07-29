@@ -1,15 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
-import { SocialButtons } from "@/components/auth/social-buttons";
+import { SocialSection } from "@/components/auth/social-section";
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  formatOAuthCallbackError,
+  sanitizeRedirectPath,
+} from "@/lib/auth-config";
 
 export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default function SignInPage() {
+type SignInPageProps = {
+  searchParams: Promise<{ redirect?: string; error?: string }>;
+};
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const params = await searchParams;
+  const callbackURL = sanitizeRedirectPath(params.redirect);
+  const oauthError = formatOAuthCallbackError(params.error);
+
+  const errorCallbackURL = `/sign-in${
+    params.redirect ? `?redirect=${encodeURIComponent(callbackURL)}` : ""
+  }`;
+
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 flex flex-col gap-2 lg:hidden">
@@ -23,17 +41,21 @@ export default function SignInPage() {
         Sign in to see your latest predictions and saved universities.
       </p>
 
-      <div className="mt-8">
-        <SocialButtons />
-      </div>
+      {oauthError ? (
+        <Alert variant="destructive" className="mt-6">
+          <TriangleAlert />
+          <AlertDescription>{oauthError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <div className="my-6 flex items-center gap-3">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">or continue with email</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      <SocialSection
+        callbackURL={callbackURL}
+        errorCallbackURL={errorCallbackURL}
+      />
 
-      <SignInForm />
+      <div className="mt-6">
+        <SignInForm callbackURL={callbackURL} />
+      </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}

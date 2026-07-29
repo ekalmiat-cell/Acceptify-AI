@@ -37,6 +37,7 @@ export default async function AnalysisPage() {
       profile={profile}
       profileCompleteness={completeness}
       dreamUniversityId={academic.dreamUniversityId}
+      dreamProgramId={academic.dreamProgramId}
     />
   );
 }

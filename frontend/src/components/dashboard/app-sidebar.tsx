@@ -12,6 +12,7 @@ import {
   ChevronsUpDown,
   CreditCard,
   ChartNoAxesCombined,
+  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,7 @@ const navItems = [
   { label: "Universities", href: "/dashboard/universities", icon: Building2 },
   { label: "Analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
   { label: "Profile", href: "/dashboard/profile", icon: UserRound },
+  { label: "Admin", href: "/dashboard/admin", icon: ShieldCheck },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 

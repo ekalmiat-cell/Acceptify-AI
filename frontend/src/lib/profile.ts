@@ -1,4 +1,5 @@
 import { achievementCatalog } from "@/data/achievement-catalog";
+import type { AchievementCriterionKey } from "@/lib/criteria";
 import type { StudentProfileInput } from "@/lib/predict";
 import type { AcademicProfile, AchievementRecord, ResolvedAchievement } from "@/types/domain";
 
@@ -30,12 +31,6 @@ function countFilledAcademicFields(academic: AcademicProfile): number {
     academic.toeflScore,
     academic.entScore,
   ].filter((value) => value != null).length;
-}
-
-function achievedRatio(achievements: ResolvedAchievement[], groups: string[]): number {
-  const items = achievements.filter((a) => groups.includes(a.group));
-  if (items.length === 0) return 0;
-  return items.filter((a) => a.achieved).length / items.length;
 }
 
 /** Percentage of the profile (academic fields + achievements) that's
@@ -88,6 +83,11 @@ export function toStudentProfileInput(
   academic: AcademicProfile,
   achievements: ResolvedAchievement[]
 ): StudentProfileInput {
+  const achievedMap: Partial<Record<AchievementCriterionKey, boolean>> = {};
+  for (const achievement of achievements) {
+    achievedMap[achievement.id as AchievementCriterionKey] = achievement.achieved;
+  }
+
   return {
     gpa: academic.gpa,
     satScore: academic.satScore,
@@ -95,8 +95,6 @@ export function toStudentProfileInput(
     ieltsScore: academic.ieltsScore,
     toeflScore: academic.toeflScore,
     entScore: academic.entScore,
-    activitiesRatio: achievedRatio(achievements, ["Competitions", "Talents"]),
-    leadershipRatio: achievedRatio(achievements, ["Activities"]),
-    achievementsRatio: achievedRatio(achievements, ["Credentials"]),
+    achievements: achievedMap,
   };
 }

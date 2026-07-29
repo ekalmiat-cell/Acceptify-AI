@@ -29,7 +29,7 @@ const schema = z.object({
 
 type SignUpValues = z.infer<typeof schema>;
 
-export function SignUpForm() {
+export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: string }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,7 +46,7 @@ export function SignUpForm() {
       name: values.name,
       email: values.email,
       password: values.password,
-      callbackURL: "/dashboard",
+      callbackURL,
     });
 
     if (error) {
@@ -56,7 +56,7 @@ export function SignUpForm() {
     }
 
     toast.success("Account created — welcome to Acceptify AI!");
-    router.push("/dashboard");
+    router.push(callbackURL);
   }
 
   return (

@@ -23,6 +23,7 @@ import {
 import { updateAcademicProfile } from "@/lib/profile-client";
 import { groupUniversitiesByCountry } from "@/lib/universities";
 import type { AcademicProfile, University } from "@/types/domain";
+import { describeApiError } from "@/lib/api-error";
 
 export function DreamUniversitySelect({
   profile,
@@ -50,11 +51,19 @@ export function DreamUniversitySelect({
   async function handleSave() {
     setIsSaving(true);
     try {
-      await updateAcademicProfile({ ...profile, dreamUniversityId: selected || null });
+      await updateAcademicProfile({
+        ...profile,
+        dreamUniversityId: selected || null,
+        dreamProgramId: selected ? profile.dreamProgramId : null,
+      });
       toast.success("Dream university updated");
-      router.refresh();
-    } catch {
-      toast.error("Could not update your dream university.");
+      if (selected) {
+        router.push(`/dashboard/field-of-study?universityId=${selected}`);
+      } else {
+        router.refresh();
+      }
+    } catch (error) {
+      toast.error(describeApiError(error, "Could not update your dream university."));
     } finally {
       setIsSaving(false);
     }

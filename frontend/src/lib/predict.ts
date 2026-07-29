@@ -1,3 +1,5 @@
+import { ACADEMIC_CRITERIA, ALL_CRITERIA, DEFAULT_WEIGHTS } from "@/lib/criteria";
+import type { AchievementCriterionKey, CriterionKey } from "@/lib/criteria";
 import type { MatchCategory, University } from "@/types/domain";
 
 export interface StudentProfileInput {
@@ -10,12 +12,10 @@ export interface StudentProfileInput {
   ieltsScore: number | null;
   toeflScore: number | null;
   entScore: number | null;
-  /** 0-1: share of achieved items among Competitions + Talents catalog groups. */
-  activitiesRatio: number;
-  /** 0-1: share of achieved items among the Activities catalog group (leadership, MUN, debate). */
-  leadershipRatio: number;
-  /** 0-1: share of achieved items among the Credentials catalog group (research, publications, volunteering). */
-  achievementsRatio: number;
+  /** Whether the student has each non-academic achievement — keyed by the
+   * same criterion key an evaluation profile weights against. Missing keys
+   * are treated as not-yet-achieved, same as the achievements catalog. */
+  achievements: Partial<Record<AchievementCriterionKey, boolean>>;
 }
 
 export interface MatchResult {
@@ -30,25 +30,10 @@ export interface ScoreBreakdown {
   achievements: number;
 }
 
-/** Weights for each component of the admission scoring engine — must sum to 100. */
-export const SCORE_WEIGHTS = {
-  academicStrength: 40,
-  activities: 25,
-  leadership: 15,
-  achievements: 20,
-} as const;
-
-// Relative weights among the academic signals — only renormalized over
-// whichever ones the student has actually provided, so filling in just one
-// (e.g. only a national exam score) still produces a real academic fit.
-const ACADEMIC_SIGNAL_WEIGHTS = {
-  gpa: 30,
-  sat: 25,
-  act: 20,
-  ielts: 15,
-  toefl: 10,
-  ent: 15,
-} as const;
+/** A program's evaluation weights, as loaded from its EvaluationProfile —
+ * see `lib/programs-client.ts`. Falls back to `DEFAULT_WEIGHTS` wherever no
+ * program has been selected/resolved yet. */
+export type CriterionWeights = Partial<Record<CriterionKey, number>>;
 
 // ACT and the national exam (ENT) aren't tied to a specific university's
 // stated range, so they're compared against a fixed, generally-competitive
@@ -56,81 +41,151 @@ const ACADEMIC_SIGNAL_WEIGHTS = {
 const ACT_COMPETITIVE_BASELINE = 33;
 const ENT_COMPETITIVE_BASELINE = 120;
 
+// Criteria grouped for the four named cards the Analysis page shows. Purely
+// presentational — the headline score is always the flat weighted average
+// over every criterion, and a weighted average of these bucket averages
+// (weighted by each bucket's total weight) is mathematically identical to
+// that flat average, so the breakdown always agrees with the headline score.
+const BREAKDOWN_GROUPS: Record<keyof ScoreBreakdown, readonly CriterionKey[]> = {
+  academicStrength: ACADEMIC_CRITERIA,
+  activities: ["olympiads", "hackathons", "startup", "business", "sports", "music", "arts"],
+  leadership: ["leadership", "mun", "debate", "communityService"],
+  achievements: [
+    "ap",
+    "ib",
+    "aLevel",
+    "honors",
+    "research",
+    "publications",
+    "awards",
+    "recommendationLetters",
+    "personalEssay",
+  ],
+};
+
 function categoryFor(score: number): MatchCategory {
   if (score >= 70) return "safe";
   if (score < 40) return "reach";
   return "target";
 }
 
+/** The 0-100 fit signal for a single criterion, or `null` if the student
+ * hasn't provided a value for it (only possible for academic criteria —
+ * achievements always resolve to achieved/not-achieved). */
+function computeSignal(
+  criterion: CriterionKey,
+  university: University,
+  profile: StudentProfileInput
+): number | null {
+  switch (criterion) {
+    case "gpa":
+      return profile.gpa != null ? clamp01(profile.gpa / university.minGpa) * 100 : null;
+    case "sat": {
+      if (profile.satScore == null) return null;
+      const satMid = (university.satLow + university.satHigh) / 2;
+      return clamp01(profile.satScore / satMid) * 100;
+    }
+    case "act":
+      return profile.actScore != null
+        ? clamp01(profile.actScore / ACT_COMPETITIVE_BASELINE) * 100
+        : null;
+    case "ielts":
+      return profile.ieltsScore != null
+        ? clamp01(profile.ieltsScore / university.ieltsMin) * 100
+        : null;
+    case "toefl":
+      return profile.toeflScore != null
+        ? clamp01(profile.toeflScore / university.toeflMin) * 100
+        : null;
+    case "ent":
+      return profile.entScore != null
+        ? clamp01(profile.entScore / ENT_COMPETITIVE_BASELINE) * 100
+        : null;
+    default:
+      return profile.achievements[criterion] ? 100 : 0;
+  }
+}
+
+function weightedAverage(
+  criteria: readonly CriterionKey[],
+  signals: Partial<Record<CriterionKey, number | null>>,
+  weights: CriterionWeights
+): number {
+  let weightedSum = 0;
+  let totalWeight = 0;
+  for (const criterion of criteria) {
+    const signal = signals[criterion];
+    const weight = weights[criterion] ?? 0;
+    if (signal == null || weight <= 0) continue;
+    weightedSum += signal * weight;
+    totalWeight += weight;
+  }
+  return totalWeight > 0 ? weightedSum / totalWeight : 0;
+}
+
 /**
- * Computes the four named components (each 0-100) the admission scoring
- * engine weighs together. Shared by `predictMatch` (for the single headline
- * score used across the app) and `lib/scoring.ts` (for the full explainable
- * breakdown on the Analysis page), so both always agree with each other.
+ * Computes the four named components (each 0-100) shown on the Analysis
+ * page's breakdown. Shared by `predictMatch` (for the single headline score
+ * used across the app) and `lib/scoring.ts`, so both always agree.
  */
 export function computeScoreBreakdown(
   university: University,
-  profile: StudentProfileInput
+  profile: StudentProfileInput,
+  weights: CriterionWeights = DEFAULT_WEIGHTS
 ): ScoreBreakdown {
-  const satMid = (university.satLow + university.satHigh) / 2;
-
-  const signals: { fit: number; weight: number }[] = [];
-  if (profile.gpa != null) {
-    signals.push({ fit: clamp01(profile.gpa / university.minGpa) * 100, weight: ACADEMIC_SIGNAL_WEIGHTS.gpa });
+  const signals: Partial<Record<CriterionKey, number | null>> = {};
+  for (const criterion of ALL_CRITERIA) {
+    signals[criterion] = computeSignal(criterion, university, profile);
   }
-  if (profile.satScore != null) {
-    signals.push({ fit: clamp01(profile.satScore / satMid) * 100, weight: ACADEMIC_SIGNAL_WEIGHTS.sat });
-  }
-  if (profile.actScore != null) {
-    signals.push({
-      fit: clamp01(profile.actScore / ACT_COMPETITIVE_BASELINE) * 100,
-      weight: ACADEMIC_SIGNAL_WEIGHTS.act,
-    });
-  }
-  if (profile.ieltsScore != null) {
-    signals.push({ fit: clamp01(profile.ieltsScore / university.ieltsMin) * 100, weight: ACADEMIC_SIGNAL_WEIGHTS.ielts });
-  }
-  if (profile.toeflScore != null) {
-    signals.push({ fit: clamp01(profile.toeflScore / university.toeflMin) * 100, weight: ACADEMIC_SIGNAL_WEIGHTS.toefl });
-  }
-  if (profile.entScore != null) {
-    signals.push({
-      fit: clamp01(profile.entScore / ENT_COMPETITIVE_BASELINE) * 100,
-      weight: ACADEMIC_SIGNAL_WEIGHTS.ent,
-    });
-  }
-
-  const totalWeight = signals.reduce((sum, s) => sum + s.weight, 0);
-  const academicStrength =
-    totalWeight > 0 ? signals.reduce((sum, s) => sum + s.fit * s.weight, 0) / totalWeight : 0;
 
   return {
-    academicStrength,
-    activities: clamp01(profile.activitiesRatio) * 100,
-    leadership: clamp01(profile.leadershipRatio) * 100,
-    achievements: clamp01(profile.achievementsRatio) * 100,
+    academicStrength: weightedAverage(BREAKDOWN_GROUPS.academicStrength, signals, weights),
+    activities: weightedAverage(BREAKDOWN_GROUPS.activities, signals, weights),
+    leadership: weightedAverage(BREAKDOWN_GROUPS.leadership, signals, weights),
+    achievements: weightedAverage(BREAKDOWN_GROUPS.achievements, signals, weights),
   };
+}
+
+/** Each breakdown bucket's total weight (as a share of all present-criteria
+ * weight), used to label the Analysis page's "X% weight" cards with the
+ * program's real, program-specific weighting instead of a fixed split. */
+export function computeBreakdownWeights(
+  weights: CriterionWeights = DEFAULT_WEIGHTS
+): Record<keyof ScoreBreakdown, number> {
+  const totals = Object.fromEntries(
+    Object.entries(BREAKDOWN_GROUPS).map(([bucket, criteria]) => [
+      bucket,
+      criteria.reduce((sum, c) => sum + (weights[c] ?? 0), 0),
+    ])
+  ) as Record<keyof ScoreBreakdown, number>;
+
+  const grandTotal = Object.values(totals).reduce((sum, v) => sum + v, 0);
+  if (grandTotal <= 0) return totals;
+
+  return Object.fromEntries(
+    Object.entries(totals).map(([bucket, value]) => [bucket, Math.round((value / grandTotal) * 100)])
+  ) as Record<keyof ScoreBreakdown, number>;
 }
 
 /**
  * Deterministic, explainable scoring used to power the admission prediction
- * UI — no external AI call. Weighs academic fit against the university's
- * stated bar (40%), extracurricular activity breadth (25%), leadership
- * experience (15%), and achievement credentials (20%), then adjusts for the
+ * UI — no external AI call. Weighs every admission criterion (academic fit
+ * against the university's stated bar, plus every achievement/activity)
+ * using the target program's evaluation profile, then adjusts for the
  * university's selectivity so a strong profile still reads as a "Reach" at
  * a 4%-acceptance school.
  */
 export function predictMatch(
   university: University,
-  profile: StudentProfileInput
+  profile: StudentProfileInput,
+  weights: CriterionWeights = DEFAULT_WEIGHTS
 ): MatchResult {
-  const breakdown = computeScoreBreakdown(university, profile);
+  const signals: Partial<Record<CriterionKey, number | null>> = {};
+  for (const criterion of ALL_CRITERIA) {
+    signals[criterion] = computeSignal(criterion, university, profile);
+  }
 
-  const raw =
-    breakdown.academicStrength * (SCORE_WEIGHTS.academicStrength / 100) +
-    breakdown.activities * (SCORE_WEIGHTS.activities / 100) +
-    breakdown.leadership * (SCORE_WEIGHTS.leadership / 100) +
-    breakdown.achievements * (SCORE_WEIGHTS.achievements / 100);
+  const raw = weightedAverage(ALL_CRITERIA, signals, weights);
 
   const selectivityPenalty = (100 - university.acceptanceRate) / 100;
   const adjusted =

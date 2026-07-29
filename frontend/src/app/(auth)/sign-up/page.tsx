@@ -1,15 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
-import { SocialButtons } from "@/components/auth/social-buttons";
+import { SocialSection } from "@/components/auth/social-section";
 import { SignUpForm } from "@/components/auth/sign-up-form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  formatOAuthCallbackError,
+  sanitizeRedirectPath,
+} from "@/lib/auth-config";
 
 export const metadata: Metadata = {
   title: "Create your account",
 };
 
-export default function SignUpPage() {
+type SignUpPageProps = {
+  searchParams: Promise<{ redirect?: string; error?: string }>;
+};
+
+export default async function SignUpPage({ searchParams }: SignUpPageProps) {
+  const params = await searchParams;
+  const callbackURL = sanitizeRedirectPath(params.redirect);
+  const oauthError = formatOAuthCallbackError(params.error);
+
+  const errorCallbackURL = `/sign-up${
+    params.redirect ? `?redirect=${encodeURIComponent(callbackURL)}` : ""
+  }`;
+
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 flex flex-col gap-2 lg:hidden">
@@ -23,17 +41,21 @@ export default function SignUpPage() {
         Get your first AI admission prediction in under two minutes.
       </p>
 
-      <div className="mt-8">
-        <SocialButtons />
-      </div>
+      {oauthError ? (
+        <Alert variant="destructive" className="mt-6">
+          <TriangleAlert />
+          <AlertDescription>{oauthError}</AlertDescription>
+        </Alert>
+      ) : null}
 
-      <div className="my-6 flex items-center gap-3">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">or continue with email</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      <SocialSection
+        callbackURL={callbackURL}
+        errorCallbackURL={errorCallbackURL}
+      />
 
-      <SignUpForm />
+      <div className="mt-6">
+        <SignUpForm callbackURL={callbackURL} />
+      </div>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
         By creating an account you agree to our Terms of Service and Privacy Policy.

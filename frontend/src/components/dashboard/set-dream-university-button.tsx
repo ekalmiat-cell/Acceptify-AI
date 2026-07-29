@@ -8,6 +8,7 @@ import { GraduationCap, Loader2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { updateAcademicProfile } from "@/lib/profile-client";
 import type { AcademicProfile } from "@/types/domain";
+import { describeApiError } from "@/lib/api-error";
 
 export function SetDreamUniversityButton({
   academic,
@@ -26,11 +27,16 @@ export function SetDreamUniversityButton({
       await updateAcademicProfile({
         ...academic,
         dreamUniversityId: isDream ? null : universityId,
+        dreamProgramId: isDream ? null : academic.dreamProgramId,
       });
       toast.success(isDream ? "Removed as dream university" : "Set as your dream university");
-      router.refresh();
-    } catch {
-      toast.error("Could not update your dream university.");
+      if (isDream) {
+        router.refresh();
+      } else {
+        router.push(`/dashboard/field-of-study?universityId=${universityId}`);
+      }
+    } catch (error) {
+      toast.error(describeApiError(error, "Could not update your dream university."));
     } finally {
       setIsSaving(false);
     }

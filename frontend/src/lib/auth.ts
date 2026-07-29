@@ -6,6 +6,7 @@ import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { siteConfig } from "@/config/site";
 import { getConfiguredSocialProviders } from "@/lib/auth-config";
+import { rememberDevLink, sendEmail } from "@/lib/email";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -57,6 +58,11 @@ const getTrustedOrigins = async (request?: Request) => {
     }
   }
 
+  // Sign in with Apple returns the authorization via a cross-origin
+  // `form_post` from appleid.apple.com, so that origin must be trusted or
+  // Better Auth rejects the callback before it can create the session.
+  origins.add("https://appleid.apple.com");
+
   [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -96,6 +102,23 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
     minPasswordLength: 8,
+    resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
+    /**
+     * Better Auth calls this with a single-use link; opening it redirects the
+     * browser to /reset-password?token=… where the new password is set.
+     * Without a mail provider the link is logged to the server console (and,
+     * in development only, surfaced in the UI) instead of being lost.
+     */
+    sendResetPassword: async ({ user, url }) => {
+      rememberDevLink(user.email, url);
+
+      await sendEmail({
+        to: user.email,
+        subject: `Reset your ${siteConfig.name} password`,
+        text: `Someone asked to reset the password for your ${siteConfig.name} account.\n\nOpen this link within the next hour to choose a new one:\n${url}\n\nIf this wasn't you, ignore this email — your password stays unchanged.`,
+        html: `<p>Someone asked to reset the password for your ${siteConfig.name} account.</p><p><a href="${url}">Choose a new password</a> — the link works for one hour.</p><p>If this wasn't you, ignore this email; your password stays unchanged.</p>`,
+      });
+    },
   },
   socialProviders: {
     ...(getConfiguredSocialProviders().google && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -103,6 +126,10 @@ export const auth = betterAuth({
           google: {
             clientId: env.GOOGLE_CLIENT_ID,
             clientSecret: env.GOOGLE_CLIENT_SECRET,
+            // Always let people choose which Google account to use instead of
+            // silently reusing whichever one the browser is already signed in
+            // to.
+            prompt: "select_account" as const,
           },
         }
       : {}),
@@ -116,9 +143,32 @@ export const auth = betterAuth({
         }
       : {}),
   },
+  account: {
+    /**
+     * Someone who signed up with email/password and later clicks "Continue
+     * with Google" should land in their existing account, not hit an
+     * "email already in use" wall. Google and Apple both assert a verified
+     * email, so linking on a matching address is safe for them — an untrusted
+     * provider would still require an explicit link from a signed-in session.
+     */
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google", "apple"],
+    },
+  },
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // refresh once a day of active use
+    /**
+     * Keeps a short-lived signed copy of the session in the cookie itself, so
+     * ordinary page loads read the signed-in user without a database round
+     * trip. It only caches — expiry and revocation still come from the
+     * session table once the 5 minutes lapse.
+     */
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5,
+    },
   },
   plugins: [
     jwt({

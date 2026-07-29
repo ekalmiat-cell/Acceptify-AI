@@ -20,3 +20,4 @@ class StudentProfile(Base, TimestampMixin):
     toefl_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     ent_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
     dream_university_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    dream_program_id: Mapped[str | None] = mapped_column(String, nullable=True)

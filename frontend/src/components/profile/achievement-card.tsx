@@ -24,6 +24,7 @@ import {
 import { achievementIconMap } from "@/components/profile/achievement-icon-map";
 import { upsertAchievement } from "@/lib/profile-client";
 import type { ResolvedAchievement } from "@/types/domain";
+import { describeApiError } from "@/lib/api-error";
 
 function parseEntries(value: string | null): string[] {
   return (value ?? "").split("\n").map((line) => line.trim()).filter(Boolean);
@@ -62,8 +63,8 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
       toast.success(`${achievement.label} updated`);
       setOpen(false);
       router.refresh();
-    } catch {
-      toast.error("Could not update this achievement.");
+    } catch (error) {
+      toast.error(describeApiError(error, "Could not update this achievement."));
     } finally {
       setIsSaving(false);
     }

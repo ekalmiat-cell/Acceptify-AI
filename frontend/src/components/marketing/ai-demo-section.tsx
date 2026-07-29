@@ -10,9 +10,23 @@ import { MatchBadge } from "@/components/shared/match-badge";
 import { Slider } from "@/components/ui/slider";
 import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/progress";
 import { predictMatch } from "@/lib/predict";
+import type { AchievementCriterionKey } from "@/lib/criteria";
 import type { University } from "@/types/domain";
 
 const demoUniversityIds = ["uni-mit", "uni-toronto", "uni-nu", "uni-eth"];
+
+// Half of the achievement criteria "achieved", for a representative
+// mid-strength demo profile on the marketing page's interactive slider.
+const DEMO_ACHIEVEMENTS: Partial<Record<AchievementCriterionKey, boolean>> = {
+  research: true,
+  olympiads: true,
+  hackathons: true,
+  leadership: true,
+  mun: true,
+  awards: true,
+  personalEssay: true,
+  recommendationLetters: true,
+};
 
 export function AiDemoSection({ universities }: { universities: University[] }) {
   const [gpa, setGpa] = useState(3.6);
@@ -32,9 +46,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
           ieltsScore: ielts,
           toeflScore: null,
           entScore: null,
-          activitiesRatio: 0.5,
-          leadershipRatio: 0.5,
-          achievementsRatio: 0.5,
+          achievements: DEMO_ACHIEVEMENTS,
         }),
       }))
       .sort((a, b) => b.score - a.score);

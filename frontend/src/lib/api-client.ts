@@ -2,11 +2,18 @@
 
 import { authClient } from "@/lib/auth-client";
 import { clientEnv } from "@/lib/env.client";
-import { ApiError } from "@/lib/api-error";
+import { requestJson } from "@/lib/api-request";
 
 async function getBearerToken(): Promise<string | null> {
-  const { data } = await authClient.token();
-  return data?.token ?? null;
+  try {
+    const { data } = await authClient.token();
+    return data?.token ?? null;
+  } catch {
+    // Minting a token needs a round trip too. Failing here would throw a raw
+    // "Failed to fetch"; carry on unauthenticated and let the backend answer
+    // with a 401 the callers already know how to handle.
+    return null;
+  }
 }
 
 /**
@@ -22,27 +29,9 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = await getBearerToken();
 
-  const res = await fetch(`${clientEnv.NEXT_PUBLIC_API_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init.headers,
-    },
-  });
-
-  if (!res.ok) {
-    const body = await res.json().catch(() => null);
-    throw new ApiError(
-      res.status,
-      body?.detail ?? res.statusText,
-      body ?? undefined
-    );
-  }
-
-  if (res.status === 204) {
-    return undefined as T;
-  }
-
-  return (await res.json()) as T;
+  return requestJson<T>(
+    `${clientEnv.NEXT_PUBLIC_API_URL}${path}`,
+    init,
+    token
+  );
 }

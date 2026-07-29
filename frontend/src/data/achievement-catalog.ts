@@ -8,9 +8,41 @@ import type { AchievementCatalogItem } from "@/types/domain";
  *
  * GPA, SAT, ACT, IELTS, TOEFL, and ENT aren't listed here: they're editable
  * directly on the academic profile form and feed the match prediction
- * engine.
+ * engine as academic criteria instead of achievements.
+ *
+ * Every `id` here doubles as a criterion key in `lib/criteria.ts` — an
+ * evaluation profile's per-program weight for e.g. "hackathons" is looked
+ * up by this same string.
  */
 export const achievementCatalog: AchievementCatalogItem[] = [
+  {
+    id: "ap",
+    label: "AP Courses",
+    group: "Credentials",
+    icon: "BookOpen",
+    description: "Advanced Placement exams taken and scored.",
+  },
+  {
+    id: "ib",
+    label: "IB Diploma",
+    group: "Credentials",
+    icon: "BookOpen",
+    description: "International Baccalaureate diploma or coursework.",
+  },
+  {
+    id: "aLevel",
+    label: "A-Level",
+    group: "Credentials",
+    icon: "BookOpen",
+    description: "GCE A-Level subjects and grades.",
+  },
+  {
+    id: "honors",
+    label: "Honors Courses",
+    group: "Credentials",
+    icon: "GraduationCap",
+    description: "Honors-track or advanced coursework beyond the standard curriculum.",
+  },
   {
     id: "research",
     label: "Research Experience",
@@ -26,9 +58,30 @@ export const achievementCatalog: AchievementCatalogItem[] = [
     description: "Papers, articles, or other published academic work.",
   },
   {
-    id: "volunteering",
-    label: "Volunteer Work",
+    id: "awards",
+    label: "Awards",
     group: "Credentials",
+    icon: "Award",
+    description: "Academic or extracurricular awards and honors.",
+  },
+  {
+    id: "recommendationLetters",
+    label: "Recommendation Letters",
+    group: "Credentials",
+    icon: "Mail",
+    description: "Strong letters of recommendation ready to submit.",
+  },
+  {
+    id: "personalEssay",
+    label: "Personal Essay",
+    group: "Credentials",
+    icon: "PenLine",
+    description: "A polished personal statement or application essay.",
+  },
+  {
+    id: "communityService",
+    label: "Community Service",
+    group: "Activities",
     icon: "HeartHandshake",
     description: "Sustained volunteer or community service work.",
   },
@@ -96,8 +149,8 @@ export const achievementCatalog: AchievementCatalogItem[] = [
     description: "Formal music training, certifications, or performances.",
   },
   {
-    id: "art",
-    label: "Art",
+    id: "arts",
+    label: "Arts",
     group: "Talents",
     icon: "Palette",
     description: "Visual arts portfolio, exhibitions, or design work.",

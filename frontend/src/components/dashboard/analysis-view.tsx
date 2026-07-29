@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { CheckCircle2, Download, Loader2, Sparkles, TriangleAlert, Lightbulb } from "lucide-react";
@@ -23,10 +23,14 @@ import {
 import { MatchBadge } from "@/components/shared/match-badge";
 import { computeAdmissionAnalysis } from "@/lib/scoring";
 import type { StudentProfileInput } from "@/lib/predict";
+import type { CriterionWeights } from "@/lib/predict";
+import { DEFAULT_WEIGHTS } from "@/lib/criteria";
 import { createPrediction } from "@/lib/predictions-client";
 import { downloadAdmissionReport } from "@/lib/pdf-report";
 import { groupUniversitiesByCountry } from "@/lib/universities";
-import type { University } from "@/types/domain";
+import { fetchEvaluationProfile, fetchPrograms } from "@/lib/programs-client";
+import type { Program, University } from "@/types/domain";
+import { describeApiError } from "@/lib/api-error";
 
 export function AnalysisView({
   studentName,
@@ -35,6 +39,7 @@ export function AnalysisView({
   profile,
   profileCompleteness,
   dreamUniversityId,
+  dreamProgramId,
 }: {
   studentName: string;
   studentEmail: string;
@@ -42,6 +47,7 @@ export function AnalysisView({
   profile: StudentProfileInput | null;
   profileCompleteness: number;
   dreamUniversityId: string | null;
+  dreamProgramId: string | null;
 }) {
   const byCountry = useMemo(() => groupUniversitiesByCountry(universities), [universities]);
 
@@ -51,18 +57,64 @@ export function AnalysisView({
   const [universityId, setUniversityId] = useState(defaultId);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [programId, setProgramId] = useState("");
+  const [weights, setWeights] = useState<CriterionWeights>(DEFAULT_WEIGHTS);
+
   const universitiesInCountry = byCountry.find((g) => g.country === country)?.universities ?? [];
   const university = universities.find((u) => u.id === universityId) ?? null;
+  const activeProgram = programs.find((p) => p.id === programId) ?? null;
 
   function handleCountryChange(next: string) {
     setCountry(next);
     setUniversityId("");
   }
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!universityId) {
+      setPrograms([]);
+      setProgramId("");
+      return;
+    }
+    fetchPrograms(universityId).then((list) => {
+      if (cancelled) return;
+      setPrograms(list);
+      const preferred = list.find((p) => p.id === dreamProgramId && p.universityId === universityId);
+      setProgramId(preferred?.id ?? list[0]?.id ?? "");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [universityId, dreamProgramId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!programId) {
+      setWeights(DEFAULT_WEIGHTS);
+      return;
+    }
+    fetchEvaluationProfile(programId).then((evaluationProfile) => {
+      if (cancelled) return;
+      if (!evaluationProfile) {
+        setWeights(DEFAULT_WEIGHTS);
+        return;
+      }
+      const map: CriterionWeights = {};
+      for (const entry of evaluationProfile.weights) {
+        map[entry.criterionKey as keyof CriterionWeights] = entry.weight;
+      }
+      setWeights(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [programId]);
+
   const analysis = useMemo(() => {
     if (!profile || !university) return null;
-    return computeAdmissionAnalysis(university, profile, profileCompleteness);
-  }, [profile, university, profileCompleteness]);
+    return computeAdmissionAnalysis(university, profile, profileCompleteness, weights);
+  }, [profile, university, profileCompleteness, weights]);
 
   if (!profile) {
     return (
@@ -96,8 +148,8 @@ export function AnalysisView({
         category: analysis.category,
       });
       toast.success("Report saved to your prediction history");
-    } catch {
-      toast.error("Could not save this report.");
+    } catch (error) {
+      toast.error(describeApiError(error, "Could not save this report."));
     } finally {
       setIsSaving(false);
     }
@@ -119,10 +171,10 @@ export function AnalysisView({
 
       <Card>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex w-full flex-col gap-2 sm:max-w-xl sm:flex-row">
+          <div className="flex w-full flex-col gap-2 sm:max-w-2xl sm:flex-row">
             <Select value={country} onValueChange={(v) => handleCountryChange(v as string)}>
-              <SelectTrigger className="w-full sm:max-w-52">
-                <SelectValue placeholder="1. Choose a country" />
+              <SelectTrigger className="w-full sm:max-w-44">
+                <SelectValue placeholder="1. Country" />
               </SelectTrigger>
               <SelectContent>
                 {byCountry.map((g) => (
@@ -139,8 +191,8 @@ export function AnalysisView({
               disabled={!country}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="2. Choose a university">
-                  {(value: string) => universities.find((u) => u.id === value)?.name ?? "2. Choose a university"}
+                <SelectValue placeholder="2. University">
+                  {(value: string) => universities.find((u) => u.id === value)?.name ?? "2. University"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -148,6 +200,26 @@ export function AnalysisView({
                   <SelectItem key={u.id} value={u.id}>
                     {u.name}
                     {u.id === dreamUniversityId ? " (Dream)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={programId}
+              onValueChange={(v) => setProgramId(v as string)}
+              disabled={programs.length === 0}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="3. Field of study">
+                  {(value: string) => programs.find((p) => p.id === value)?.name ?? "3. Field of study"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {programs.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                    {p.id === dreamProgramId ? " (Dream)" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -173,6 +245,9 @@ export function AnalysisView({
               <ScoreCircle score={analysis.score} />
               <div className="flex flex-col items-center gap-1">
                 <p className="font-heading text-lg font-semibold text-foreground">{university.name}</p>
+                {activeProgram ? (
+                  <p className="text-xs text-muted-foreground">{activeProgram.name} evaluation model</p>
+                ) : null}
                 <MatchBadge category={analysis.category} />
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

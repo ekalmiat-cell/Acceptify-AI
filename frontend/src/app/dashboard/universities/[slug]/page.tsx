@@ -32,7 +32,10 @@ import { Button } from "@/components/ui/button";
 import { getUniversityBySlug } from "@/lib/universities";
 import { getUniversities } from "@/lib/universities-server";
 import { predictMatch } from "@/lib/predict";
+import type { CriterionWeights } from "@/lib/predict";
+import { DEFAULT_WEIGHTS } from "@/lib/criteria";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
+import { getEvaluationProfile } from "@/lib/programs-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
 
 export async function generateMetadata({
@@ -65,7 +68,18 @@ export default async function UniversityDetailPage({
 
   const hasProfile = hasAnyAcademicProfile(academic);
   const profile = hasProfile ? toStudentProfileInput(academic, resolveAchievements(records)) : null;
-  const match = profile ? predictMatch(university, profile) : null;
+
+  let weights: CriterionWeights = DEFAULT_WEIGHTS;
+  if (academic.dreamUniversityId === university.id && academic.dreamProgramId) {
+    const evaluationProfile = await getEvaluationProfile(academic.dreamProgramId);
+    if (evaluationProfile) {
+      weights = Object.fromEntries(
+        evaluationProfile.weights.map((w) => [w.criterionKey, w.weight])
+      ) as CriterionWeights;
+    }
+  }
+
+  const match = profile ? predictMatch(university, profile, weights) : null;
 
   return (
     <div className="flex flex-col gap-6">

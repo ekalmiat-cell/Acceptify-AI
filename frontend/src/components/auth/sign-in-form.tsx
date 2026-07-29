@@ -11,6 +11,7 @@ import { Loader2, LogIn } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -25,24 +26,29 @@ import { formatAuthError } from "@/lib/auth-config";
 const schema = z.object({
   email: z.email("Enter a valid email address."),
   password: z.string().min(1, "Enter your password."),
+  rememberMe: z.boolean(),
 });
 
 type SignInValues = z.infer<typeof schema>;
 
-export function SignInForm() {
+export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: string }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", password: "", rememberMe: true },
   });
 
   async function attemptSignIn(values: SignInValues) {
     return authClient.signIn.email({
       email: values.email,
       password: values.password,
-      callbackURL: "/dashboard",
+      // Persistent cookie that survives closing the browser (30 days, see
+      // `session.expiresIn` in lib/auth.ts). Unchecked, the cookie is
+      // session-scoped and disappears with the browser window.
+      rememberMe: values.rememberMe,
+      callbackURL,
     });
   }
 
@@ -57,7 +63,7 @@ export function SignInForm() {
       const repairRes = await fetch("/api/auth-repair", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ email: values.email, password: values.password }),
       }).catch(() => null);
       const repair = await repairRes?.json().catch(() => null);
 
@@ -73,7 +79,7 @@ export function SignInForm() {
     }
 
     toast.success("Welcome back!");
-    router.push("/dashboard");
+    router.push(callbackURL);
   }
 
   return (
@@ -107,7 +113,7 @@ export function SignInForm() {
               <div className="flex items-center justify-between">
                 <FormLabel>Password</FormLabel>
                 <Link
-                  href="/#"
+                  href="/forgot-password"
                   className="text-xs font-medium text-primary hover:underline"
                 >
                   Forgot password?
@@ -123,6 +129,24 @@ export function SignInForm() {
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="rememberMe"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={(checked) => field.onChange(checked === true)}
+                />
+              </FormControl>
+              <FormLabel className="text-sm font-normal text-muted-foreground">
+                Keep me signed in
+              </FormLabel>
             </FormItem>
           )}
         />

@@ -10,6 +10,7 @@ const EMPTY_ACADEMIC_PROFILE: AcademicProfile = {
   toeflScore: null,
   entScore: null,
   dreamUniversityId: null,
+  dreamProgramId: null,
 };
 
 /** The authenticated user's real academic profile from Postgres. Falls back
