@@ -5,7 +5,7 @@
     "dockerfilePath": "backend/Dockerfile"
   },
   "deploy": {
-    "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}",
+    "_comment": "No startCommand on purpose: Railway runs it without a shell, so ${PORT} arrives at uvicorn as a literal string. The Dockerfile's CMD is already wrapped in `sh -c`, which expands it correctly.",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
