@@ -7,6 +7,7 @@ import { isAdminEmail } from "@/lib/admin";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { FloatingCopilot } from "@/components/dashboard/copilot/floating-copilot";
 
 export default async function DashboardLayout({
   children,
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
         <DashboardHeader />
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
       </SidebarInset>
+      <FloatingCopilot />
     </SidebarProvider>
   );
 }
