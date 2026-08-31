@@ -15,6 +15,8 @@ export const metadata: Metadata = {
     "Know your chances. Build your path. Acceptify estimates your admission chance for a specific university and programme, explains the score, and turns the gaps into an action plan.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function LandingPage() {
   const universities = await getUniversities();
 

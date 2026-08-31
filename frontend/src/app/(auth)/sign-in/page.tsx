@@ -6,7 +6,6 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   formatOAuthCallbackError,
-  getConfiguredSocialProviders,
   sanitizeRedirectPath,
 } from "@/lib/auth-config";
 
@@ -24,7 +23,6 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const params = await searchParams;
   const callbackURL = sanitizeRedirectPath(params.redirect);
   const oauthError = formatOAuthCallbackError(params.error);
-  const isGoogleConfigured = getConfiguredSocialProviders().google;
 
   const errorCallbackURL = `/sign-in${
     params.redirect ? `?redirect=${encodeURIComponent(callbackURL)}` : ""
