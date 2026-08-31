@@ -9,14 +9,12 @@ import { GoogleIcon } from "@/components/auth/brand-icons";
 import { formatAuthError } from "@/lib/auth-config";
 
 interface GoogleSignInButtonProps {
-  isConfigured: boolean;
   callbackURL?: string;
   errorCallbackURL?: string;
   buttonText?: string;
 }
 
 export function GoogleSignInButton({
-  isConfigured,
   callbackURL = "/dashboard",
   errorCallbackURL = "/sign-in",
   buttonText = "Continue with Google",

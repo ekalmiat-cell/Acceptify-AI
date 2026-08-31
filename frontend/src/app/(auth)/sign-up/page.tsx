@@ -54,7 +54,6 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
 
       <div className="pt-2">
         <GoogleSignInButton
-          isConfigured={isGoogleConfigured}
           callbackURL={callbackURL}
           errorCallbackURL={errorCallbackURL}
           buttonText="Sign up with Google"
