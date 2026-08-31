@@ -14,6 +14,7 @@ import { getUniversities } from "@/lib/universities-server";
 import { predictMatch } from "@/lib/predict";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
+import { resolveWeightsByUniversity } from "@/lib/weights-server";
 
 export async function RecommendationsList() {
   const [academic, records, universities] = await Promise.all([
@@ -49,10 +50,17 @@ export async function RecommendationsList() {
 
   const profile = toStudentProfileInput(academic, resolveAchievements(records));
 
+  // Same weights the search page and each university's own page use, so a
+  // school recommended here shows the same number when it's opened.
+  const weightsByUniversity = await resolveWeightsByUniversity(
+    academic,
+    universities.map((university) => university.id)
+  );
+
   const recommendations = universities
     .map((university) => ({
       university,
-      ...predictMatch(university, profile),
+      ...predictMatch(university, profile, weightsByUniversity[university.id]),
     }))
     .filter((r) => r.category !== "reach")
     .sort((a, b) => b.score - a.score)

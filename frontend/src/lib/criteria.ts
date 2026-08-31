@@ -53,6 +53,21 @@ export interface EvaluationWeights {
  * `DEFAULT_WEIGHTS` so the two never disagree on what "no program-specific
  * profile" means.
  */
+/**
+ * Fallback levels for the two exams a university may not state a bar for.
+ *
+ * ENT is a national exam read by every Kazakhstani university and no program
+ * in the catalog publishes its own cutoff, so a national competitive level is
+ * what it is genuinely measured against. ACT is different: `University`
+ * carries `actMin`/`actMax`, and this constant is only reached for
+ * universities whose range is missing — see `lib/benchmarks.ts`, which is the
+ * single place either value is consumed. Scoring an ACT against this
+ * constant even where the university published a range (which is what used
+ * to happen) marked a 30 as sub-par at a school asking 26-31.
+ */
+export const ACT_COMPETITIVE_BASELINE = 33;
+export const ENT_COMPETITIVE_BASELINE = 120;
+
 /** Human-readable labels for the academic criteria — achievement criteria
  * get their labels from `data/achievement-catalog.ts` instead, since those
  * are already user-facing strings. */

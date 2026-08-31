@@ -3,8 +3,15 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+// The icon-sizing rule is written as `[&>svg:not(…)]` rather than the
+// `*:[svg:not(…)]` form shadcn ships. They compile to the same thing, but
+// Tailwind emits the `*:` variant of it with the quotes inside the attribute
+// matcher HTML-escaped, and Turbopack then refuses to parse the result
+// ("Invalid value in attribute selector: Delim('&')") — which takes the whole
+// dev server down. `next build` (webpack) tolerates it, so this only ever
+// showed up locally.
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current [&>svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

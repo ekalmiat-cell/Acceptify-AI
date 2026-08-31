@@ -65,7 +65,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
         />
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <FadeIn className="glass-panel flex flex-col gap-8 rounded-3xl p-8">
+          <FadeIn className="glass-panel flex flex-col gap-8 rounded-2xl p-8">
             <DemoSlider
               label="GPA"
               value={gpa}
@@ -105,7 +105,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
             {results.map(({ university, score, category }) => (
               <div
                 key={university.id}
-                className="glass-panel flex items-center gap-4 rounded-2xl p-5"
+                className="glass-panel flex items-center gap-4 rounded-xl p-5"
               >
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xs font-semibold text-white">
                   {university.logoInitials}

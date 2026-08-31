@@ -73,7 +73,7 @@ export default async function DashboardOverviewPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Average match score" value={`${avgScore}%`} icon={Sparkles} accent="brand" />
+        <StatCard label="Average fit score" value={`${avgScore}/100`} icon={Sparkles} accent="brand" />
         <StatCard label="Safe schools" value={String(safeCount)} icon={ShieldCheck} accent="emerald" />
         <StatCard label="Target schools" value={String(targetCount)} icon={Target} accent="amber" />
         <StatCard label="Reach schools" value={String(reachCount)} icon={Flame} accent="rose" />

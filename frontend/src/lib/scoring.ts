@@ -34,11 +34,15 @@ export function computeAdmissionAnalysis(
   const raw = computeScoreBreakdown(university, profile, weights);
   const bucketWeights = computeBreakdownWeights(weights);
 
+  // `null` survives all the way to the UI on purpose — a component that this
+  // program does not assess must read as "not assessed", not as 0%.
+  const round = (value: number | null) => (value == null ? null : Math.round(value));
+
   const breakdown = [
-    { label: "Academic strength", weight: bucketWeights.academicStrength, score: Math.round(raw.academicStrength) },
-    { label: "Activities", weight: bucketWeights.activities, score: Math.round(raw.activities) },
-    { label: "Leadership", weight: bucketWeights.leadership, score: Math.round(raw.leadership) },
-    { label: "Achievements", weight: bucketWeights.achievements, score: Math.round(raw.achievements) },
+    { label: "Academic strength", weight: bucketWeights.academicStrength, score: round(raw.academicStrength) },
+    { label: "Activities", weight: bucketWeights.activities, score: round(raw.activities) },
+    { label: "Leadership", weight: bucketWeights.leadership, score: round(raw.leadership) },
+    { label: "Achievements", weight: bucketWeights.achievements, score: round(raw.achievements) },
   ];
 
   const confidence = Math.round(Math.min(98, Math.max(35, profileCompleteness)));
@@ -47,33 +51,55 @@ export function computeAdmissionAnalysis(
   const weaknesses: string[] = [];
   const recommendations: string[] = [];
 
-  if (raw.academicStrength >= STRONG) {
-    strengths.push("Strong academic profile relative to this university's typical admit.");
-  } else if (raw.academicStrength < WEAK) {
-    weaknesses.push("Academic scores fall below this university's typical range.");
-    recommendations.push("Focus on raising your GPA, SAT, or IELTS score to close the academic gap.");
-  }
+  /**
+   * A component this program does not assess (`null`) yields neither a
+   * strength nor a weakness. Guarding explicitly matters here: `null < 45`
+   * is `true` in JavaScript, so an un-assessed component would otherwise be
+   * reported to the student as a weakness — and generate advice telling them
+   * to fix something that has no bearing on their application.
+   */
+  const appraise = (
+    value: number | null,
+    strong: string,
+    weak: string,
+    advice: string
+  ) => {
+    if (value == null) return;
+    if (value >= STRONG) {
+      strengths.push(strong);
+    } else if (value < WEAK) {
+      weaknesses.push(weak);
+      recommendations.push(advice);
+    }
+  };
 
-  if (raw.activities >= STRONG) {
-    strengths.push("Well-rounded extracurricular activities and competition history.");
-  } else if (raw.activities < WEAK) {
-    weaknesses.push("Limited extracurricular activity on record.");
-    recommendations.push("Join olympiads, hackathons, or clubs to build a broader activity profile.");
-  }
+  appraise(
+    raw.academicStrength,
+    "Strong academic profile relative to this university's typical admit.",
+    "Academic scores fall below this university's typical range.",
+    "Focus on raising your GPA, SAT, or IELTS score to close the academic gap."
+  );
 
-  if (raw.leadership >= STRONG) {
-    strengths.push("Demonstrated leadership experience.");
-  } else if (raw.leadership < WEAK) {
-    weaknesses.push("Little leadership experience recorded.");
-    recommendations.push("Seek leadership roles in clubs, student government, or Model UN.");
-  }
+  appraise(
+    raw.activities,
+    "Well-rounded extracurricular activities and competition history.",
+    "Limited extracurricular activity on record.",
+    "Join olympiads, hackathons, or clubs to build a broader activity profile."
+  );
 
-  if (raw.achievements >= STRONG) {
-    strengths.push("Strong record of research, publications, or community impact.");
-  } else if (raw.achievements < WEAK) {
-    weaknesses.push("Few research, publication, or volunteering credentials on record.");
-    recommendations.push("Pursue a research project, publish your work, or take on volunteer work.");
-  }
+  appraise(
+    raw.leadership,
+    "Demonstrated leadership experience.",
+    "Little leadership experience recorded.",
+    "Seek leadership roles in clubs, student government, or Model UN."
+  );
+
+  appraise(
+    raw.achievements,
+    "Strong record of research, publications, or community impact.",
+    "Few research, publication, or volunteering credentials on record.",
+    "Pursue a research project, publish your work, or take on volunteer work."
+  );
 
   if (strengths.length === 0) {
     strengths.push("A baseline profile is in place — every category has room to grow.");

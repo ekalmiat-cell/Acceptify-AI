@@ -16,7 +16,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UniversityCard } from "@/components/dashboard/university-card";
 import { useDebounce } from "@/hooks/use-debounce";
-import { predictMatch, type StudentProfileInput } from "@/lib/predict";
+import { predictMatch, type CriterionWeights, type StudentProfileInput } from "@/lib/predict";
 import type { MatchCategory, University } from "@/types/domain";
 
 type CategoryFilter = "all" | MatchCategory;
@@ -24,9 +24,17 @@ type CategoryFilter = "all" | MatchCategory;
 export function UniversitySearchView({
   profile,
   universities,
+  weightsByUniversity,
+  declaredField,
 }: {
   profile: StudentProfileInput | null;
   universities: University[];
+  /** Per-university evaluation weights for the student's declared field of
+   * study, keyed by university id. Universities absent from the map are
+   * scored with the platform defaults — resolved server-side so this list
+   * agrees with every other screen (see lib/weights-server.ts). */
+  weightsByUniversity: Record<string, CriterionWeights>;
+  declaredField: string | null;
 }) {
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState("All countries");
@@ -43,38 +51,53 @@ export function UniversitySearchView({
     [universities]
   );
 
-  const results = useMemo(() => {
+  /**
+   * Scored once, then filtered — the score for a university does not depend
+   * on which filters are active, and this list used to be built twice (once
+   * for the cards, once for the tab counts) over the whole catalog.
+   */
+  const matched = useMemo(() => {
     if (!profile) return [];
+
     return universities
       .map((university) => ({
         university,
-        ...predictMatch(university, profile),
+        ...predictMatch(university, profile, weightsByUniversity[university.id]),
       }))
       .filter(({ university }) => {
+        const needle = debouncedQuery.trim().toLowerCase();
         const matchesQuery =
-          debouncedQuery.trim().length === 0 ||
-          university.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-          university.city.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-          university.country.toLowerCase().includes(debouncedQuery.toLowerCase());
+          needle.length === 0 ||
+          university.name.toLowerCase().includes(needle) ||
+          university.city.toLowerCase().includes(needle) ||
+          university.country.toLowerCase().includes(needle);
         const matchesCountry = country === "All countries" || university.country === country;
         const matchesSelectivity =
           selectivity === "All selectivity" || university.selectivityLevel === selectivity;
         return matchesQuery && matchesCountry && matchesSelectivity;
-      })
-      .filter((r) => category === "all" || r.category === category)
-      .sort((a, b) => b.score - a.score);
-  }, [profile, universities, debouncedQuery, country, selectivity, category]);
+      });
+  }, [profile, universities, weightsByUniversity, debouncedQuery, country, selectivity]);
 
-  const counts = useMemo(() => {
-    if (!profile) return { all: 0, safe: 0, target: 0, reach: 0 };
-    const scored = universities.map((u) => predictMatch(u, profile));
-    return {
-      all: scored.length,
-      safe: scored.filter((s) => s.category === "safe").length,
-      target: scored.filter((s) => s.category === "target").length,
-      reach: scored.filter((s) => s.category === "reach").length,
-    };
-  }, [profile, universities]);
+  const results = useMemo(
+    () =>
+      matched
+        .filter((r) => category === "all" || r.category === category)
+        .sort((a, b) => b.score - a.score),
+    [matched, category]
+  );
+
+  // Counts describe what each tab would actually show under the current
+  // search and filters. They used to be taken over the entire catalog, so
+  // searching for one university still advertised "All (13)".
+  const counts = useMemo(
+    () => ({
+      all: matched.length,
+      safe: matched.filter((s) => s.category === "safe").length,
+      target: matched.filter((s) => s.category === "target").length,
+      reach: matched.filter((s) => s.category === "reach").length,
+    }),
+    [matched]
+  );
 
   if (!profile) {
     return (
@@ -112,7 +135,11 @@ export function UniversitySearchView({
           University search
         </h1>
         <p className="text-sm text-muted-foreground">
-          {universities.length} universities — every match score is computed live against your current profile.
+          {universities.length} universities — every estimate is computed live against your current
+          profile
+          {declaredField
+            ? `, using each university's evaluation model for ${declaredField} where one exists.`
+            : ". Choose an intended field of study to have programmes weighted for it."}
         </p>
       </div>
 

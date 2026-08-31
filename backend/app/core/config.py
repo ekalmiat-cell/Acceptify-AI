@@ -26,11 +26,28 @@ class Settings(BaseSettings):
     # Comma-separated in .env, e.g. "http://localhost:3000,https://acceptify.ai"
     cors_origins: Annotated[list[str], NoDecode] = []
 
-    @field_validator("cors_origins", mode="before")
+    # Comma-separated addresses allowed to manage the program catalog and its
+    # evaluation weights. This app has no role table — admin is an allow-list
+    # of email addresses, matched against the `email` claim on the Better Auth
+    # JWT. Empty (the default) means nobody is an admin, so the catalog is
+    # read-only until someone is deliberately named here.
+    admin_emails: Annotated[list[str], NoDecode] = []
+
+    # LLM Provider Configuration
+    llm_provider: str = "gemini"  # "gemini", "openai", "claude", or "mock"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemini-3.7-flash"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-4o-mini"
+    anthropic_api_key: str | None = None
+    anthropic_model: str = "claude-3-5-sonnet-20241022"
+    llm_timeout_seconds: int = 35
+
+    @field_validator("cors_origins", "admin_emails", mode="before")
     @classmethod
-    def split_cors_origins(cls, value: object) -> object:
+    def split_comma_separated(cls, value: object) -> object:
         if isinstance(value, str):
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
+            return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
     @property

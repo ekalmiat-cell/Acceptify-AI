@@ -5,18 +5,20 @@ export const siteConfig = {
     "An AI-powered university admissions platform that helps students plan, build, and submit standout applications.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   marketingNav: [
-    { label: "Features", href: "/#features" },
-    { label: "How it works", href: "/#ai-demo" },
+    { label: "How it works", href: "/#how-it-works" },
+    { label: "What you get", href: "/#features" },
+    { label: "Live demo", href: "/#ai-demo" },
     { label: "Universities", href: "/#universities" },
     { label: "Pricing", href: "/pricing" },
     { label: "FAQ", href: "/#faq" },
   ],
   footerNav: {
     product: [
-      { label: "Features", href: "/#features" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "AI Prediction", href: "/#ai-demo" },
+      { label: "How it works", href: "/#how-it-works" },
+      { label: "What you get", href: "/#features" },
+      { label: "Live demo", href: "/#ai-demo" },
       { label: "Universities", href: "/#universities" },
+      { label: "Pricing", href: "/pricing" },
     ],
     company: [
       { label: "About", href: "/#" },

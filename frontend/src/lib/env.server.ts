@@ -14,6 +14,9 @@ const schema = z.object({
   APPLE_APP_BUNDLE_IDENTIFIER: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
+  /** Comma-separated admin addresses. Must match the backend's own
+   * ADMIN_EMAILS — this side hides the UI, that side enforces it. */
+  ADMIN_EMAILS: z.string().optional(),
 });
 
 /**

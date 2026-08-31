@@ -11,6 +11,7 @@ import {
   toStudentProfileInput,
 } from "@/lib/profile";
 import { getUniversities } from "@/lib/universities-server";
+import { getDeclaredField } from "@/lib/weights-server";
 
 export const metadata: Metadata = {
   title: "Analysis",
@@ -24,6 +25,7 @@ export default async function AnalysisPage() {
     getUniversities(),
   ]);
 
+  const declaredField = await getDeclaredField(academic);
   const achievements = resolveAchievements(records);
   const hasProfile = hasAnyAcademicProfile(academic);
   const profile = hasProfile ? toStudentProfileInput(academic, achievements) : null;
@@ -38,6 +40,7 @@ export default async function AnalysisPage() {
       profileCompleteness={completeness}
       dreamUniversityId={academic.dreamUniversityId}
       dreamProgramId={academic.dreamProgramId}
+      declaredField={declaredField}
     />
   );
 }

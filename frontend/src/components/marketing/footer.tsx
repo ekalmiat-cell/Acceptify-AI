@@ -9,8 +9,10 @@ export function Footer() {
         <div className="flex flex-col gap-4">
           <Logo dark />
           <p className="max-w-xs text-sm leading-relaxed text-white/50">
-            AI-powered admission predictions and application guidance for
-            students applying to universities worldwide.
+            Admission analysis and application strategy for students applying
+            to universities worldwide. Every score is an estimate based on your
+            profile and available university data — never an admission
+            guarantee.
           </p>
           <div className="flex items-center gap-3 pt-2">
             {siteConfig.socials.map((social) => (

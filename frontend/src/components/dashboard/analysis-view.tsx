@@ -20,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MatchBadge } from "@/components/shared/match-badge";
+import { WhatIfPanel } from "@/components/dashboard/what-if-panel";
 import { computeAdmissionAnalysis } from "@/lib/scoring";
 import type { StudentProfileInput } from "@/lib/predict";
 import type { CriterionWeights } from "@/lib/predict";
@@ -40,6 +42,7 @@ export function AnalysisView({
   profileCompleteness,
   dreamUniversityId,
   dreamProgramId,
+  declaredField,
 }: {
   studentName: string;
   studentEmail: string;
@@ -48,6 +51,10 @@ export function AnalysisView({
   profileCompleteness: number;
   dreamUniversityId: string | null;
   dreamProgramId: string | null;
+  /** The student's intended field of study. Used to pick the same
+   * programme's evaluation model that every other screen scores them
+   * against — see lib/weights-server.ts. */
+  declaredField: string | null;
 }) {
   const byCountry = useMemo(() => groupUniversitiesByCountry(universities), [universities]);
 
@@ -60,6 +67,10 @@ export function AnalysisView({
   const [programs, setPrograms] = useState<Program[]>([]);
   const [programId, setProgramId] = useState("");
   const [weights, setWeights] = useState<CriterionWeights>(DEFAULT_WEIGHTS);
+  /** The evaluation model loads after mount. Without this the page rendered
+   * a score computed from the default weights and then silently replaced it
+   * with a different number once the programme's weights arrived. */
+  const [isLoadingModel, setIsLoadingModel] = useState(false);
 
   const universitiesInCountry = byCountry.find((g) => g.country === country)?.universities ?? [];
   const university = universities.find((u) => u.id === universityId) ?? null;
@@ -77,16 +88,38 @@ export function AnalysisView({
       setProgramId("");
       return;
     }
-    fetchPrograms(universityId).then((list) => {
-      if (cancelled) return;
-      setPrograms(list);
-      const preferred = list.find((p) => p.id === dreamProgramId && p.universityId === universityId);
-      setProgramId(preferred?.id ?? list[0]?.id ?? "");
-    });
+
+    setIsLoadingModel(true);
+    fetchPrograms(universityId)
+      .then((list) => {
+        if (cancelled) return;
+        setPrograms(list);
+        /**
+         * Prefer the programme matching the student's declared field of
+         * study. Falling back to `list[0]` — whichever programme happens to
+         * sort first — used to mean opening a university you hadn't declared
+         * a field for silently scored you against an unrelated model.
+         */
+        const declared =
+          list.find((p) => p.id === dreamProgramId) ??
+          (declaredField ? list.find((p) => p.field === declaredField) : undefined);
+        setProgramId(declared?.id ?? "");
+      })
+      .catch(() => {
+        // An unreachable API used to surface as an unhandled rejection.
+        if (cancelled) return;
+        setPrograms([]);
+        setProgramId("");
+        toast.error("Could not load this university's programmes. Showing the default model.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingModel(false);
+      });
+
     return () => {
       cancelled = true;
     };
-  }, [universityId, dreamProgramId]);
+  }, [universityId, dreamProgramId, declaredField]);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,18 +127,25 @@ export function AnalysisView({
       setWeights(DEFAULT_WEIGHTS);
       return;
     }
-    fetchEvaluationProfile(programId).then((evaluationProfile) => {
-      if (cancelled) return;
-      if (!evaluationProfile) {
-        setWeights(DEFAULT_WEIGHTS);
-        return;
-      }
-      const map: CriterionWeights = {};
-      for (const entry of evaluationProfile.weights) {
-        map[entry.criterionKey as keyof CriterionWeights] = entry.weight;
-      }
-      setWeights(map);
-    });
+
+    setIsLoadingModel(true);
+    fetchEvaluationProfile(programId)
+      .then((evaluationProfile) => {
+        if (cancelled) return;
+        if (!evaluationProfile) {
+          setWeights(DEFAULT_WEIGHTS);
+          return;
+        }
+        const map: CriterionWeights = {};
+        for (const entry of evaluationProfile.weights) {
+          map[entry.criterionKey as keyof CriterionWeights] = entry.weight;
+        }
+        setWeights(map);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingModel(false);
+      });
+
     return () => {
       cancelled = true;
     };
@@ -238,7 +278,14 @@ export function AnalysisView({
         </CardContent>
       </Card>
 
-      {analysis && university ? (
+      {isLoadingModel ? (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <Skeleton className="h-64 xl:col-span-1" />
+          <Skeleton className="h-64 xl:col-span-2" />
+        </div>
+      ) : null}
+
+      {!isLoadingModel && analysis && university ? (
         <>
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
             <Card className="flex flex-col items-center justify-center gap-4 py-8 xl:col-span-1">
@@ -259,7 +306,7 @@ export function AnalysisView({
             <Card className="xl:col-span-2">
               <CardHeader>
                 <CardTitle>Score breakdown</CardTitle>
-                <CardDescription>How your admission chance is calculated</CardDescription>
+                <CardDescription>How your fit score is calculated</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {analysis.breakdown.map((item) => (
@@ -268,20 +315,43 @@ export function AnalysisView({
                       <span className="font-medium text-foreground">{item.label}</span>
                       <span className="text-xs text-muted-foreground">{item.weight}% weight</span>
                     </div>
-                    <p className="mt-2 font-heading text-2xl font-semibold text-foreground">
-                      {item.score}%
-                    </p>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-gradient-brand"
-                        style={{ width: `${Math.min(100, item.score)}%` }}
-                      />
-                    </div>
+                    {item.score == null ? (
+                      <>
+                        <p className="mt-2 font-heading text-lg font-medium text-muted-foreground">
+                          Not assessed
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          This programme does not weight this component.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-2 font-heading text-2xl font-semibold text-foreground">
+                          {item.score}%
+                        </p>
+                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-gradient-brand"
+                            style={{ width: `${item.score}%` }}
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))}
               </CardContent>
             </Card>
           </div>
+
+          {/* Keyed on the evaluation model: switching university or programme
+              starts a fresh hypothetical rather than carrying one student's
+              what-if over to a programme that weights it differently. */}
+          <WhatIfPanel
+            key={`${university.id}:${programId}`}
+            university={university}
+            profile={profile}
+            weights={weights}
+          />
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
             <InsightCard
@@ -315,7 +385,7 @@ function PageHeader() {
     <div>
       <h1 className="font-heading text-2xl font-semibold tracking-tight">Admission analysis</h1>
       <p className="text-sm text-muted-foreground">
-        A rule-based breakdown of your admission chance for any university on the platform.
+        A rule-based breakdown of how well your profile fits any university on the platform.
       </p>
     </div>
   );
@@ -343,8 +413,11 @@ function ScoreCircle({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="font-heading text-3xl font-semibold text-foreground">{score}%</span>
-        <span className="text-xs text-muted-foreground">chance</span>
+        <span className="font-heading text-3xl font-semibold text-foreground">{score}</span>
+        {/* Not "chance": this is a fit score out of 100, and labelling it as a
+            probability is the one claim the engine cannot support. See
+            `MatchResult.score` in lib/predict.ts. */}
+        <span className="text-xs text-muted-foreground">fit score / 100</span>
       </div>
     </div>
   );

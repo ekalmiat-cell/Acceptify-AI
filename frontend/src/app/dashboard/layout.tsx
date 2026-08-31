@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/admin";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -20,7 +21,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar isAdmin={isAdminEmail(session.user?.email)} />
       <SidebarInset>
         <DashboardHeader />
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>

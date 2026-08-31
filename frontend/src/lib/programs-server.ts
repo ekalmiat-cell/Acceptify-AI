@@ -1,5 +1,4 @@
 import "server-only";
-import { apiFetchServer } from "@/lib/api-server";
 import { fetchReferenceJson } from "@/lib/api-reference";
 import type { EvaluationProfile, Program } from "@/types/domain";
 
@@ -19,14 +18,21 @@ export async function getAllPrograms(): Promise<Program[]> {
   return fetchReferenceJson<Program[]>("/api/v1/programs", "programs", []);
 }
 
-/** A program's evaluation weights. Returns `null` if the program has no
- * evaluation profile yet — callers should fall back to `DEFAULT_WEIGHTS`. */
+/**
+ * A program's evaluation weights, or `null` when it has none yet — callers
+ * fall back to `DEFAULT_WEIGHTS`.
+ *
+ * Read through the shared reference cache rather than the per-user wrapper:
+ * the endpoint is public (see `get_evaluation_profile` in
+ * backend/app/api/v1/endpoints/programs.py — it takes no user dependency),
+ * the answer is identical for every student, and the search page now needs
+ * one of these per university. A per-user Bearer token would make the cache
+ * key unique per user and turn that into a fresh round trip per navigation.
+ */
 export async function getEvaluationProfile(programId: string): Promise<EvaluationProfile | null> {
-  try {
-    return await apiFetchServer<EvaluationProfile>(
-      `/api/v1/programs/${encodeURIComponent(programId)}/evaluation-profile`
-    );
-  } catch {
-    return null;
-  }
+  return fetchReferenceJson<EvaluationProfile | null>(
+    `/api/v1/programs/${encodeURIComponent(programId)}/evaluation-profile`,
+    "programs",
+    null
+  );
 }

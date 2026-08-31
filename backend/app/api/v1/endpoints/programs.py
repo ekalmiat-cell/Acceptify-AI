@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import delete, select
 
-from app.api.deps import CurrentUserId, DbSession
+from app.api.deps import CurrentAdminId, CurrentUserId, DbSession
 from app.core.criteria import DEFAULT_WEIGHTS
 from app.models.evaluation_profile import EvaluationProfile
 from app.models.evaluation_weight import EvaluationWeight
@@ -66,10 +66,13 @@ async def get_program(program_id: str, db: DbSession) -> Program:
 
 
 @router.post("/programs", response_model=ProgramRead, status_code=status.HTTP_201_CREATED)
-async def create_program(payload: ProgramCreate, _user_id: CurrentUserId, db: DbSession) -> Program:
-    """Admin-facing: this app has no role system yet, so any signed-in user
-    can manage the program catalog — same trust model as every other
-    authenticated write endpoint here.
+async def create_program(
+    payload: ProgramCreate, _admin_id: CurrentAdminId, db: DbSession
+) -> Program:
+    """Admin-only. The program catalog is shared platform data: its evaluation
+    weights decide how every student on the platform is scored, so writing to
+    it is gated on the ADMIN_EMAILS allow-list rather than merely being
+    signed in.
     """
     university = await db.get(University, payload.university_id)
     if university is None:
@@ -94,7 +97,7 @@ async def create_program(payload: ProgramCreate, _user_id: CurrentUserId, db: Db
 
 @router.put("/programs/{program_id}", response_model=ProgramRead)
 async def update_program(
-    program_id: str, payload: ProgramUpdate, _user_id: CurrentUserId, db: DbSession
+    program_id: str, payload: ProgramUpdate, _admin_id: CurrentAdminId, db: DbSession
 ) -> Program:
     program = await _get_program_or_404(program_id, db)
 
@@ -107,7 +110,7 @@ async def update_program(
 
 
 @router.delete("/programs/{program_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_program(program_id: str, _user_id: CurrentUserId, db: DbSession) -> None:
+async def delete_program(program_id: str, _admin_id: CurrentAdminId, db: DbSession) -> None:
     program = await _get_program_or_404(program_id, db)
     result = await db.scalars(
         select(EvaluationProfile).where(EvaluationProfile.program_id == program.id)
@@ -195,10 +198,10 @@ async def get_evaluation_profile(program_id: str, db: DbSession) -> EvaluationPr
 
 @router.put("/programs/{program_id}/evaluation-profile", response_model=EvaluationProfileRead)
 async def upsert_evaluation_profile(
-    program_id: str, payload: EvaluationProfileUpdate, _user_id: CurrentUserId, db: DbSession
+    program_id: str, payload: EvaluationProfileUpdate, _admin_id: CurrentAdminId, db: DbSession
 ) -> EvaluationProfile:
-    """Full replace of the profile's weights — the admin weight editor always
-    sends the complete set of criterion weights on save.
+    """Admin-only. Full replace of the profile's weights — the admin weight
+    editor always sends the complete set of criterion weights on save.
     """
     program = await _get_program_or_404(program_id, db)
 

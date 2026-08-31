@@ -13,6 +13,8 @@ import {
   CreditCard,
   ChartNoAxesCombined,
   ShieldCheck,
+  Layers,
+  FlaskConical,
 } from "lucide-react";
 
 import {
@@ -39,19 +41,36 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Logo } from "@/components/shared/logo";
 import { authClient, useSession } from "@/lib/auth-client";
 
-const navItems = [
+const studentNavItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Universities", href: "/dashboard/universities", icon: Building2 },
   { label: "Analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
+  { label: "AI Essay Reviewer", href: "/dashboard/essays", icon: Sparkles },
+  { label: "Portfolio", href: "/dashboard/portfolio", icon: Layers },
   { label: "Profile", href: "/dashboard/profile", icon: UserRound },
-  { label: "Admin", href: "/dashboard/admin", icon: ShieldCheck },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Methodology", href: "/dashboard/methodology", icon: FlaskConical },
 ];
 
-export function AppSidebar() {
+const adminNavItem = { label: "Admin", href: "/dashboard/admin", icon: ShieldCheck };
+
+const settingsNavItem = { label: "Settings", href: "/dashboard/settings", icon: Settings };
+
+/**
+ * `isAdmin` is resolved on the server (the ADMIN_EMAILS allow-list is not
+ * exposed to the browser) and passed down — see app/dashboard/layout.tsx.
+ * Hiding the link is a convenience only; the route and the API behind it are
+ * both independently gated.
+ */
+export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
+
+  const items = [
+    ...studentNavItems,
+    ...(isAdmin ? [adminNavItem] : []),
+    settingsNavItem,
+  ];
 
   const user = session?.user;
   const initials = getInitials(user?.name ?? user?.email ?? "AA");
@@ -75,7 +94,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {items.map((item) => {
                 const isActive =
                   item.href === "/dashboard"
                     ? pathname === "/dashboard"

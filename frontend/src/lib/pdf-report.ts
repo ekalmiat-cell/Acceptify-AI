@@ -43,7 +43,7 @@ export function downloadAdmissionReport(input: {
 
   y += 28;
   doc.setFontSize(13);
-  doc.text(`Admission chance: ${analysis.score}%  ·  Category: ${capitalize(analysis.category)}  ·  Confidence: ${analysis.confidence}%`, marginX, y);
+  doc.text(`Fit score: ${analysis.score}/100  ·  Category: ${capitalize(analysis.category)}  ·  Confidence: ${analysis.confidence}%`, marginX, y);
 
   y += 32;
   doc.setFontSize(14);
@@ -53,7 +53,10 @@ export function downloadAdmissionReport(input: {
   doc.setFontSize(11);
   doc.setTextColor("#333333");
   for (const item of analysis.breakdown) {
-    doc.text(`${item.label} (${item.weight}% weight): ${item.score}%`, marginX + 8, y);
+    // A component the programme doesn't weight is reported as such rather
+    // than as 0% — see `ScoreBreakdown` in lib/predict.ts.
+    const value = item.score == null ? "Not assessed" : `${item.score}%`;
+    doc.text(`${item.label} (${item.weight}% weight): ${value}`, marginX + 8, y);
     y += 16;
   }
 
@@ -64,7 +67,22 @@ export function downloadAdmissionReport(input: {
     y = writeList(doc, "Weaknesses", analysis.weaknesses, marginX, y);
     y += 12;
   }
-  writeList(doc, "Recommendations", analysis.recommendations, marginX, y);
+  y = writeList(doc, "Recommendations", analysis.recommendations, marginX, y);
+
+  // The report leaves the reader's hands the moment it is downloaded, so the
+  // one claim it must not let them make on our behalf travels with it.
+  y += 16;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor("#777777");
+  doc.text(
+    doc.splitTextToSize(
+      "The fit score measures how closely this profile matches what this programme asks for, weighted by that programme's evaluation model. It is not a probability of admission and is not a guarantee of any outcome.",
+      480
+    ),
+    marginX,
+    y
+  );
 
   doc.save(`acceptify-ai-report-${universityName.toLowerCase().replace(/\s+/g, "-")}.pdf`);
 }

@@ -82,7 +82,7 @@ export function AdminProgramList({
         </h1>
         <p className="text-sm text-muted-foreground">
           Each program has its own evaluation profile — the weights that decide how a student&apos;s
-          profile is scored for admission chance.
+          profile is scored into a fit score.
         </p>
       </div>
 

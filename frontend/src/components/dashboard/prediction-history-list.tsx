@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { MatchBadge } from "@/components/shared/match-badge";
+import { ReportOutcomeMenu } from "@/components/dashboard/report-outcome-menu";
 import { getUniversityById } from "@/lib/universities";
 import type { PredictionHistoryEntry, University } from "@/types/domain";
 
@@ -38,7 +39,7 @@ export function PredictionHistoryList({
       <Card>
         <CardHeader>
           <CardTitle>Prediction history</CardTitle>
-          <CardDescription>Your most recent AI predictions</CardDescription>
+          <CardDescription>Your most recent reports — tell us how they turned out</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
           <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
@@ -62,15 +63,16 @@ export function PredictionHistoryList({
     <Card>
       <CardHeader>
         <CardTitle>Prediction history</CardTitle>
-        <CardDescription>Your most recent AI predictions</CardDescription>
+        <CardDescription>Your most recent reports — tell us how they turned out</CardDescription>
       </CardHeader>
       <CardContent className="px-0">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="pl-4">University</TableHead>
-              <TableHead>Match</TableHead>
+              <TableHead>Fit score</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Outcome</TableHead>
               <TableHead className="pr-4 text-right">Date</TableHead>
             </TableRow>
           </TableHeader>
@@ -94,13 +96,18 @@ export function PredictionHistoryList({
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-sm font-medium">
-                        {entry.matchScore}%
+                        {entry.matchScore}
                       </span>
                       <MatchBadge category={entry.category} showLabel={false} />
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{entry.status}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {/* The one column that can ever tell us whether the score
+                        above it was right — see lib/predictions-client.ts. */}
+                    <ReportOutcomeMenu predictionId={entry.id} outcome={entry.outcome} />
                   </TableCell>
                   <TableCell className="pr-4 text-right text-xs text-muted-foreground">
                     {new Date(entry.createdAt).toLocaleDateString("en-US", {

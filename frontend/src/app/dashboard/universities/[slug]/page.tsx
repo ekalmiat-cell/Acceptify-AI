@@ -32,10 +32,8 @@ import { Button } from "@/components/ui/button";
 import { getUniversityBySlug } from "@/lib/universities";
 import { getUniversities } from "@/lib/universities-server";
 import { predictMatch } from "@/lib/predict";
-import type { CriterionWeights } from "@/lib/predict";
-import { DEFAULT_WEIGHTS } from "@/lib/criteria";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
-import { getEvaluationProfile } from "@/lib/programs-server";
+import { resolveWeightsForUniversity } from "@/lib/weights-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
 
 export async function generateMetadata({
@@ -69,15 +67,11 @@ export default async function UniversityDetailPage({
   const hasProfile = hasAnyAcademicProfile(academic);
   const profile = hasProfile ? toStudentProfileInput(academic, resolveAchievements(records)) : null;
 
-  let weights: CriterionWeights = DEFAULT_WEIGHTS;
-  if (academic.dreamUniversityId === university.id && academic.dreamProgramId) {
-    const evaluationProfile = await getEvaluationProfile(academic.dreamProgramId);
-    if (evaluationProfile) {
-      weights = Object.fromEntries(
-        evaluationProfile.weights.map((w) => [w.criterionKey, w.weight])
-      ) as CriterionWeights;
-    }
-  }
+  // Previously the program's weights were applied only when this happened to
+  // be the student's declared dream university — every other university on
+  // the platform silently fell back to the defaults, and disagreed with what
+  // the analysis page showed for the same school.
+  const weights = await resolveWeightsForUniversity(academic, university.id);
 
   const match = profile ? predictMatch(university, profile, weights) : null;
 

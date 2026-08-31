@@ -78,6 +78,12 @@ export interface EvaluationProfile {
   weights: EvaluationWeightEntry[];
 }
 
+/** What actually happened to an application. `null` until the student tells
+ * us — which, for most applications, is months after the prediction was run.
+ * These are the labels of the calibration set: see the outcome columns on
+ * backend/app/models/prediction.py. */
+export type ApplicationOutcome = "admitted" | "rejected" | "waitlisted" | "withdrawn";
+
 export interface PredictionHistoryEntry {
   id: string;
   universityId: string;
@@ -85,6 +91,34 @@ export interface PredictionHistoryEntry {
   category: MatchCategory;
   createdAt: string;
   status: "Saved" | "Applied" | "Considering" | "Analyzed";
+  outcome: ApplicationOutcome | null;
+  outcomeReportedAt: string | null;
+}
+
+/** One row of the calibration table — of the predictions scored in this band,
+ * how many outcomes came back and how many were admissions. */
+export interface ScoreBandSummary {
+  label: string;
+  minScore: number;
+  maxScore: number;
+  reported: number;
+  admitted: number;
+}
+
+/** Platform-wide outcome totals. Counts only — nothing here identifies a
+ * student or a university. */
+export interface OutcomeSummary {
+  reported: number;
+  admitted: number;
+  rejected: number;
+  waitlisted: number;
+  withdrawn: number;
+  meanScoreAdmitted: number | null;
+  meanScoreRejected: number | null;
+  bands: ScoreBandSummary[];
+  /** False until enough outcomes exist to fit the model against. Rendered as
+   * stated, never quietly rounded up to "calibrated". */
+  isCalibrated: boolean;
 }
 
 /** Static metadata for an achievement type — defines what it is, not
@@ -121,7 +155,9 @@ export interface AdmissionAnalysis {
   breakdown: {
     label: string;
     weight: number;
-    score: number;
+    /** `null` when this program doesn't assess the component at all — must
+     * be rendered as "not assessed", never as 0%. */
+    score: number | null;
   }[];
   strengths: string[];
   weaknesses: string[];
@@ -145,16 +181,6 @@ export interface ResolvedAchievement extends AchievementCatalogItem {
   value: string | null;
   level: string | null;
   progress: number;
-}
-
-export interface Testimonial {
-  id: string;
-  name: string;
-  role: string;
-  university: string;
-  quote: string;
-  initials: string;
-  admitted: boolean;
 }
 
 export interface PricingTier {

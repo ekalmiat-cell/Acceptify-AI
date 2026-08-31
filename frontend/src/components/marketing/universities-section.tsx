@@ -14,17 +14,28 @@ export function UniversitiesSection({ universities }: { universities: University
       <Container className="max-w-7xl">
         <SectionHeading
           eyebrow="University database"
-          title={`${universities.length}+ universities, ready to compare`}
-          description="From globally ranked research universities to fully-funded regional programs — with real rankings, tuition, and requirements."
+          title="Every university, with the numbers that decide"
+          description="Rankings, acceptance rates, tuition, and entry requirements come from the catalog itself — where a value is missing, it says so rather than guessing."
           className="mb-16"
         />
 
+        {featured.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-[#0b1f3a]/15 py-16 text-center">
+            <p className="text-sm font-medium text-[#0b1f3a]">
+              The university catalog is temporarily unavailable
+            </p>
+            <p className="max-w-sm text-sm text-[#4b5468]">
+              Nothing is shown here rather than placeholder universities. Try
+              again in a moment.
+            </p>
+          </div>
+        ) : (
         <FadeInStagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {featured.map((university) => (
             <FadeInStaggerItem key={university.id}>
               <Link
                 href="/sign-in"
-                className="group flex h-full flex-col gap-4 rounded-2xl border border-[#0b1f3a]/10 bg-[#f7f8fa] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#0b1f3a]/15 hover:shadow-xl hover:shadow-[#0b1f3a]/5"
+                className="group flex h-full flex-col gap-4 rounded-xl border border-[#0b1f3a]/10 bg-[#f7f8fa] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0b1f3a]/15 hover:shadow-lg hover:shadow-[#0b1f3a]/5"
               >
                 <div className="flex items-start justify-between">
                   <span
@@ -60,6 +71,7 @@ export function UniversitiesSection({ universities }: { universities: University
             </FadeInStaggerItem>
           ))}
         </FadeInStagger>
+        )}
       </Container>
     </section>
   );

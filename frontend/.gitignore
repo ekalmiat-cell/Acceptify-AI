@@ -14,7 +14,13 @@
 /coverage
 
 # next.js
-/.next/
+# `/.next*` rather than `/.next/`: next.config.ts supports building into a
+# side-by-side directory (NEXT_DIST_DIR=.next-prod) so a production build can
+# run alongside `next dev`. Left untracked-but-visible, Tailwind scans that
+# build output and extracts class candidates out of the prerendered HTML with
+# its quotes HTML-escaped, which produces CSS that Turbopack refuses to parse
+# and takes the dev server down.
+/.next*
 /out/
 
 # production

@@ -81,7 +81,10 @@
   --chart-3: #5470a0;
   --chart-4: #8fa3c4;
   --chart-5: #c7d1e3;
-  --radius: 0.75rem;
+  /* Tightened from 0.75rem: at the old value the `rounded-2xl` cards across
+     the dashboard read closer to pill than panel, which is the single
+     biggest thing separating a consumer app from a professional one. */
+  --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #0a0e14;
   --sidebar-primary: #0b1f3a;
@@ -149,6 +152,12 @@
   html {
     @apply font-sans;
   }
+  /* Keyboard users get a visible focus ring on every interactive element,
+     including the plain <a>/<button> elements outside the shadcn primitives
+     (marketing nav, footer links, achievement toggles). */
+  :focus-visible {
+    @apply outline-ring outline-2 outline-offset-2;
+  }
 }
 
 @layer utilities {
@@ -159,7 +168,7 @@
     background-image:
       radial-gradient(
         ellipse 60% 50% at 50% -10%,
-        color-mix(in oklab, #2f6feb 35%, transparent),
+        color-mix(in oklab, #2f6feb 16%, transparent),
         transparent
       ),
       linear-gradient(
@@ -178,15 +187,19 @@
       48px 48px;
   }
 
+  /* Both of these used to span a wide blue-to-violet ramp, which is the
+     look the brief calls "cheap AI aesthetic". They are kept as utilities
+     (a dozen components reference them) but redefined as a single-hue,
+     low-contrast step — closer to a solid fill with depth than a gradient. */
   .text-gradient-brand {
-    background: linear-gradient(90deg, #7db2ff 0%, #4a8bff 45%, #a78bfa 100%);
+    background: linear-gradient(90deg, #9cc2ff 0%, #4a8bff 100%);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
   }
 
   .bg-gradient-brand {
-    background: linear-gradient(135deg, #2f6feb 0%, #4a8bff 55%, #7db2ff 100%);
+    background: linear-gradient(180deg, #2f6feb 0%, #2159cd 100%);
   }
 
   .glass-panel {
@@ -204,8 +217,8 @@
   }
 
   .shadow-glow-brand {
-    box-shadow: 0 0 0 1px color-mix(in oklab, #4a8bff 25%, transparent),
-      0 8px 40px -8px color-mix(in oklab, #2f6feb 55%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in oklab, #4a8bff 18%, transparent),
+      0 10px 30px -14px color-mix(in oklab, #2f6feb 45%, transparent);
   }
 
   .animate-in-up {

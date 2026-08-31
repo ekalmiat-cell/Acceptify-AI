@@ -12,7 +12,11 @@ const compat = new FlatCompat({
 
 const eslintConfig = defineConfig([
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  // `.next*` rather than `.next`: next.config.ts supports building into a
+  // side-by-side directory (NEXT_DIST_DIR=.next-prod) so a production build
+  // can run alongside `next dev`. Without the wildcard, lint walks into that
+  // build output and reports thousands of errors about generated code.
+  globalIgnores([".next*/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);
 
 export default eslintConfig;

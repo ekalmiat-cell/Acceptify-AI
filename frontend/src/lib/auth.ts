@@ -99,26 +99,7 @@ export const auth = betterAuth({
   database: pgPool,
   trustedOrigins: async (request) => getTrustedOrigins(request),
   emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: false,
-    minPasswordLength: 8,
-    resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
-    /**
-     * Better Auth calls this with a single-use link; opening it redirects the
-     * browser to /reset-password?token=… where the new password is set.
-     * Without a mail provider the link is logged to the server console (and,
-     * in development only, surfaced in the UI) instead of being lost.
-     */
-    sendResetPassword: async ({ user, url }) => {
-      rememberDevLink(user.email, url);
-
-      await sendEmail({
-        to: user.email,
-        subject: `Reset your ${siteConfig.name} password`,
-        text: `Someone asked to reset the password for your ${siteConfig.name} account.\n\nOpen this link within the next hour to choose a new one:\n${url}\n\nIf this wasn't you, ignore this email — your password stays unchanged.`,
-        html: `<p>Someone asked to reset the password for your ${siteConfig.name} account.</p><p><a href="${url}">Choose a new password</a> — the link works for one hour.</p><p>If this wasn't you, ignore this email; your password stays unchanged.</p>`,
-      });
-    },
+    enabled: false,
   },
   socialProviders: {
     ...(getConfiguredSocialProviders().google && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -176,6 +157,17 @@ export const auth = betterAuth({
         issuer: appUrl,
         audience: apiUrl,
         expirationTime: "15m",
+        /**
+         * Better Auth would otherwise put the whole user row on the token.
+         * Pin it to what the backend actually needs: `sub` (set separately
+         * from `user.id`) identifies the row owner, and `email` is what the
+         * ADMIN_EMAILS allow-list is matched against — see
+         * backend/app/core/security.py::get_current_admin_id.
+         */
+        definePayload: ({ user }) => ({
+          id: user.id,
+          email: user.email,
+        }),
       },
     }),
     // Must stay last: lets server actions set session cookies correctly.

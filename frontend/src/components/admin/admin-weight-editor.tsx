@@ -98,7 +98,7 @@ export function AdminWeightEditor({
         </h1>
         <p className="text-sm text-muted-foreground">
           Every admission criterion, weighted specifically for {program.name} at {university.name}.
-          Higher weight = more influence on the predicted admission chance. A weight of 0 means the
+          Higher weight = more influence on the fit score. A weight of 0 means the
           criterion is ignored for this program.
         </p>
       </div>

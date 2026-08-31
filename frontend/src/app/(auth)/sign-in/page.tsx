@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
-import { SocialSection } from "@/components/auth/social-section";
-import { SignInForm } from "@/components/auth/sign-in-form";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   formatOAuthCallbackError,
+  getConfiguredSocialProviders,
   sanitizeRedirectPath,
 } from "@/lib/auth-config";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Sign in | Acceptify AI",
 };
 
 type SignInPageProps = {
@@ -23,45 +22,45 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const params = await searchParams;
   const callbackURL = sanitizeRedirectPath(params.redirect);
   const oauthError = formatOAuthCallbackError(params.error);
+  const isGoogleConfigured = getConfiguredSocialProviders().google;
 
   const errorCallbackURL = `/sign-in${
     params.redirect ? `?redirect=${encodeURIComponent(callbackURL)}` : ""
   }`;
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="mb-8 flex flex-col gap-2 lg:hidden">
+    <div className="w-full max-w-sm space-y-6">
+      <div className="flex flex-col gap-2 lg:hidden">
         <Logo />
       </div>
 
-      <h1 className="font-heading text-2xl font-semibold text-foreground">
-        Welcome back
-      </h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        Sign in to see your latest predictions and saved universities.
-      </p>
+      <div className="space-y-1.5">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
+          Welcome back
+        </h1>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Sign in with your verified Google account to view your admissions predictions and saved universities.
+        </p>
+      </div>
 
       {oauthError ? (
-        <Alert variant="destructive" className="mt-6">
-          <TriangleAlert />
+        <Alert variant="destructive">
+          <TriangleAlert className="h-4 w-4" />
           <AlertDescription>{oauthError}</AlertDescription>
         </Alert>
       ) : null}
 
-      <SocialSection
-        callbackURL={callbackURL}
-        errorCallbackURL={errorCallbackURL}
-      />
-
-      <div className="mt-6">
-        <SignInForm callbackURL={callbackURL} />
+      <div className="pt-2">
+        <GoogleSignInButton
+          isConfigured={isGoogleConfigured}
+          callbackURL={callbackURL}
+          errorCallbackURL={errorCallbackURL}
+          buttonText="Continue with Google"
+        />
       </div>
 
-      <p className="mt-8 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
-        <Link href="/sign-up" className="font-medium text-primary hover:underline">
-          Create one for free
-        </Link>
+      <p className="text-center text-xs text-muted-foreground leading-relaxed pt-4 border-t">
+        By continuing, you agree to Acceptify AI&apos;s Terms of Service and Privacy Policy.
       </p>
     </div>
   );

@@ -3,9 +3,9 @@ import type { FaqItem } from "@/types/domain";
 export const faqItems: FaqItem[] = [
   {
     id: "faq-1",
-    question: "How does Acceptify AI predict my admission chances?",
+    question: "How does Acceptify estimate my admission chances?",
     answer:
-      "We combine your academic profile — GPA, standardized test scores, and achievement categories like olympiads, research, and leadership — with each university's historical acceptance data and stated requirements. The result is a match score and a Safe / Target / Reach classification for every school you compare.",
+      "Your academic profile — GPA, standardized test scores, and achievement categories like olympiads, research, and leadership — is scored against each university's stated requirements and acceptance rate, using the evaluation weights set for the specific programme you intend to apply for. The result is a fit score out of 100 — how closely you match what that programme asks for, not a probability of being admitted — and a Reach / Target / Safe classification. The calculation is deterministic and fully explainable: you can see every category's contribution.",
   },
   {
     id: "faq-2",
@@ -17,13 +17,13 @@ export const faqItems: FaqItem[] = [
     id: "faq-3",
     question: "Which achievement categories actually move my score?",
     answer:
-      "Academic categories (GPA, standardized tests, UNT) carry the most weight, followed by competitive achievements like olympiads, research, and hackathons. Activities and talents (MUN, debate, sports, music, art) provide smaller but meaningful boosts, especially for holistic-review universities.",
+      "It depends on the programme. Each field of study has its own weighting, so what matters for Computer Science is not what matters for Medicine. In general academic categories (GPA, standardized tests, ENT) carry the most weight, followed by competitive achievements like olympiads, research, and hackathons, with activities and talents (MUN, debate, sports, music, art) contributing smaller amounts. Your analysis shows the exact weight applied to each category.",
   },
   {
     id: "faq-4",
-    question: "Can I use Acceptify AI for universities outside the US?",
+    question: "Can I use Acceptify for universities outside the US?",
     answer:
-      "Yes. Our university database spans the US, UK, Canada, Europe, Asia, Australia, and Kazakhstan, with country-specific requirements like UNT scores and English proficiency thresholds built in.",
+      "Yes. The catalog currently covers the United States, United Kingdom, Canada, Switzerland, Singapore, Japan, Australia, and Kazakhstan, with country-specific inputs like the ENT and English proficiency thresholds built in. It grows over time — if a university is not listed yet, its data is simply not there rather than estimated.",
   },
   {
     id: "faq-5",

@@ -76,7 +76,7 @@ export function Navbar() {
                 render={<Link href="/sign-up" />}
                 className="bg-gradient-brand text-white shadow-glow-brand hover:opacity-90"
               >
-                Get started free
+                Check My Chances
               </Button>
             </>
           )}
@@ -123,7 +123,7 @@ export function Navbar() {
                     Sign in
                   </Button>
                   <Button render={<Link href="/sign-up" />} className="bg-gradient-brand text-white">
-                    Get started free
+                    Check My Chances
                   </Button>
                 </>
               )}

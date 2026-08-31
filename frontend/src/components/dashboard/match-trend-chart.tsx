@@ -44,7 +44,7 @@ export function MatchTrendChart({
       <Card>
         <CardHeader>
           <CardTitle>Match score trend</CardTitle>
-          <CardDescription>Your predicted chances over time</CardDescription>
+          <CardDescription>Your fit scores over time</CardDescription>
         </CardHeader>
         <CardContent className="flex h-64 items-center justify-center text-center">
           <p className="text-sm text-muted-foreground">
@@ -59,7 +59,7 @@ export function MatchTrendChart({
     <Card>
       <CardHeader>
         <CardTitle>Match score trend</CardTitle>
-        <CardDescription>Your predicted chances over your last {data.length} predictions</CardDescription>
+        <CardDescription>Your fit scores over your last {data.length} predictions</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">

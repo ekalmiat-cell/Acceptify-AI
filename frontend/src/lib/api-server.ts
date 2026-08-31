@@ -1,10 +1,20 @@
 import "server-only";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { env } from "@/lib/env.server";
 import { requestJson } from "@/lib/api-request";
 
-async function getBearerToken(): Promise<string | null> {
+/**
+ * Mints one short-lived JWT per server request rather than one per API call.
+ *
+ * A dashboard render makes several backend calls; each used to sign its own
+ * token, and because every token differs, each outgoing fetch also carried a
+ * different `Authorization` header — which defeated Next's request
+ * memoization on top of the redundant signing. One token per request is both
+ * cheaper and what makes deduplication upstream actually possible.
+ */
+const getBearerToken = cache(async (): Promise<string | null> => {
   try {
     const headersList = await headers();
     // `session.token` is Better Auth's own opaque session token — the
@@ -15,7 +25,7 @@ async function getBearerToken(): Promise<string | null> {
   } catch {
     return null;
   }
-}
+});
 
 /**
  * Server-side counterpart to lib/api-client.ts, for use in server
