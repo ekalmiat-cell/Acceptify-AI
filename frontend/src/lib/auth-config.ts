@@ -12,9 +12,7 @@ export type SocialProvidersConfig = Record<SocialProvider, boolean>;
  */
 export function getConfiguredSocialProviders(): SocialProvidersConfig {
   return {
-    google: Boolean(
-      process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
-    ),
+    google: true,
     apple: Boolean(
       process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET,
     ),

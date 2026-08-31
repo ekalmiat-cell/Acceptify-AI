@@ -91,6 +91,9 @@ const getTrustedOrigins = async (request?: Request) => {
  * the JWKS endpoint (`GET /api/auth/jwks`) exposed by this same instance.
  * See backend/app/core/security.py for the verification side.
  */
+const googleClientId = process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET;
+
 export const auth = betterAuth({
   appName: siteConfig.name,
   baseURL: betterAuthUrl,
@@ -101,15 +104,11 @@ export const auth = betterAuth({
     enabled: false,
   },
   socialProviders: {
-    ...(((process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID) &&
-      (process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET))
+    ...(googleClientId && googleClientSecret
       ? {
           google: {
-            clientId: (process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID)!,
-            clientSecret: (process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET)!,
-            // Always let people choose which Google account to use instead of
-            // silently reusing whichever one the browser is already signed in
-            // to.
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
             prompt: "select_account" as const,
           },
         }
