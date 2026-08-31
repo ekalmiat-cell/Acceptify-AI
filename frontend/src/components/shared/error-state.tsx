@@ -40,11 +40,9 @@ export function ErrorState({
           : "This page hit an unexpected error. Trying again usually clears it."}
       </p>
 
-      {process.env.NODE_ENV === "development" ? (
-        <p className="mt-3 max-w-md break-words rounded-md bg-muted px-3 py-2 text-left font-mono text-xs text-muted-foreground">
-          {error.message}
-        </p>
-      ) : null}
+      <p className="mt-3 max-w-md break-words rounded-md bg-muted px-3 py-2 text-left font-mono text-xs text-muted-foreground">
+        {error.message || `Error digest: ${error.digest ?? "unknown"}`}
+      </p>
 
       <Button className="mt-6 h-10" onClick={reset}>
         <RefreshCw />
