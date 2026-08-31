@@ -7,10 +7,29 @@ import { env } from "@/lib/env.server";
 import { siteConfig } from "@/config/site";
 import { getConfiguredSocialProviders } from "@/lib/auth-config";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const betterAuthUrl = process.env.BETTER_AUTH_URL || appUrl;
-const betterAuthSecret = process.env.BETTER_AUTH_SECRET || "dev-secret-change-me-immediately";
+const vercelDomain =
+  process.env.NEXT_PUBLIC_VERCEL_URL ||
+  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+  process.env.VERCEL_URL ||
+  "acceptify-ai-iylh.vercel.app";
+
+const defaultProductionUrl = `https://${vercelDomain}`;
+
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL ? defaultProductionUrl : "http://localhost:3000");
+
+const apiUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.VERCEL ? "http://localhost:8000" : "http://localhost:8000");
+
+const betterAuthUrl =
+  process.env.BETTER_AUTH_URL ||
+  (process.env.VERCEL ? defaultProductionUrl : appUrl);
+
+const betterAuthSecret =
+  process.env.BETTER_AUTH_SECRET ||
+  "ObnZRn3DSi4S3h2yppqq4k38PNuabR1T5AXDgbzREsI=";
 
 const getTrustedOrigins = async (request?: Request) => {
   const origins = new Set<string>();

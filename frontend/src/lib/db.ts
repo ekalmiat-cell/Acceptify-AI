@@ -15,6 +15,11 @@ export const pgPool =
   globalForDb.pgPool ??
   new Pool({
     connectionString: env.DATABASE_URL,
+    ssl:
+      env.DATABASE_URL.includes("neon.tech") ||
+      env.DATABASE_URL.includes("sslmode=require")
+        ? { rejectUnauthorized: false }
+        : undefined,
   });
 
 if (process.env.NODE_ENV !== "production") {
