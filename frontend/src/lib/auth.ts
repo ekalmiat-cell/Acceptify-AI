@@ -91,8 +91,22 @@ const getTrustedOrigins = async (request?: Request) => {
  * the JWKS endpoint (`GET /api/auth/jwks`) exposed by this same instance.
  * See backend/app/core/security.py for the verification side.
  */
-const googleClientId = process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET;
+function cleanEnv(val?: string | null): string | undefined {
+  if (!val) return undefined;
+  const trimmed = val.trim().replace(/^["']|["']$/g, "");
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+const googleClientId =
+  cleanEnv(process.env.GOOGLE_CLIENT_ID) ||
+  cleanEnv(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) ||
+  cleanEnv(process.env.GOOGLE_ID) ||
+  cleanEnv(env.GOOGLE_CLIENT_ID);
+
+const googleClientSecret =
+  cleanEnv(process.env.GOOGLE_CLIENT_SECRET) ||
+  cleanEnv(process.env.GOOGLE_SECRET) ||
+  cleanEnv(env.GOOGLE_CLIENT_SECRET);
 
 export const auth = betterAuth({
   appName: siteConfig.name,
