@@ -101,11 +101,12 @@ export const auth = betterAuth({
     enabled: false,
   },
   socialProviders: {
-    ...(getConfiguredSocialProviders().google && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+    ...(((process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID) &&
+      (process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET))
       ? {
           google: {
-            clientId: env.GOOGLE_CLIENT_ID,
-            clientSecret: env.GOOGLE_CLIENT_SECRET,
+            clientId: (process.env.GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID)!,
+            clientSecret: (process.env.GOOGLE_CLIENT_SECRET || env.GOOGLE_CLIENT_SECRET)!,
             // Always let people choose which Google account to use instead of
             // silently reusing whichever one the browser is already signed in
             // to.

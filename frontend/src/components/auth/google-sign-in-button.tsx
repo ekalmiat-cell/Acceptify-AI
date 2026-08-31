@@ -24,13 +24,6 @@ export function GoogleSignInButton({
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleGoogleSignIn() {
-    if (!isConfigured) {
-      toast.error(
-        "Google Sign-In is not configured yet. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your environment variables."
-      );
-      return;
-    }
-
     setIsLoading(true);
     try {
       const { error, data } = await authClient.signIn.social({

@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: "Create your account | Acceptify AI",
 };
 
+export const dynamic = "force-dynamic";
+
 type SignUpPageProps = {
   searchParams: Promise<{ redirect?: string; error?: string }>;
 };

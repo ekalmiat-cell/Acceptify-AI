@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: "Sign in | Acceptify AI",
 };
 
+export const dynamic = "force-dynamic";
+
 type SignInPageProps = {
   searchParams: Promise<{ redirect?: string; error?: string }>;
 };
