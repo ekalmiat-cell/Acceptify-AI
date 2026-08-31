@@ -29,9 +29,14 @@ const INITIAL_SUGGESTIONS = [
 ];
 
 export function FloatingCopilot() {
+  const [mounted, setMounted] = useState(false);
   const [corner, setCorner] = useState<Corner>("bottom-right");
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -131,6 +136,8 @@ export function FloatingCopilot() {
 
   const isLeftCorner = corner.includes("left");
   const isTopCorner = corner.includes("top");
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed z-50 pointer-events-none inset-0 overflow-hidden">

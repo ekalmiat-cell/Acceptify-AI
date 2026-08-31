@@ -29,23 +29,37 @@ export default async function DashboardOverviewPage() {
     getAchievementRecords(),
     getUniversities(),
   ]);
+  const safeAcademic = academic ?? {
+    gpa: null,
+    satScore: null,
+    actScore: null,
+    ieltsScore: null,
+    toeflScore: null,
+    entScore: null,
+    dreamUniversityId: null,
+    dreamProgramId: null,
+  };
+  const safePredictions = Array.isArray(predictionHistory) ? predictionHistory : [];
+  const safeAchievements = Array.isArray(achievementRecords) ? achievementRecords : [];
+  const safeUniversities = Array.isArray(universities) ? universities : [];
+
   const firstName = session?.user?.name?.split(" ")[0] ?? "there";
 
   const profileCompleteness = computeProfileCompleteness(
-    academic,
-    resolveAchievements(achievementRecords)
+    safeAcademic,
+    resolveAchievements(safeAchievements)
   );
-  const dreamUniversity = academic.dreamUniversityId
-    ? (getUniversityById(universities, academic.dreamUniversityId) ?? null)
+  const dreamUniversity = safeAcademic.dreamUniversityId
+    ? (getUniversityById(safeUniversities, safeAcademic.dreamUniversityId) ?? null)
     : null;
 
-  const safeCount = predictionHistory.filter((p) => p.category === "safe").length;
-  const targetCount = predictionHistory.filter((p) => p.category === "target").length;
-  const reachCount = predictionHistory.filter((p) => p.category === "reach").length;
+  const safeCount = safePredictions.filter((p) => p.category === "safe").length;
+  const targetCount = safePredictions.filter((p) => p.category === "target").length;
+  const reachCount = safePredictions.filter((p) => p.category === "reach").length;
   const avgScore =
-    predictionHistory.length > 0
+    safePredictions.length > 0
       ? Math.round(
-          predictionHistory.reduce((sum, p) => sum + p.matchScore, 0) / predictionHistory.length
+          safePredictions.reduce((sum, p) => sum + p.matchScore, 0) / safePredictions.length
         )
       : 0;
 
@@ -81,14 +95,14 @@ export default async function DashboardOverviewPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <MatchTrendChart predictions={predictionHistory} />
+          <MatchTrendChart predictions={safePredictions} />
         </div>
         <ProfileProgressCard />
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="xl:col-span-2">
-          <PredictionHistoryList predictions={predictionHistory} universities={universities} />
+          <PredictionHistoryList predictions={safePredictions} universities={safeUniversities} />
         </div>
         <RecommendationsList />
       </div>
