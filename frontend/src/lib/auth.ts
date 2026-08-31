@@ -6,7 +6,6 @@ import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { siteConfig } from "@/config/site";
 import { getConfiguredSocialProviders } from "@/lib/auth-config";
-import { rememberDevLink, sendEmail } from "@/lib/email";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";

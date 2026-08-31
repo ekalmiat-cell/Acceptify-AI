@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Sparkles,
   RotateCcw,
   Copy,
   Check,

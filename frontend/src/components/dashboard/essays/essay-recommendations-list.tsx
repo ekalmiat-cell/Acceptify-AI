@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckSquare, ArrowRight, ListChecks, ArrowUpCircle } from "lucide-react";
+import { ListChecks, ArrowUpCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ActionableRecommendation } from "@/types/essay";

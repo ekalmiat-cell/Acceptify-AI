@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, FileText, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EssayInputForm } from "@/components/dashboard/essays/essay-input-form";
 import { EssayLoadingState } from "@/components/dashboard/essays/essay-loading-state";
