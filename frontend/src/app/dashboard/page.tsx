@@ -83,7 +83,7 @@ export default async function DashboardOverviewPage() {
       <QuickStatusRow
         profileCompleteness={profileCompleteness}
         dreamUniversity={dreamUniversity}
-        reportsCount={predictionHistory.length}
+        reportsCount={safePredictions.length}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

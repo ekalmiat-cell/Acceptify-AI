@@ -7,8 +7,9 @@ const ACADEMIC_FIELD_COUNT = 6;
 
 /** Merges the static achievement catalog with a user's real records. Items
  * the user hasn't filled in render as not-yet-achieved. */
-export function resolveAchievements(records: AchievementRecord[]): ResolvedAchievement[] {
-  const byKey = new Map(records.map((r) => [r.key, r]));
+export function resolveAchievements(records?: AchievementRecord[] | null): ResolvedAchievement[] {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const byKey = new Map(safeRecords.map((r) => [r.key, r]));
 
   return achievementCatalog.map((item) => {
     const record = byKey.get(item.id);
@@ -22,7 +23,8 @@ export function resolveAchievements(records: AchievementRecord[]): ResolvedAchie
   });
 }
 
-function countFilledAcademicFields(academic: AcademicProfile): number {
+function countFilledAcademicFields(academic?: AcademicProfile | null): number {
+  if (!academic) return 0;
   return [
     academic.gpa,
     academic.satScore,
@@ -36,22 +38,24 @@ function countFilledAcademicFields(academic: AcademicProfile): number {
 /** Percentage of the profile (academic fields + achievements) that's
  * actually been filled in — computed from real data, never fabricated. */
 export function computeProfileCompleteness(
-  academic: AcademicProfile,
-  achievements: ResolvedAchievement[]
+  academic?: AcademicProfile | null,
+  achievements?: ResolvedAchievement[] | null
 ): number {
-  const total = ACADEMIC_FIELD_COUNT + achievements.length;
+  const safeAchievements = Array.isArray(achievements) ? achievements : [];
+  const total = ACADEMIC_FIELD_COUNT + safeAchievements.length;
   if (total === 0) return 0;
 
-  const filled = countFilledAcademicFields(academic) + achievements.filter((a) => a.achieved).length;
+  const filled = countFilledAcademicFields(academic) + safeAchievements.filter((a) => a.achieved).length;
   return Math.round((filled / total) * 100);
 }
 
 /** Per-group {achieved, total} tallies for the academic fields plus each
  * achievement catalog group. */
 export function computeGroupProgress(
-  academic: AcademicProfile,
-  achievements: ResolvedAchievement[]
+  academic?: AcademicProfile | null,
+  achievements?: ResolvedAchievement[] | null
 ): { group: string; achieved: number; total: number }[] {
+  const safeAchievements = Array.isArray(achievements) ? achievements : [];
   const groups = Array.from(new Set(achievementCatalog.map((item) => item.group)));
 
   return [
@@ -61,7 +65,7 @@ export function computeGroupProgress(
       total: ACADEMIC_FIELD_COUNT,
     },
     ...groups.map((group) => {
-      const items = achievements.filter((a) => a.group === group);
+      const items = safeAchievements.filter((a) => a.group === group);
       return {
         group,
         achieved: items.filter((a) => a.achieved).length,
@@ -75,26 +79,27 @@ export function computeGroupProgress(
  * prediction engine renormalizes over whichever signals are present, so a
  * profile with e.g. only an ENT score already produces a real (if
  * lower-confidence) analysis instead of being blocked entirely. */
-export function hasAnyAcademicProfile(academic: AcademicProfile): boolean {
+export function hasAnyAcademicProfile(academic?: AcademicProfile | null): boolean {
   return countFilledAcademicFields(academic) > 0;
 }
 
 export function toStudentProfileInput(
-  academic: AcademicProfile,
-  achievements: ResolvedAchievement[]
+  academic?: AcademicProfile | null,
+  achievements?: ResolvedAchievement[] | null
 ): StudentProfileInput {
+  const safeAchievements = Array.isArray(achievements) ? achievements : [];
   const achievedMap: Partial<Record<AchievementCriterionKey, boolean>> = {};
-  for (const achievement of achievements) {
+  for (const achievement of safeAchievements) {
     achievedMap[achievement.id as AchievementCriterionKey] = achievement.achieved;
   }
 
   return {
-    gpa: academic.gpa,
-    satScore: academic.satScore,
-    actScore: academic.actScore,
-    ieltsScore: academic.ieltsScore,
-    toeflScore: academic.toeflScore,
-    entScore: academic.entScore,
+    gpa: academic?.gpa ?? null,
+    satScore: academic?.satScore ?? null,
+    actScore: academic?.actScore ?? null,
+    ieltsScore: academic?.ieltsScore ?? null,
+    toeflScore: academic?.toeflScore ?? null,
+    entScore: academic?.entScore ?? null,
     achievements: achievedMap,
   };
 }
