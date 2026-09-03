@@ -17,30 +17,49 @@ export const metadata: Metadata = {
   title: "Analysis",
 };
 
-export default async function AnalysisPage() {
-  const [session, academic, records, universities] = await Promise.all([
+export default async function AnalysisPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ universityId?: string; university?: string }>;
+}) {
+  const [resolvedParams, session, academic, records, universities] = await Promise.all([
+    searchParams ? searchParams : Promise.resolve(undefined),
     auth.api.getSession({ headers: await headers() }),
     getAcademicProfile(),
     getAchievementRecords(),
     getUniversities(),
   ]);
 
-  const declaredField = await getDeclaredField(academic);
+  const safeAcademic = academic ?? {
+    gpa: null,
+    satScore: null,
+    actScore: null,
+    ieltsScore: null,
+    toeflScore: null,
+    entScore: null,
+    dreamUniversityId: null,
+    dreamProgramId: null,
+  };
+  const safeUniversities = Array.isArray(universities) ? universities : [];
+  const initialUniversityId = resolvedParams?.universityId || resolvedParams?.university || null;
+
+  const declaredField = await getDeclaredField(safeAcademic);
   const achievements = resolveAchievements(records);
-  const hasProfile = hasAnyAcademicProfile(academic);
-  const profile = hasProfile ? toStudentProfileInput(academic, achievements) : null;
-  const completeness = computeProfileCompleteness(academic, achievements);
+  const hasProfile = hasAnyAcademicProfile(safeAcademic);
+  const profile = hasProfile ? toStudentProfileInput(safeAcademic, achievements) : null;
+  const completeness = computeProfileCompleteness(safeAcademic, achievements);
 
   return (
     <AnalysisView
       studentName={session?.user?.name ?? "Your name"}
       studentEmail={session?.user?.email ?? ""}
-      universities={universities}
+      universities={safeUniversities}
       profile={profile}
       profileCompleteness={completeness}
-      dreamUniversityId={academic.dreamUniversityId}
-      dreamProgramId={academic.dreamProgramId}
+      dreamUniversityId={safeAcademic.dreamUniversityId}
+      dreamProgramId={safeAcademic.dreamProgramId}
       declaredField={declaredField}
+      initialUniversityId={initialUniversityId}
     />
   );
 }

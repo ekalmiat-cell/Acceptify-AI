@@ -43,6 +43,7 @@ export function AnalysisView({
   dreamUniversityId,
   dreamProgramId,
   declaredField,
+  initialUniversityId,
 }: {
   studentName: string;
   studentEmail: string;
@@ -55,11 +56,15 @@ export function AnalysisView({
    * programme's evaluation model that every other screen scores them
    * against — see lib/weights-server.ts. */
   declaredField: string | null;
+  initialUniversityId?: string | null;
 }) {
   const byCountry = useMemo(() => groupUniversitiesByCountry(universities), [universities]);
 
-  const defaultId = dreamUniversityId ?? universities[0]?.id ?? "";
-  const defaultCountry = universities.find((u) => u.id === defaultId)?.country ?? "";
+  const targetUniv = initialUniversityId
+    ? universities.find((u) => u.id === initialUniversityId || u.slug === initialUniversityId)
+    : null;
+  const defaultId = targetUniv?.id ?? dreamUniversityId ?? universities[0]?.id ?? "";
+  const defaultCountry = targetUniv?.country ?? universities.find((u) => u.id === defaultId)?.country ?? "";
   const [country, setCountry] = useState(defaultCountry);
   const [universityId, setUniversityId] = useState(defaultId);
   const [isSaving, setIsSaving] = useState(false);
@@ -151,32 +156,24 @@ export function AnalysisView({
     };
   }, [programId]);
 
-  const analysis = useMemo(() => {
-    if (!profile || !university) return null;
-    return computeAdmissionAnalysis(university, profile, profileCompleteness, weights);
-  }, [profile, university, profileCompleteness, weights]);
+  const effectiveProfile: StudentProfileInput = useMemo(
+    () =>
+      profile ?? {
+        gpa: null,
+        satScore: null,
+        actScore: null,
+        ieltsScore: null,
+        toeflScore: null,
+        entScore: null,
+        achievements: {},
+      },
+    [profile]
+  );
 
-  if (!profile) {
-    return (
-      <div className="flex flex-col gap-6">
-        <PageHeader />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
-          <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Sparkles className="size-5" />
-          </span>
-          <div>
-            <p className="text-sm font-medium text-foreground">Complete your profile first</p>
-            <p className="text-xs text-muted-foreground">
-              Add at least one academic score (GPA, SAT, IELTS, TOEFL, ACT, or ENT) to run an admission analysis.
-            </p>
-          </div>
-          <Button render={<Link href="/dashboard/profile" />} size="sm" className="mt-1">
-            Complete your profile
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const analysis = useMemo(() => {
+    if (!university) return null;
+    return computeAdmissionAnalysis(university, effectiveProfile, profileCompleteness, weights);
+  }, [effectiveProfile, university, profileCompleteness, weights]);
 
   async function handleSaveReport() {
     if (!analysis || !university) return;
@@ -208,6 +205,27 @@ export function AnalysisView({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader />
+
+      {!profile && (
+        <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Sparkles className="size-4" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Simulating baseline analysis
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Your profile has no saved academic scores yet. You can explore universities, program criteria, and use the What-If simulator below to test different GPA and test scores.
+              </p>
+            </div>
+          </div>
+          <Button render={<Link href="/dashboard/profile" />} size="sm" variant="outline" className="shrink-0">
+            Fill profile
+          </Button>
+        </div>
+      )}
 
       <Card>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -349,7 +367,7 @@ export function AnalysisView({
           <WhatIfPanel
             key={`${university.id}:${programId}`}
             university={university}
-            profile={profile}
+            profile={effectiveProfile}
             weights={weights}
           />
 

@@ -57,13 +57,22 @@ export function UniversitySearchView({
    * for the cards, once for the tab counts) over the whole catalog.
    */
   const matched = useMemo(() => {
-    if (!profile) return [];
-
     return universities
-      .map((university) => ({
-        university,
-        ...predictMatch(university, profile, weightsByUniversity[university.id]),
-      }))
+      .map((university) => {
+        if (profile) {
+          const prediction = predictMatch(university, profile, weightsByUniversity[university.id]);
+          return {
+            university,
+            score: prediction.score as number | null,
+            category: prediction.category as MatchCategory | null,
+          };
+        }
+        return {
+          university,
+          score: null,
+          category: null,
+        };
+      })
       .filter(({ university }) => {
         const needle = debouncedQuery.trim().toLowerCase();
         const matchesQuery =
@@ -82,13 +91,17 @@ export function UniversitySearchView({
     () =>
       matched
         .filter((r) => category === "all" || r.category === category)
-        .sort((a, b) => b.score - a.score),
+        .sort((a, b) => {
+          if (a.score !== null && b.score !== null) {
+            return b.score - a.score;
+          }
+          return a.university.worldRanking - b.university.worldRanking;
+        }),
     [matched, category]
   );
 
   // Counts describe what each tab would actually show under the current
-  // search and filters. They used to be taken over the entire catalog, so
-  // searching for one university still advertised "All (13)".
+  // search and filters.
   const counts = useMemo(
     () => ({
       all: matched.length,
@@ -99,37 +112,29 @@ export function UniversitySearchView({
     [matched]
   );
 
-  if (!profile) {
-    return (
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            University search
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Every match score is computed live against your current profile.
-          </p>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
-          <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <Sparkles className="size-5" />
-          </span>
-          <div>
-            <p className="text-sm font-medium text-foreground">Complete your profile first</p>
-            <p className="text-xs text-muted-foreground">
-              Add at least one academic score (GPA, SAT, IELTS, TOEFL, ACT, or ENT) to see match scores for every university.
-            </p>
-          </div>
-          <Button render={<Link href="/dashboard/profile" />} size="sm" className="mt-1">
-            Complete your profile
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-6">
+      {!profile && (
+        <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Sparkles className="size-4" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Personalized match scores require an academic profile
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Add your GPA, SAT, IELTS, or other scores to calculate exact admission odds. You can still explore all universities and run what-if analyses below.
+              </p>
+            </div>
+          </div>
+          <Button render={<Link href="/dashboard/profile" />} size="sm" variant="outline" className="shrink-0">
+            Complete profile
+          </Button>
+        </div>
+      )}
+
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           University search
