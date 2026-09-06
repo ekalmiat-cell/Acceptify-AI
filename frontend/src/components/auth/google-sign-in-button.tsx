@@ -32,6 +32,7 @@ export function GoogleSignInButton({
       });
 
       if (error) {
+        console.error("Google sign in auth error:", error);
         toast.error(formatAuthError(error.message, "Could not sign in with Google."));
         setIsLoading(false);
         return;

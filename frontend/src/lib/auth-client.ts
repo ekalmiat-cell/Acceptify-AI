@@ -4,8 +4,15 @@ import { createAuthClient } from "better-auth/react";
 import { jwtClient } from "better-auth/client/plugins";
 import { clientEnv } from "@/lib/env.client";
 
+const getBaseURL = () => {
+  if (typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
+  }
+  return clientEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+};
+
 export const authClient = createAuthClient({
-  baseURL: clientEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, ""),
+  baseURL: getBaseURL(),
   plugins: [jwtClient()],
 });
 

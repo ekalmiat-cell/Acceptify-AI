@@ -11,7 +11,7 @@ const vercelDomain =
   process.env.NEXT_PUBLIC_VERCEL_URL ||
   process.env.VERCEL_PROJECT_PRODUCTION_URL ||
   process.env.VERCEL_URL ||
-  "acceptify-ai-iylh.vercel.app";
+  "acceptify-ai.vercel.app";
 
 const defaultProductionUrl = `https://${vercelDomain}`;
 
@@ -94,6 +94,8 @@ const getTrustedOrigins = async (request?: Request) => {
     "https://localhost:3001",
     "https://127.0.0.1:3001",
     "https://0.0.0.0:3001",
+    "https://acceptify-ai.vercel.app",
+    "https://acceptify-ai-iylh.vercel.app",
   ].forEach((origin) => origins.add(origin));
 
   return Array.from(origins);
