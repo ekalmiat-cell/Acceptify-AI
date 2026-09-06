@@ -98,7 +98,7 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                 const isActive =
                   item.href === "/dashboard"
                     ? pathname === "/dashboard"
-                    : pathname.startsWith(item.href);
+                    : Boolean(pathname?.startsWith(item.href));
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton

@@ -34,7 +34,7 @@ const labelOverrides: Record<string, string> = {
 };
 
 export function DashboardHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const segments = pathname.split("/").filter(Boolean);
 
   return (

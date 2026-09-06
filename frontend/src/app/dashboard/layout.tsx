@@ -14,7 +14,9 @@ export default async function DashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api
+    .getSession({ headers: await headers() })
+    .catch(() => null);
 
   if (!session) {
     redirect("/sign-in?redirect=/dashboard");

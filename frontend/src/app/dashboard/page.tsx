@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default async function DashboardOverviewPage() {
   const [session, predictionHistory, academic, achievementRecords, universities] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
+    auth.api.getSession({ headers: await headers() }).catch(() => null),
     getPredictionHistory(),
     getAcademicProfile(),
     getAchievementRecords(),
