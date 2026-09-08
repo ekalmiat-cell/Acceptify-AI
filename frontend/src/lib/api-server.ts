@@ -27,6 +27,23 @@ const getBearerToken = cache(async (): Promise<string | null> => {
   }
 });
 
+function getBaseServerUrl(): string {
+  if (env.NEXT_PUBLIC_API_URL && !env.NEXT_PUBLIC_API_URL.includes("localhost")) {
+    return env.NEXT_PUBLIC_API_URL;
+  }
+  const vercelUrl =
+    process.env.NEXT_PUBLIC_VERCEL_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl}`;
+  }
+  if (env.NEXT_PUBLIC_APP_URL && !env.NEXT_PUBLIC_APP_URL.includes("localhost")) {
+    return env.NEXT_PUBLIC_APP_URL;
+  }
+  return env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+}
+
 /**
  * Server-side counterpart to lib/api-client.ts, for use in server
  * components, route handlers, and server actions. Reads the session from
@@ -38,6 +55,16 @@ export async function apiFetchServer<T>(
   init: RequestInit = {}
 ): Promise<T> {
   const token = await getBearerToken();
+  const baseUrl = getBaseServerUrl();
 
-  return requestJson<T>(`${env.NEXT_PUBLIC_API_URL}${path}`, init, token);
+  try {
+    return await requestJson<T>(`${baseUrl}${path}`, init, token);
+  } catch (error) {
+    // If backend was on localhost:8000 and failed, attempt fallback to local Next.js dev server on port 3000
+    if (baseUrl.includes("8000") && (env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")) {
+      const appUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      return await requestJson<T>(`${appUrl}${path}`, init, token);
+    }
+    throw error;
+  }
 }

@@ -29,9 +29,33 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const token = await getBearerToken();
 
-  return requestJson<T>(
-    `${clientEnv.NEXT_PUBLIC_API_URL}${path}`,
-    init,
-    token
-  );
+  const isBrowser = typeof window !== "undefined";
+  const isLocalHost =
+    isBrowser &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
+  const isConfiguredLocal =
+    !clientEnv.NEXT_PUBLIC_API_URL ||
+    clientEnv.NEXT_PUBLIC_API_URL.includes("localhost") ||
+    clientEnv.NEXT_PUBLIC_API_URL.includes("127.0.0.1");
+
+  // In browser on production (e.g. Vercel), http://localhost:8000 is unreachable and blocked by browsers.
+  // Hit same-origin Next.js API routes directly.
+  if (isBrowser && !isLocalHost && isConfiguredLocal) {
+    return requestJson<T>(path, init, token);
+  }
+
+  try {
+    return await requestJson<T>(
+      `${clientEnv.NEXT_PUBLIC_API_URL}${path}`,
+      init,
+      token
+    );
+  } catch (error) {
+    // If backend on localhost failed, fall back to Next.js API routes
+    if (isConfiguredLocal && path.startsWith("/api/")) {
+      return await requestJson<T>(path, init, token);
+    }
+    throw error;
+  }
 }
