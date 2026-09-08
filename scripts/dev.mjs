@@ -17,11 +17,11 @@ const backendPython = isWindows
 
 const children = [];
 
-function run(name, command, args, cwd) {
+function run(name, command, args, cwd, useShell = false) {
   const child = spawn(command, args, {
     cwd,
     stdio: ["ignore", "pipe", "pipe"],
-    shell: isWindows,
+    shell: useShell,
   });
   const prefix = `[${name}] `;
 
@@ -35,12 +35,13 @@ function run(name, command, args, cwd) {
   return child;
 }
 
-run("frontend", isWindows ? "npm.cmd" : "npm", ["run", "dev"], path.join(rootDir, "frontend"));
+run("frontend", isWindows ? "npm.cmd" : "npm", ["run", "dev"], path.join(rootDir, "frontend"), isWindows);
 run(
   "backend",
   backendPython,
   ["-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"],
-  path.join(rootDir, "backend")
+  path.join(rootDir, "backend"),
+  false
 );
 
 function shutdown() {
