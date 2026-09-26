@@ -12,7 +12,6 @@ import { resolveProgram } from "@/lib/programs-client";
 import { updateAcademicProfile } from "@/lib/profile-client";
 import type { AcademicProfile, University } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
-import { revalidateReferenceData } from "@/lib/reference-actions";
 
 export function FieldOfStudySelect({
   university,
@@ -33,7 +32,6 @@ export function FieldOfStudySelect({
       await updateAcademicProfile({ ...profile, dreamProgramId: program.id });
       toast.success(`Evaluation model tuned for ${field} at ${university.shortName}`);
       router.push("/dashboard/analysis");
-      await revalidateReferenceData();
       router.refresh();
     } catch (error) {
       toast.error(describeApiError(error, "Could not save your intended field of study."));

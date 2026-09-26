@@ -29,8 +29,8 @@ export async function createPrediction(input: {
  *
  * This is the only way the platform ever learns whether its scores mean
  * anything: a prediction with no outcome is an opinion nobody checked. The
- * backend stamps the reporting time itself rather than trusting a client
- * clock — see the outcome endpoint on backend/app/api/v1/endpoints.
+ * server stamps the reporting time itself rather than trusting a client
+ * clock — see `reportOutcome` in lib/data/predictions.ts.
  */
 export async function reportPredictionOutcome(
   predictionId: string,

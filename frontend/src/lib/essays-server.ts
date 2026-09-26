@@ -1,26 +1,12 @@
 import "server-only";
 
-import { apiFetchServer } from "@/lib/api-server";
-import type { EssayReviewRead, EssayReviewSummaryRead } from "@/types/essay";
+import { listEssayReviews } from "@/lib/data/essays";
+import { getCurrentUserId } from "@/lib/session";
+import type { EssayReviewSummaryRead } from "@/types/essay";
 
-/**
- * Server-side loader for listing user's essay reviews.
- */
+/** The signed-in user's essay reviews, newest first. */
 export async function listEssayReviewsServer(): Promise<EssayReviewSummaryRead[]> {
-  try {
-    return await apiFetchServer<EssayReviewSummaryRead[]>("/api/v1/essays");
-  } catch {
-    return [];
-  }
+  const userId = await getCurrentUserId();
+  return userId ? listEssayReviews(userId) : [];
 }
 
-/**
- * Server-side loader for fetching a specific essay review by ID.
- */
-export async function getEssayReviewServer(id: string): Promise<EssayReviewRead | null> {
-  try {
-    return await apiFetchServer<EssayReviewRead>(`/api/v1/essays/${id}`);
-  } catch {
-    return null;
-  }
-}

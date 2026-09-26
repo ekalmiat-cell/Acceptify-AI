@@ -9,14 +9,14 @@
       "autoPort": false
     },
     {
-      "name": "backend",
+      "name": "frontend-mock-ai",
       "runtimeExecutable": "powershell",
       "runtimeArgs": [
         "-NoProfile",
         "-Command",
-        "cd backend; .venv/Scripts/python.exe -m uvicorn app.main:app --reload --port 8000"
+        "$env:AI_PROVIDER='mock'; npm run dev --prefix frontend"
       ],
-      "port": 8000,
+      "port": 3000,
       "autoPort": false
     }
   ]

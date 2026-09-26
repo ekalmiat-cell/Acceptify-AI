@@ -30,14 +30,24 @@ export function describeApiError(error: unknown, fallback: string): string {
     return error.message;
   }
 
-  if (error.status === 401 || error.status === 403) {
+  if (error.status === 401) {
     return "Your session expired. Sign in again to save your changes.";
   }
 
-  if (error.status >= 500) {
-    return `${fallback} The server returned an error (${error.status}) — check the backend logs.`;
+  // The API's own `{ detail }` sentences are written to be shown as they are
+  // ("AI features are not set up…", "You've reached the limit…"). Anything
+  // else — a proxy's HTML error page, a bare status text — is not.
+  const hasServerDetail =
+    typeof error.body === "object" && error.body !== null && "detail" in error.body;
+  const detail = error.message?.trim();
+
+  if (hasServerDetail && detail) {
+    return error.status >= 500 || error.status === 429 ? detail : `${fallback} ${detail}`;
   }
 
-  const detail = error.message?.trim();
-  return detail ? `${fallback} ${detail}` : fallback;
+  if (error.status >= 500) {
+    return `${fallback} The server returned an error (${error.status}). Please try again.`;
+  }
+
+  return fallback;
 }

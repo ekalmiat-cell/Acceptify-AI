@@ -1,154 +1,125 @@
 import "server-only";
 import { betterAuth } from "better-auth";
-import { jwt } from "better-auth/plugins";
 import { nextCookies } from "better-auth/next-js";
 import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { siteConfig } from "@/config/site";
-import { getConfiguredSocialProviders } from "@/lib/auth-config";
-
-const vercelDomain =
-  process.env.NEXT_PUBLIC_VERCEL_URL ||
-  process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-  process.env.VERCEL_URL ||
-  "acceptify-ai.vercel.app";
-
-const defaultProductionUrl = `https://${vercelDomain}`;
-
-const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL ||
-  (process.env.VERCEL ? defaultProductionUrl : "http://localhost:3000");
-
-const apiUrl =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.VERCEL ? "http://localhost:8000" : "http://localhost:8000");
-
-const betterAuthUrl =
-  process.env.BETTER_AUTH_URL ||
-  (process.env.VERCEL ? defaultProductionUrl : appUrl);
-
-const betterAuthSecret =
-  process.env.BETTER_AUTH_SECRET ||
-  "ObnZRn3DSi4S3h2yppqq4k38PNuabR1T5AXDgbzREsI=";
-
-const getTrustedOrigins = async (request?: Request) => {
-  const origins = new Set<string>();
-
-  const addOrigin = (value?: string) => {
-    if (!value) return;
-
-    const trimmed = value.trim();
-    if (!trimmed) return;
-
-    try {
-      const normalized = new URL(trimmed).origin;
-      if (normalized) origins.add(normalized);
-    } catch {
-      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-        origins.add(trimmed.replace(/\/$/, ""));
-      }
-    }
-  };
-
-  [appUrl, betterAuthUrl].forEach(addOrigin);
-
-  process.env.BETTER_AUTH_TRUSTED_ORIGINS
-    ?.split(",")
-    .map((value) => value.trim())
-    .filter(Boolean)
-    .forEach(addOrigin);
-
-  if (request) {
-    addOrigin(request.headers.get("origin") ?? undefined);
-
-    const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
-    const hostHeader = request.headers.get("host") ?? request.headers.get("x-forwarded-host");
-
-    if (hostHeader) {
-      addOrigin(`${forwardedProto || "http"}://${hostHeader}`);
-    }
-
-    try {
-      const requestUrl = new URL(request.url);
-      addOrigin(requestUrl.origin);
-    } catch {
-      // Ignore malformed URLs and fall back to the configured origins.
-    }
-  }
-
-  // Sign in with Apple returns the authorization via a cross-origin
-  // `form_post` from appleid.apple.com, so that origin must be trusted or
-  // Better Auth rejects the callback before it can create the session.
-  origins.add("https://appleid.apple.com");
-
-  [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://0.0.0.0:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://0.0.0.0:3001",
-    "https://localhost:3000",
-    "https://127.0.0.1:3000",
-    "https://0.0.0.0:3000",
-    "https://localhost:3001",
-    "https://127.0.0.1:3001",
-    "https://0.0.0.0:3001",
-    "https://acceptify-ai.vercel.app",
-    "https://acceptify-ai-iylh.vercel.app",
-  ].forEach((origin) => origins.add(origin));
-
-  return Array.from(origins);
-};
+import { isMailConfigured, rememberDevLink, sendEmail } from "@/lib/email";
 
 /**
  * Better Auth is the system of record for identity: it owns the user,
- * session, account, and verification tables in Postgres and handles
- * email/password + OAuth entirely inside the Next.js app.
- *
- * The FastAPI backend never talks to these tables directly. Instead, the
- * `jwt` plugin below lets the frontend mint a short-lived signed JWT for the
- * current session (`GET /api/auth/token`), which the backend verifies against
- * the JWKS endpoint (`GET /api/auth/jwks`) exposed by this same instance.
- * See backend/app/core/security.py for the verification side.
+ * session, account and verification tables and handles email/password and
+ * OAuth entirely inside this Next.js app. The app's own API routes read the
+ * signed-in user from the same session cookie (see lib/session.ts) — there is
+ * no separate backend and no bearer token to trust.
  */
-function cleanEnv(val?: string | null): string | undefined {
-  if (!val) return undefined;
-  const trimmed = val.trim().replace(/^["']|["']$/g, "");
-  return trimmed.length > 0 ? trimmed : undefined;
+
+const isDevelopment = process.env.NODE_ENV !== "production";
+
+/**
+ * The public origin of this deployment. An explicit BETTER_AUTH_URL wins;
+ * otherwise Vercel's own variables describe where we are running: the
+ * production domain in production, the unique deployment URL on previews.
+ */
+function resolveBaseUrl(): string {
+  if (env.BETTER_AUTH_URL) return env.BETTER_AUTH_URL;
+  if (env.NEXT_PUBLIC_APP_URL) return env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
 }
 
-const googleClientId =
-  cleanEnv(process.env.GOOGLE_CLIENT_ID) ||
-  cleanEnv(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) ||
-  cleanEnv(process.env.GOOGLE_ID) ||
-  cleanEnv(env.GOOGLE_CLIENT_ID);
+const baseURL = resolveBaseUrl();
 
-const googleClientSecret =
-  cleanEnv(process.env.GOOGLE_CLIENT_SECRET) ||
-  cleanEnv(process.env.GOOGLE_SECRET) ||
-  cleanEnv(env.GOOGLE_CLIENT_SECRET);
+function toOrigin(value: string | undefined): string | null {
+  if (!value) return null;
+  const candidate = value.includes("://") ? value : `https://${value}`;
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Origins allowed to call the auth endpoints — Better Auth's CSRF defence.
+ *
+ * A fixed list on purpose. It must never be derived from the incoming
+ * request's own Origin/Host headers: those are supplied by whoever sends the
+ * request, so trusting them would trust every site on the internet.
+ */
+const trustedOrigins = [
+  baseURL,
+  env.NEXT_PUBLIC_APP_URL,
+  process.env.VERCEL_URL,
+  process.env.VERCEL_BRANCH_URL,
+  process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  ...(env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? []),
+  // The project's known production domains.
+  "https://acceptify-ai.vercel.app",
+  "https://acceptify-ai-iylh.vercel.app",
+  // Sign in with Apple returns via a cross-origin form_post from Apple.
+  "https://appleid.apple.com",
+  ...(isDevelopment ? ["http://localhost:3000", "http://127.0.0.1:3000"] : []),
+]
+  .map((value) => toOrigin(value?.trim()))
+  .filter((origin): origin is string => Boolean(origin));
 
 export const auth = betterAuth({
   appName: siteConfig.name,
-  baseURL: betterAuthUrl,
-  secret: betterAuthSecret,
+  baseURL,
+  secret: env.BETTER_AUTH_SECRET,
   database: pgPool,
-  trustedOrigins: async (request) => getTrustedOrigins(request),
+  trustedOrigins: Array.from(new Set(trustedOrigins)),
   emailAndPassword: {
-    enabled: false,
+    enabled: true,
+    minPasswordLength: 8,
+    // Signing in must work even before an email provider is configured, so
+    // verification is encouraged (a link is sent when mail is set up) but not
+    // required. Unverified addresses are never auto-linked to Google/Apple
+    // sign-ins, and never granted admin (see lib/admin.ts).
+    requireEmailVerification: false,
+    resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
+    /**
+     * Better Auth calls this with a single-use link that opens
+     * /reset-password?token=…. Without a mail provider the link is logged on
+     * the server (and, in development only, shown on the page) instead.
+     */
+    sendResetPassword: async ({ user, url }) => {
+      rememberDevLink(user.email, url);
+      await sendEmail({
+        to: user.email,
+        subject: `Reset your ${siteConfig.name} password`,
+        text: `Someone asked to reset the password for your ${siteConfig.name} account.\n\nOpen this link within the next hour to choose a new one:\n${url}\n\nIf this wasn't you, ignore this email — your password stays unchanged.`,
+        html: `<p>Someone asked to reset the password for your ${siteConfig.name} account.</p><p><a href="${url}">Choose a new password</a> — the link works for one hour.</p><p>If this wasn't you, ignore this email; your password stays unchanged.</p>`,
+      });
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: isMailConfigured(),
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: `Confirm your email for ${siteConfig.name}`,
+        text: `Welcome to ${siteConfig.name}!\n\nConfirm your email address by opening this link:\n${url}\n\nIf you didn't create an account, ignore this email.`,
+        html: `<p>Welcome to ${siteConfig.name}!</p><p><a href="${url}">Confirm your email address</a></p><p>If you didn't create an account, ignore this email.</p>`,
+      });
+    },
   },
   socialProviders: {
-    ...(googleClientId && googleClientSecret
+    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
       ? {
           google: {
-            clientId: googleClientId,
-            clientSecret: googleClientSecret,
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
             prompt: "select_account" as const,
           },
         }
       : {}),
-    ...(getConfiguredSocialProviders().apple && env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET
+    ...(env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET
       ? {
           apple: {
             clientId: env.APPLE_CLIENT_ID,
@@ -161,10 +132,10 @@ export const auth = betterAuth({
   account: {
     /**
      * Someone who signed up with email/password and later clicks "Continue
-     * with Google" should land in their existing account, not hit an
-     * "email already in use" wall. Google and Apple both assert a verified
-     * email, so linking on a matching address is safe for them — an untrusted
-     * provider would still require an explicit link from a signed-in session.
+     * with Google" lands in their existing account — but only once that
+     * account's email is verified (Better Auth's `requireLocalEmailVerified`
+     * default). Otherwise anyone could pre-register a victim's address with
+     * a password and share the account after the victim signs in with Google.
      */
     accountLinking: {
       enabled: true,
@@ -185,25 +156,13 @@ export const auth = betterAuth({
       maxAge: 60 * 5,
     },
   },
+  // Built-in brute-force protection on sign-in, sign-up and password reset,
+  // stored in Postgres so it holds across serverless instances.
+  rateLimit: {
+    enabled: true,
+    storage: "database",
+  },
   plugins: [
-    jwt({
-      jwt: {
-        issuer: appUrl,
-        audience: apiUrl,
-        expirationTime: "15m",
-        /**
-         * Better Auth would otherwise put the whole user row on the token.
-         * Pin it to what the backend actually needs: `sub` (set separately
-         * from `user.id`) identifies the row owner, and `email` is what the
-         * ADMIN_EMAILS allow-list is matched against — see
-         * backend/app/core/security.py::get_current_admin_id.
-         */
-        definePayload: ({ user }) => ({
-          id: user.id,
-          email: user.email,
-        }),
-      },
-    }),
     // Must stay last: lets server actions set session cookies correctly.
     nextCookies(),
   ],

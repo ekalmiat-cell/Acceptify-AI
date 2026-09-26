@@ -12,7 +12,7 @@ import type { University } from "@/types/domain";
 
 /**
  * A university with the shape of a real catalog row. Values mirror
- * Nazarbayev University from backend/scripts/seed_universities.py, because
+ * Nazarbayev University in src/data/universities.json, because
  * its comparatively low stated bars (GPA 3.4, IELTS 6.0, TOEFL 80) are what
  * made the "115%" breakdown bug reachable with an ordinary strong profile.
  */

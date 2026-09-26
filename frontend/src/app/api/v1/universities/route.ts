@@ -1,8 +1,5 @@
-﻿import { NextResponse } from "next/server";
-import fallbackUniversities from "@/data/universities.json";
+import { getUniversities } from "@/lib/data/universities";
+import { json, route } from "@/lib/route";
 
-export const dynamic = "force-dynamic";
-
-export async function GET() {
-  return NextResponse.json(fallbackUniversities);
-}
+/** The public university catalog. Reference data, so no sign-in required. */
+export const GET = route(async () => json(await getUniversities()));

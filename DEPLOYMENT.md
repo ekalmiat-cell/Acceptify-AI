@@ -1,113 +1,83 @@
-# Deploying Acceptify AI
+# Деплой Acceptify AI (бесплатно)
 
-Three pieces, three hosts. The frontend cannot run without the database
-(Better Auth lives inside Next.js and talks to Postgres directly), so set them
-up in this order.
+Всё приложение — это один проект Next.js на Vercel и одна база Postgres на Neon.
+Отдельного бэкенда (Railway) больше нет.
 
-| Piece | Host | Why not Vercel |
+| Что | Сервис | Бесплатный тариф |
 |---|---|---|
-| Next.js frontend | **Vercel** | — |
-| FastAPI backend | **Railway** (Dockerfile + `railway.json` included) | Vercel functions don't fit a long-lived ASGI app with Alembic migrations |
-| Postgres | **Neon** free tier | Vercel doesn't host databases |
+| Сайт + API | Vercel Hobby | да (только некоммерческое использование) |
+| База данных | Neon | 0.5 ГБ |
+| ИИ (эссе, копайлот) | Google Gemini API | бесплатные лимиты запросов |
+| Почта (сброс пароля, подтверждение) | Resend | 3 000 писем в месяц |
+| Вход через Google | Google Cloud OAuth | да |
 
-Both the frontend and the backend connect to the **same** Neon database.
+> Когда начнёте брать деньги с пользователей, Vercel Hobby использовать нельзя —
+> понадобится Vercel Pro.
 
 ---
 
-## 1. Postgres (Neon)
+## 1. База данных (Neon)
 
-1. Create a project at <https://neon.tech>.
-2. Copy the connection string. It looks like:
-   `postgresql://user:pw@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`
+Если база на Neon уже есть — ничего не делайте, используйте её: миграции сами
+подхватят таблицы, которые создавал старый бэкенд, и ничего не потеряют.
 
-You do **not** need to hand-edit it. `backend/app/core/database.py` normalises
-libpq-style URLs for asyncpg automatically (scheme, `sslmode`,
-`channel_binding`) — see `build_engine_args`.
+Если нет: Vercel → проект → **Storage → Create → Neon** (или вручную на
+<https://neon.tech>). `DATABASE_URL` пропишется в проект сам.
 
-## 2. Backend (Railway)
+## 2. Переменные окружения в Vercel
 
-1. New project → Deploy from GitHub → `ekalmiat-cell/Acceptify-AI`.
-2. Nothing to configure about paths: `railway.json` sits at the repository
-   root, points the build at `backend/Dockerfile`, and health-checks `/health`.
-   The Dockerfile expects the repo root as its build context.
+Vercel → проект `acceptify-ai` → **Settings → Environment Variables**.
+Root Directory проекта должен быть `frontend`.
 
-   Migrations are **not** part of the start command on purpose. Chaining
-   `alembic upgrade head && uvicorn …` made the container sit silently after
-   Alembic's first two log lines until the health check gave up — uvicorn
-   never got to start. Run them as a separate step instead, before or right
-   after a deploy:
+| Переменная | Обязательно | Значение |
+|---|---|---|
+| `DATABASE_URL` | да | строка подключения Neon |
+| `BETTER_AUTH_SECRET` | да | длинная случайная строка (команда ниже) |
+| `GEMINI_API_KEY` | для ИИ | ключ с <https://aistudio.google.com/apikey> |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | для входа через Google | из Google Cloud Console |
+| `RESEND_API_KEY`, `EMAIL_FROM` | для писем | из Resend, например `Acceptify AI <no-reply@ваш-домен>` |
+| `ADMIN_EMAILS` | для админки | ваша почта (через запятую, если несколько) |
+| `BETTER_AUTH_URL` | только со своим доменом | `https://ваш-домен` |
+| `GEMINI_MODEL` | нет | по умолчанию `gemini-3.7-flash` |
 
-   ```
-   railway run alembic upgrade head
-   ```
-3. Variables:
+Секрет можно сгенерировать так:
 
-   | Variable | Value |
-   |---|---|
-   | `DATABASE_URL` | the Neon string from step 1 |
-   | `AUTH_ISSUER` | `https://<your-vercel-domain>` |
-   | `AUTH_AUDIENCE` | `https://<your-railway-domain>` |
-   | `CORS_ORIGINS` | `https://<your-vercel-domain>` |
-   | `ENVIRONMENT` | `production` (hides `/docs`) |
-
-4. After the first successful deploy, load the university catalog once —
-   without it the app has nothing to show:
-
-   ```
-   railway run python -m scripts.seed_universities
-   ```
-
-   The seeder is idempotent (upserts by id), so re-running is safe.
-
-## 3. Frontend (Vercel)
-
-The repo is already linked to the Vercel project `ars15/acceptify-ai`
-(`frontend/.vercel`). Root directory is `frontend`.
-
-Variables (Production scope):
-
-| Variable | Value |
-|---|---|
-| `DATABASE_URL` | the same Neon string |
-| `BETTER_AUTH_SECRET` | 32+ random chars — `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | `https://<your-vercel-domain>` |
-| `NEXT_PUBLIC_APP_URL` | `https://<your-vercel-domain>` |
-| `NEXT_PUBLIC_API_URL` | `https://<your-railway-domain>` |
-
-All five are **required at build time** — `src/lib/env.server.ts` validates
-them when the module is imported, so a missing one fails the build rather than
-breaking silently at runtime.
-
-Optional: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` to switch on the Google
-button, `RESEND_API_KEY` / `EMAIL_FROM` to actually deliver password-reset
-emails. Without them the buttons explain themselves and reset links are only
-logged server-side.
-
-Then:
-
-```
-vercel --prod
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-## 4. The chicken-and-egg bit
+`NEXT_PUBLIC_API_URL` больше не нужен — его можно удалить.
 
-`AUTH_ISSUER`/`CORS_ORIGINS` on Railway need the Vercel domain, and
-`NEXT_PUBLIC_API_URL` on Vercel needs the Railway domain. Deploy the backend
-first with placeholder values, deploy the frontend to learn its domain, then
-go back and fix the two Railway variables and redeploy it.
+## 3. Деплой
 
-## 5. Verify
+Просто запушьте в `main` (или нажмите Redeploy в Vercel). Сборка сама:
 
-- `https://<railway>/health` → `{"status":"ok"}`
-- `https://<railway>/api/v1/universities` → catalog JSON, not `[]`
-- `https://<vercel>/sign-up` → create an account, land on the dashboard
-- Save a GPA in the profile → reload → the value is still there
+1. применит миграции к базе (`scripts/migrate.mjs`),
+2. добавит недостающие университеты из каталога,
+3. соберёт сайт.
 
-## Google OAuth redirect URI
+Если база недоступна, сборка упадёт — это специально, чтобы не выкатить код,
+который не может работать с базой.
 
-If you enable Google, add the production callback in Google Cloud Console
-alongside the localhost one:
+## 4. Google OAuth
 
-```
-https://<your-vercel-domain>/api/auth/callback/google
-```
+В Google Cloud Console → Credentials → ваш OAuth client добавьте:
+
+- Authorized JavaScript origin: `https://ваш-домен`
+- Authorized redirect URI: `https://ваш-домен/api/auth/callback/google`
+
+## 5. Проверка после деплоя
+
+- `https://ваш-домен/api/v1/universities` → список из 239 вузов
+- `/sign-up` → регистрация по почте → попадаете в дашборд
+- Профиль: сохранить GPA → обновить страницу → значение на месте
+- Эссе: вставить текст от 25 слов → получить разбор (нужен `GEMINI_API_KEY`)
+- Копайлот (кнопка в углу дашборда) → отвечает
+
+## Ограничения бесплатных тарифов
+
+- **ИИ:** у каждого пользователя до 10 разборов эссе и 40 сообщений копайлоту в час
+  (`src/lib/data/ai-usage.ts`). Это защищает общую бесплатную квоту Gemini.
+  Если квота Gemini всё же закончится, пользователи увидят «попробуйте позже».
+- **Почта без Resend:** регистрация и вход работают, но письма (сброс пароля)
+  не отправляются — ссылка пишется в логи Vercel.

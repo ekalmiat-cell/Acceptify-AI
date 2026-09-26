@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { describeApiError } from "@/lib/api-error";
 import { sendCopilotMessage } from "@/lib/copilot-client";
 import type { ChatMessage } from "@/types/copilot";
 
@@ -118,7 +119,10 @@ export function FloatingCopilot() {
         ...prev,
         {
           role: "assistant",
-          content: "Произошла временная ошибка соединения с AI. Пожалуйста, попробуйте еще раз.",
+          content: `⚠️ ${describeApiError(
+            err,
+            "Произошла временная ошибка соединения с AI. Пожалуйста, попробуйте еще раз.",
+          )}`,
         },
       ]);
     } finally {

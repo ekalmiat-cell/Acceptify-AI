@@ -44,8 +44,9 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
     defaultValues: { email: "", password: "", rememberMe: true },
   });
 
-  async function attemptSignIn(values: SignInValues) {
-    return authClient.signIn.email({
+  async function onSubmit(values: SignInValues) {
+    setIsSubmitting(true);
+    const { error } = await authClient.signIn.email({
       email: values.email,
       password: values.password,
       // Persistent cookie that survives closing the browser (30 days, see
@@ -54,27 +55,6 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
       rememberMe: values.rememberMe,
       callbackURL,
     });
-  }
-
-  async function onSubmit(values: SignInValues) {
-    setIsSubmitting(true);
-    let { error } = await attemptSignIn(values);
-
-    if (error) {
-      // Recovers accounts left in a broken state by a past signup bug
-      // (user created, but its password was never saved) — repair only
-      // fires for that specific case, then retries with the same password.
-      const repairRes = await fetch("/api/auth-repair", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: values.email, password: values.password }),
-      }).catch(() => null);
-      const repair = await repairRes?.json().catch(() => null);
-
-      if (repair?.repaired) {
-        ({ error } = await attemptSignIn(values));
-      }
-    }
 
     if (error) {
       // 429 means the attempt never reached the password check at all —

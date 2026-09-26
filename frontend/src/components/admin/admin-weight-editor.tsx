@@ -20,7 +20,6 @@ import {
 import { saveEvaluationProfile } from "@/lib/programs-client";
 import type { EvaluationProfile, Program, University } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
-import { revalidateReferenceData } from "@/lib/reference-actions";
 
 const CATALOG_GROUPS = ["Credentials", "Competitions", "Activities", "Talents"] as const;
 
@@ -74,7 +73,6 @@ export function AdminWeightEditor({
         })),
       });
       toast.success(`${program.name} evaluation weights saved`);
-      await revalidateReferenceData();
       router.refresh();
     } catch (error) {
       toast.error(describeApiError(error, "Could not save evaluation weights."));

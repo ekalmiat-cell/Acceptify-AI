@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
-import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { SocialSection } from "@/components/auth/social-section";
+import { SignUpForm } from "@/components/auth/sign-up-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   formatOAuthCallbackError,
@@ -10,7 +12,7 @@ import {
 } from "@/lib/auth-config";
 
 export const metadata: Metadata = {
-  title: "Create your account | Acceptify AI",
+  title: "Create your account",
 };
 
 export const dynamic = "force-dynamic";
@@ -29,37 +31,43 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   }`;
 
   return (
-    <div className="w-full max-w-sm space-y-6">
-      <div className="flex flex-col gap-2 lg:hidden">
+    <div className="w-full max-w-sm">
+      <div className="mb-8 flex flex-col gap-2 lg:hidden">
         <Logo />
       </div>
 
-      <div className="space-y-1.5">
-        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground">
-          Create your account
-        </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Sign up with your verified Google account to get your admissions fit score in under two minutes.
-        </p>
-      </div>
+      <h1 className="font-heading text-2xl font-semibold text-foreground">
+        Create your account
+      </h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        Get your first AI admission prediction in under two minutes.
+      </p>
 
       {oauthError ? (
-        <Alert variant="destructive">
-          <TriangleAlert className="h-4 w-4" />
+        <Alert variant="destructive" className="mt-6">
+          <TriangleAlert />
           <AlertDescription>{oauthError}</AlertDescription>
         </Alert>
       ) : null}
 
-      <div className="pt-2">
-        <GoogleSignInButton
-          callbackURL={callbackURL}
-          errorCallbackURL={errorCallbackURL}
-          buttonText="Sign up with Google"
-        />
+      <SocialSection
+        callbackURL={callbackURL}
+        errorCallbackURL={errorCallbackURL}
+      />
+
+      <div className="mt-6">
+        <SignUpForm callbackURL={callbackURL} />
       </div>
 
-      <p className="text-center text-xs text-muted-foreground leading-relaxed pt-4 border-t">
-        By continuing, you agree to Acceptify AI&apos;s Terms of Service and Privacy Policy.
+      <p className="mt-6 text-center text-xs text-muted-foreground">
+        By creating an account you agree to our Terms of Service and Privacy Policy.
+      </p>
+
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link href="/sign-in" className="font-medium text-primary hover:underline">
+          Sign in
+        </Link>
       </p>
     </div>
   );

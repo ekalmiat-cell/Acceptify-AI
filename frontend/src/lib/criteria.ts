@@ -1,8 +1,6 @@
 /**
  * The canonical set of admission-criterion keys an evaluation profile can
- * assign a weight to. Mirrors `backend/app/core/criteria.py` exactly —
- * both sides must stay in sync, since these keys double as achievement
- * catalog ids (see `data/achievement-catalog.ts`) for every non-academic
+ * assign a weight to. These keys double as achievement catalog ids (see `data/achievement-catalog.ts`) for every non-academic
  * criterion.
  */
 
@@ -49,9 +47,9 @@ export interface EvaluationWeights {
 /**
  * Fallback weights used when no program has been selected yet, or a
  * program has no evaluation profile of its own — e.g. browsing universities
- * before picking a field of study. Mirrors `backend/app/core/criteria.py`'s
- * `DEFAULT_WEIGHTS` so the two never disagree on what "no program-specific
- * profile" means.
+ * before picking a field of study. Also the weights a newly created
+ * program starts with (see `resolveProgram` in lib/data/programs.ts), so
+ * scores do not jump when a program is created on first use.
  */
 /**
  * Fallback levels for the two exams a university may not state a bar for.

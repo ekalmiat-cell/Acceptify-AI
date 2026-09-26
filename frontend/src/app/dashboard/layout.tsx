@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { auth } from "@/lib/auth";
-import { isAdminEmail } from "@/lib/admin";
+import { isAdminUser } from "@/lib/admin";
+import { getSession } from "@/lib/session";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -14,9 +13,7 @@ export default async function DashboardLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await auth.api
-    .getSession({ headers: await headers() })
-    .catch(() => null);
+  const session = await getSession();
 
   if (!session) {
     redirect("/sign-in?redirect=/dashboard");
@@ -24,7 +21,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar isAdmin={isAdminEmail(session.user?.email)} />
+      <AppSidebar isAdmin={isAdminUser(session.user)} />
       <SidebarInset>
         <DashboardHeader />
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>

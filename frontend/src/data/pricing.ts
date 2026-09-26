@@ -1,54 +1,62 @@
 import type { PricingTier } from "@/types/domain";
 
+/**
+ * Acceptify is free while in beta: every feature below "Free beta" is real
+ * and unlocked for everyone. The paid tiers are what is planned — they are
+ * shown so students know where the product is going, marked unavailable, and
+ * nothing can be bought yet.
+ */
 export const pricingTiers: PricingTier[] = [
   {
     id: "free",
-    name: "Free",
+    name: "Free beta",
     price: 0,
     billingPeriod: "month",
-    description: "Get your first predictions and explore the platform.",
+    description: "Everything that exists today, free while Acceptify is in beta.",
     features: [
-      "3 AI predictions per month",
+      "Unlimited admission analyses",
       "Safe / Target / Reach classification",
-      "Access to 12+ university profiles",
-      "Basic profile & achievements tracker",
-      "Community support",
+      "Catalog of 239 universities in 12 countries",
+      "What-if simulator & PDF reports",
+      "AI essay reviews (up to 10 per hour)",
+      "AI admissions copilot",
     ],
     cta: "Start for free",
-    highlighted: false,
+    highlighted: true,
+    available: true,
   },
   {
     id: "pro",
     name: "Pro",
     price: 14,
     billingPeriod: "month",
-    description: "For students actively building and refining their list.",
+    description: "Planned: for students actively building and refining their list.",
     features: [
-      "Unlimited AI predictions",
-      "Full requirements gap analysis",
+      "Everything in Free",
       "Scholarship match & coverage estimates",
-      "Prediction history & trend charts",
-      "Personalized recommendations engine",
+      "Prediction trend charts",
+      "Higher AI limits",
       "Priority email support",
     ],
-    cta: "Upgrade to Pro",
-    highlighted: true,
+    cta: "Coming soon",
+    highlighted: false,
+    available: false,
   },
   {
     id: "ultimate",
     name: "Ultimate",
     price: 29,
     billingPeriod: "month",
-    description: "Full guidance for competitive, multi-country applications.",
+    description: "Planned: hands-on guidance for competitive, multi-country applications.",
     features: [
       "Everything in Pro",
       "1:1 application strategy sessions",
-      "Essay & profile review credits",
-      "Early access to new university data",
+      "Human essay review credits",
       "Deadline & task management",
       "Dedicated success advisor",
     ],
-    cta: "Go Ultimate",
+    cta: "Coming soon",
     highlighted: false,
+    available: false,
   },
 ];

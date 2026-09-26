@@ -23,24 +23,24 @@ export const faqItems: FaqItem[] = [
     id: "faq-4",
     question: "Can I use Acceptify for universities outside the US?",
     answer:
-      "Yes. The catalog currently covers the United States, United Kingdom, Canada, Switzerland, Singapore, Japan, Australia, and Kazakhstan, with country-specific inputs like the ENT and English proficiency thresholds built in. It grows over time — if a university is not listed yet, its data is simply not there rather than estimated.",
+      "Yes. The catalog currently covers 239 universities across the United States, United Kingdom, South Korea, Kazakhstan, Japan, China, Germany, Italy, Singapore, Canada, Switzerland, and Australia, with country-specific inputs like the ENT and English proficiency thresholds built in. It grows over time — if a university is not listed yet, its data is simply not there rather than estimated.",
   },
   {
     id: "faq-5",
-    question: "What's the difference between Free, Pro, and Ultimate?",
+    question: "Is Acceptify free?",
     answer:
-      "Free gives you a taste with 3 predictions a month. Pro unlocks unlimited predictions, requirement gap analysis, and scholarship estimates. Ultimate adds 1:1 strategy sessions and essay review credits for students who want hands-on guidance.",
+      "Yes. While Acceptify is in beta every feature is free: unlimited admission analyses, the what-if simulator, PDF reports, AI essay reviews and the AI copilot. The AI features have hourly limits so the service stays available for everyone. Paid Pro and Ultimate plans are planned, and nothing can be bought yet.",
   },
   {
     id: "faq-6",
     question: "How is my profile data used?",
     answer:
-      "Your academic and achievement data is used only to power your own predictions and recommendations. We never sell profile data, and you can edit or remove achievement entries at any time from your Profile page.",
+      "Your academic and achievement data is used only to power your own predictions and recommendations. When you use the AI essay reviewer or the copilot, the essay text and an anonymous summary of your profile (scores, achievements, target university — never your name or email) are sent to Google Gemini to generate the answer. We never sell profile data, and you can edit your profile, remove achievement entries, or delete essay reviews at any time.",
   },
   {
     id: "faq-7",
-    question: "Can I change my plan later?",
+    question: "What happens when paid plans launch?",
     answer:
-      "Yes — upgrade, downgrade, or cancel anytime from Settings → Billing. Changes apply at the start of your next billing cycle.",
+      "Everything that is free today stays free. Paid plans will add extras on top, and you will never be charged without choosing a plan yourself.",
   },
 ];

@@ -125,10 +125,10 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           >
             <span className="flex items-center gap-1.5 text-xs font-semibold">
               <Sparkles className="size-3.5" />
-              Upgrade to Pro
+              Free beta
             </span>
             <span className="text-[0.7rem] text-white/80">
-              Unlimited predictions & scholarship matching
+              Every feature is unlocked while we&apos;re in beta
             </span>
           </Link>
         </div>

@@ -1,139 +1,109 @@
 # Acceptify AI
 
-An AI-powered university admissions platform. This repository currently contains the
-**production foundation only** — no landing page, dashboard, or assessment features yet.
-Everything here exists so real feature work can start immediately on solid ground.
+An AI-powered university admissions platform: a student fills in their academic
+profile and achievements, and gets an explainable fit score and admission estimate
+for 239 universities, a what-if simulator, an AI essay reviewer and an AI admissions
+copilot.
+
+One Next.js app, one Postgres database, deployed on Vercel. Everything runs on free
+tiers (Vercel Hobby, Neon, Gemini API, Resend) — see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Tech stack
 
-| Layer          | Choice                                                            |
+| Layer          | Choice                                                             |
 | -------------- | ------------------------------------------------------------------ |
-| Frontend       | Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4 |
-| UI             | shadcn/ui (Nova preset, Base UI primitives) · Framer Motion · Lucide React |
-| Backend        | FastAPI · Python · SQLAlchemy 2.0 (async) · Alembic              |
-| Database       | PostgreSQL                                                        |
-| Authentication | Better Auth — Email/Password, Google, Apple                      |
-| Deployment     | Vercel (frontend) · Railway (backend + Postgres)                 |
+| App            | Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4   |
+| UI             | shadcn/ui (Base UI primitives) · Framer Motion · Lucide React      |
+| API            | Next.js route handlers under `src/app/api/v1/*`                    |
+| Database       | PostgreSQL (Neon in production) via `pg`, plain SQL migrations     |
+| Authentication | Better Auth — email/password, Google, Apple                        |
+| AI             | Google Gemini REST API (free tier), per-user hourly limits         |
+| Email          | Resend (password reset, email confirmation)                        |
+| Deployment     | Vercel                                                             |
 
 ## Folder structure
 
 ```
 acceptify-ai/
-├── frontend/                    Next.js app — Vercel deploy root
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── api/auth/[...all]/route.ts   Better Auth route handler
-│   │   │   ├── layout.tsx                   fonts, metadata, providers
-│   │   │   ├── page.tsx                     placeholder root page
-│   │   │   └── globals.css                  brand theme (Tailwind v4 tokens)
-│   │   ├── components/
-│   │   │   ├── ui/                          shadcn/ui primitives
-│   │   │   ├── shared/                      generic layout primitives (Container, ...)
-│   │   │   └── providers/                   ThemeProvider, AppProviders (composition root)
-│   │   ├── lib/
-│   │   │   ├── auth.ts                      Better Auth server instance
-│   │   │   ├── auth-client.ts                Better Auth React client
-│   │   │   ├── api-client.ts / api-server.ts fetch wrappers for the FastAPI backend
-│   │   │   ├── db.ts                        pg Pool (Better Auth's Postgres adapter)
-│   │   │   ├── env.server.ts / env.client.ts validated, boundary-safe env access
-│   │   │   └── utils.ts
-│   │   ├── hooks/                           generic reusable hooks
-│   │   ├── types/                           shared TS types
-│   │   ├── config/                          site.ts, app-wide constants
-│   │   └── middleware.ts                    session-cookie route protection (no protected routes yet)
-│   └── .env.example
-│
-├── backend/                     FastAPI app — Railway deploy root
-│   ├── app/
-│   │   ├── main.py                          app factory, CORS, middleware, lifespan
-│   │   ├── core/                            config, database, security (JWT verification), logging
-│   │   ├── api/
-│   │   │   ├── deps.py                      DbSession / CurrentUserId dependency aliases
-│   │   │   └── v1/                          versioned router + endpoints (health only so far)
-│   │   ├── models/                          SQLAlchemy declarative Base + mixins
-│   │   ├── schemas/                         Pydantic request/response schemas
-│   │   ├── services/                        business logic, kept out of the HTTP layer
-│   │   └── middleware/                      request-id + latency logging
-│   ├── alembic/                             async-engine migrations (no domain tables yet)
-│   ├── tests/
-│   ├── Dockerfile                           Railway build
-│   └── .env.example
-│
-├── scripts/
-│   ├── setup.ps1 / setup.sh                 one-time install (frontend deps + backend venv)
-│   └── dev.mjs                              runs both dev servers together
-│
-├── docker-compose.yml                       local Postgres for development
-└── package.json                             root convenience scripts (`npm run dev`)
+├── frontend/                        the whole app — Vercel root directory
+│   ├── db/migrations/               numbered .sql files, applied in order
+│   ├── scripts/migrate.mjs          applies migrations + seeds the university catalog
+│   └── src/
+│       ├── app/
+│       │   ├── (marketing)/         landing + pricing
+│       │   ├── (auth)/              sign-in, sign-up, password reset
+│       │   ├── dashboard/           the product (server components)
+│       │   └── api/
+│       │       ├── auth/[...all]/   Better Auth
+│       │       └── v1/              JSON API for client components
+│       ├── lib/
+│       │   ├── data/                all database access (one module per table group)
+│       │   ├── ai/                  Gemini client, essay review, copilot, prompt context
+│       │   ├── route.ts             route-handler wrapper, auth guards, error shape
+│       │   ├── validation.ts        request-body schemas (zod)
+│       │   ├── session.ts           current session for server components
+│       │   ├── auth.ts              Better Auth configuration
+│       │   ├── predict.ts …         scoring engine (pure functions, unit-tested)
+│       │   └── *-server.ts / *-client.ts   loaders for pages / fetchers for components
+│       └── data/                    static catalogs (achievements, FAQ, university seed)
+├── docker-compose.yml               optional local Postgres
+└── package.json                     convenience scripts that forward to frontend/
 ```
+
+### How a request flows
+
+- **Pages** are server components. They read the session from the cookie
+  (`lib/session.ts`) and query Postgres directly through `lib/data/*` — no HTTP
+  round trip to themselves.
+- **Client components** that change data call `/api/v1/*` on the same origin via
+  `lib/api-client.ts`. The browser sends the Better Auth session cookie; each route
+  identifies the user with `requireUser()` / `requireAdmin()` from `lib/route.ts`.
+  User ids never come from the request body or a client-supplied token.
+- **Admin** is an allow-list: `ADMIN_EMAILS`, and the account's email must be
+  verified.
 
 ## Getting started
 
-**Prerequisites:** Node.js 20+, Python 3.11+, Docker (for local Postgres) — or a remote
-Postgres connection string if you'd rather not run Docker.
+Prerequisites: Node.js 20.12+ and a Postgres database (Docker, a local install, or a
+free Neon database).
 
 ```powershell
-# 1. Install everything (frontend deps + backend venv)
-npm run setup          # or: pwsh scripts/setup.ps1 / bash scripts/setup.sh
-
-# 2. Start Postgres locally
-docker compose up -d
-
-# 3. Copy env templates and fill in real values
-copy frontend\.env.example frontend\.env.local
-copy backend\.env.example backend\.env
-
-# 4. Run both dev servers
-npm run dev
+npm run setup                    # installs dependencies, creates frontend/.env.local
+docker compose up -d             # optional: local Postgres matching .env.example
+npm run db:migrate               # creates all tables and loads the 239 universities
+npm run dev                      # http://localhost:3000
 ```
 
-Frontend: http://localhost:3000 · Backend: http://localhost:8000 (docs at `/docs` outside production).
+Fill in `frontend/.env.local` — every variable is documented in
+[`frontend/.env.example`](frontend/.env.example). Without `GEMINI_API_KEY` the AI
+features say they are not configured; set `AI_PROVIDER=mock` to get placeholder
+answers while developing offline.
 
-Once `DATABASE_URL` points at a running Postgres:
+## Scripts (run inside `frontend/`)
 
-```powershell
-cd frontend; npx @better-auth/cli migrate    # creates Better Auth's user/session/account tables
-cd backend; .venv\Scripts\alembic upgrade head  # creates domain tables (none yet — safe no-op)
-```
+| Command              | What it does                                              |
+| -------------------- | --------------------------------------------------------- |
+| `npm run dev`        | development server                                        |
+| `npm run build`      | applies migrations, then builds for production            |
+| `npm run db:migrate` | applies pending migrations and seeds missing universities |
+| `npm test`           | unit tests (Vitest)                                       |
+| `npm run typecheck`  | TypeScript                                                |
+| `npm run lint`       | ESLint                                                    |
 
-## How authentication works
+## Database migrations
 
-Better Auth runs entirely inside the Next.js app and owns its own Postgres tables
-(`user`, `session`, `account`, `verification`) in the **same** database the backend uses —
-the backend never touches those tables directly.
+Schema changes are new files in `frontend/db/migrations/` named `NNNN_description.sql`.
+`scripts/migrate.mjs` records applied files in `schema_migrations` and runs each new one
+in a transaction; it also runs as the first step of every build, so a Vercel deploy
+brings its database up to date before the new code goes live. Write migrations to be
+safe to re-run (`IF NOT EXISTS`) — the first one had to adopt databases created by the
+retired FastAPI backend.
 
-1. Browser ↔ Next.js: normal cookie-based sessions via Better Auth (Email/Password, Google, Apple).
-2. Next.js ↔ FastAPI: the frontend mints a short-lived JWT from the active session
-   (`GET /api/auth/token`, wrapped by `lib/api-client.ts` / `lib/api-server.ts`) and sends it
-   as a Bearer token. FastAPI verifies it against Better Auth's JWKS endpoint
-   (`{AUTH_ISSUER}/api/auth/jwks`) — see `backend/app/core/security.py`. No shared secret,
-   no duplicated auth logic in Python.
+## What the scores mean
 
-## Design system
-
-Primary color `#0B1F3A`, white background, generous spacing, rounded corners, no gradients —
-configured as CSS custom properties in `frontend/src/app/globals.css`. Dark mode is wired up
-(via `next-themes`) with a navy-tinted palette, ready for when it's needed.
-
-## What's ready
-
-- Full frontend/backend project structure, typed end-to-end
-- Brand theme + a solid shadcn/ui component set (button, input, form, dialog, card, tabs, etc.)
-- Better Auth configured for Email/Password + Google + Apple, with the Postgres adapter wired up
-- Cross-service JWT auth (frontend issues, backend verifies via JWKS) — no features gated behind it yet
-- FastAPI app with versioned API router, async SQLAlchemy + Alembic, structured request logging
-- Local Postgres via Docker Compose; Dockerfile for Railway
-- Lint, type-check, and test tooling passing on both sides (ESLint/tsc on the frontend; ruff/mypy/pytest on the backend)
-
-## What's next
-
-- Real OAuth credentials (Google Cloud console, Apple Developer) in each `.env`
-- Domain models (applications, universities, essays, ...) + first Alembic migration
-- Protected routes: add prefixes to `frontend/src/middleware.ts` as pages land
-- The actual product: landing page, dashboard, assessment, university data — intentionally out of scope here
-
-## Known caveats
-
-- This machine has no `git` on PATH, so the repo hasn't been initialized — run `git init` when ready.
-- `next build` prints an Edge Runtime warning about `CompressionStream` (pulled in transitively by
-  `better-auth/cookies` via `jose`). It's a warning, not an error, and doesn't affect JWT verification.
+The fit score is a deterministic, explainable comparison of a profile with a
+programme's weighted criteria (`lib/predict.ts`). The admission probability
+(`lib/probability.ts`) starts from each university's acceptance rate and is **not
+calibrated yet**: that needs real outcomes, which students can report from their
+portfolio. The methodology page shows how many have been collected; the model is only
+called calibrated after 100.

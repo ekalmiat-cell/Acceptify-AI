@@ -1,18 +1,16 @@
-# Acceptify AI — frontend
+# Acceptify AI — app
 
-Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS 4 + shadcn/ui.
-
-See the [repo root README](../README.md) for the full architecture, environment setup, and
-how auth is wired between this app and the FastAPI backend.
-
-## Scripts
+The whole application: pages, API routes and database migrations. See the
+[repository README](../README.md) for the architecture and
+[DEPLOYMENT.md](../DEPLOYMENT.md) for deploying to Vercel.
 
 ```bash
-npm run dev         # start the dev server on :3000
-npm run build        # production build
-npm run lint          # ESLint
-npm run typecheck     # tsc --noEmit
+npm run dev          # development server on :3000
+npm run db:migrate   # apply migrations + seed the university catalog
+npm run build        # migrate, then production build
+npm test             # unit tests
+npm run typecheck    # tsc --noEmit
+npm run lint         # ESLint
 ```
 
-Requires `.env.local` (copy from `.env.example`) with a reachable `DATABASE_URL` for
-Better Auth's Postgres tables.
+Requires `.env.local` (copy from `.env.example`) with a reachable `DATABASE_URL`.

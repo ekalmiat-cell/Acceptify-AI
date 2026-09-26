@@ -10,14 +10,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress, ProgressIndicator, ProgressTrack } from "@/components/ui/progress";
-import { pricingTiers } from "@/data/pricing";
 
-const predictionsLimit = 3;
-
+/**
+ * Acceptify is free during beta, so there is no plan to manage and nothing to
+ * pay. This card says so plainly instead of showing a usage meter for a
+ * limit that is not enforced.
+ */
 export function BillingSettings({ predictionsUsed }: { predictionsUsed: number }) {
-  const freeTier = pricingTiers.find((t) => t.id === "free")!;
-
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -25,24 +24,19 @@ export function BillingSettings({ predictionsUsed }: { predictionsUsed: number }
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Current plan</CardTitle>
-              <CardDescription>You&apos;re currently on the {freeTier.name} plan.</CardDescription>
+              <CardDescription>
+                Acceptify is free while in beta — every feature is unlocked.
+              </CardDescription>
             </div>
-            <Badge>{freeTier.name}</Badge>
+            <Badge>Free beta</Badge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
-          <div>
-            <div className="mb-1.5 flex items-center justify-between text-sm">
-              <span className="font-medium">Predictions this month</span>
-              <span className="font-mono text-muted-foreground">
-                {predictionsUsed} / {predictionsLimit}
-              </span>
-            </div>
-            <Progress value={(predictionsUsed / predictionsLimit) * 100}>
-              <ProgressTrack>
-                <ProgressIndicator />
-              </ProgressTrack>
-            </Progress>
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Saved analyses</span>
+            <span className="font-mono text-muted-foreground">
+              {predictionsUsed} · unlimited
+            </span>
           </div>
 
           <div className="flex items-center justify-between rounded-xl bg-muted p-4">
@@ -51,12 +45,14 @@ export function BillingSettings({ predictionsUsed }: { predictionsUsed: number }
                 <Sparkles className="size-4" />
               </span>
               <div>
-                <p className="text-sm font-medium">Upgrade to Pro</p>
-                <p className="text-xs text-muted-foreground">Unlimited predictions & scholarship matching</p>
+                <p className="text-sm font-medium">Paid plans are coming later</p>
+                <p className="text-xs text-muted-foreground">
+                  Everything free today stays free.
+                </p>
               </div>
             </div>
-            <Button render={<Link href="/pricing" />} className="bg-gradient-brand text-white hover:opacity-90">
-              Compare plans
+            <Button render={<Link href="/pricing" />} variant="outline">
+              See plans
               <ArrowRight />
             </Button>
           </div>
@@ -66,13 +62,8 @@ export function BillingSettings({ predictionsUsed }: { predictionsUsed: number }
       <Card>
         <CardHeader>
           <CardTitle>Payment method</CardTitle>
-          <CardDescription>No payment method on file for the Free plan.</CardDescription>
+          <CardDescription>No payment method is needed during the free beta.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            A billing portal will appear here once you upgrade to a paid plan.
-          </p>
-        </CardContent>
       </Card>
     </div>
   );

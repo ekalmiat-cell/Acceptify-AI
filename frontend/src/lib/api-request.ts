@@ -3,30 +3,31 @@ import { ApiError, NETWORK_ERROR_STATUS } from "@/lib/api-error";
 const DEFAULT_TIMEOUT_MS = 15_000;
 
 /**
- * A dev backend started with `--reload` drops in-flight connections for a
- * moment every time a Python file is saved. One quiet retry turns that window
- * into a slightly slower request instead of a crashed screen.
+ * A flaky connection or a server restarting mid-deploy can drop a request
+ * for a moment. One quiet retry turns that window into a slightly slower
+ * request instead of a crashed screen.
  */
 const RETRY_DELAY_MS = 400;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Shared transport for both the client and server API wrappers. Deliberately
- * carries neither `client-only` nor `server-only` so each side can wrap it.
+ * The transport behind `apiFetch`.
  *
- * The important behaviour here is that a dead or restarting backend surfaces
+ * Pass your own `signal` for slow calls (the AI features): it replaces the
+ * default timeout and turns off the retry, so a long request is never sent
+ * twice.
+ *
+ * The important behaviour here is that an unreachable server surfaces
  * as an `ApiError` with status 0 and a sentence a person can act on, rather
  * than a bare `TypeError: Failed to fetch` blowing up in the error overlay.
  */
 export async function requestJson<T>(
   url: string,
   init: RequestInit = {},
-  token?: string | null,
 ): Promise<T> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...init.headers,
   };
 
@@ -41,8 +42,8 @@ export async function requestJson<T>(
     throw new ApiError(
       NETWORK_ERROR_STATUS,
       timedOut
-        ? "The Acceptify API took too long to respond. Please try again."
-        : "Can't reach the Acceptify API. Check that the backend is running, then try again.",
+        ? "Acceptify took too long to respond. Please try again."
+        : "Can't reach Acceptify. Check your internet connection and try again.",
       error,
     );
   }
@@ -60,7 +61,7 @@ export async function requestJson<T>(
 }
 
 /**
- * FastAPI's `detail` is a plain string for `HTTPException`, but a *list of
+ * The API's `detail` is a plain string for most errors, but a *list of
  * error objects* for request-validation failures (422). Interpolating that
  * list straight into a toast is where "[object Object]" came from, so unpack
  * it into something readable.
@@ -106,7 +107,11 @@ async function fetchWithRetry(
   // A caller-supplied signal wins: it usually means the component unmounted
   // or the user navigated away, and retrying that would be wrong.
   const hasCallerSignal = Boolean(init.signal);
-  const attempts = hasCallerSignal ? 1 : 2;
+  // Only reads are retried: a write whose response was lost may well have
+  // been applied, and sending it again would save it twice.
+  const method = (init.method ?? "GET").toUpperCase();
+  const isRead = method === "GET" || method === "HEAD";
+  const attempts = hasCallerSignal || !isRead ? 1 : 2;
 
   let lastError: unknown;
 
@@ -120,7 +125,7 @@ async function fetchWithRetry(
       lastError = error;
 
       // Only connection failures are worth repeating — a timeout means the
-      // backend is reachable but wedged, and a second wait helps nobody.
+      // server is reachable but wedged, and a second wait helps nobody.
       const isTimeout =
         error instanceof DOMException && error.name === "TimeoutError";
       if (isTimeout || attempt === attempts - 1) break;
@@ -132,7 +137,7 @@ async function fetchWithRetry(
   throw lastError;
 }
 
-/** True when the request never reached the backend (offline, down, timeout). */
+/** True when the request never reached the server (offline, down, timeout). */
 export function isNetworkError(error: unknown): boolean {
   return error instanceof ApiError && error.status === NETWORK_ERROR_STATUS;
 }

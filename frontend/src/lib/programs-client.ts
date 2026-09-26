@@ -10,7 +10,7 @@ export async function fetchPrograms(universityId?: string): Promise<Program[]> {
 
 /** Finds (or, on first use, creates) the Program for a university/field
  * pair, with a default-weighted evaluation profile already attached — see
- * `backend/app/api/v1/endpoints/programs.py::resolve_program`. This is what
+ * `resolveProgram` in lib/data/programs.ts. This is what
  * the "Choose Your Intended Field of Study" step calls on submit. */
 export async function resolveProgram(universityId: string, field: string): Promise<Program> {
   return apiFetch<Program>(

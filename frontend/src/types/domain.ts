@@ -1,8 +1,7 @@
 /**
- * Shared domain types. University data is a static catalog (`@/data`);
- * predictions, academic profile, and achievements are real per-user data
- * fetched from the FastAPI backend (see `lib/predictions-server.ts` and
- * `lib/profile-server.ts`).
+ * Shared domain types. The university catalog, predictions, academic profile
+ * and achievements all live in Postgres — see `lib/data/*` for how each is
+ * read and written.
  */
 
 export type MatchCategory = "safe" | "target" | "reach";
@@ -80,8 +79,7 @@ export interface EvaluationProfile {
 
 /** What actually happened to an application. `null` until the student tells
  * us — which, for most applications, is months after the prediction was run.
- * These are the labels of the calibration set: see the outcome columns on
- * backend/app/models/prediction.py. */
+ * These are the labels of the calibration set: see `lib/data/predictions.ts`. */
 export type ApplicationOutcome = "admitted" | "rejected" | "waitlisted" | "withdrawn";
 
 export interface PredictionHistoryEntry {
@@ -192,6 +190,8 @@ export interface PricingTier {
   features: string[];
   cta: string;
   highlighted: boolean;
+  /** False for a planned tier that cannot be signed up for yet. */
+  available: boolean;
 }
 
 export interface FaqItem {

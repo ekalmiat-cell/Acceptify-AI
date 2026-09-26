@@ -149,7 +149,7 @@ export function formatProbability(p: number): string {
 /**
  * How many reported outcomes the model needs before anything here can be
  * called calibrated. Mirrors `MIN_OUTCOMES_TO_CALIBRATE` in
- * backend/app/api/v1/endpoints/predictions.py — the backend is the authority
+ * lib/data/predictions.ts — the server is the authority
  * on whether the threshold is met (`isCalibrated` on the summary); this copy
  * exists only so the methodology page can show progress towards it.
  */

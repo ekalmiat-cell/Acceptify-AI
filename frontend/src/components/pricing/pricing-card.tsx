@@ -17,7 +17,12 @@ export function PricingCard({ tier }: { tier: PricingTier }) {
     >
       {tier.highlighted ? (
         <span className="absolute -top-3 left-8 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#0b1f3a]">
-          Most popular
+          Available now
+        </span>
+      ) : null}
+      {!tier.available ? (
+        <span className="absolute -top-3 left-8 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+          Coming soon
         </span>
       ) : null}
 
@@ -37,17 +42,23 @@ export function PricingCard({ tier }: { tier: PricingTier }) {
         </span>
       </div>
 
-      <Button
-        render={<Link href="/sign-up" />}
-        className={cn(
-          "h-10 w-full",
-          tier.highlighted
-            ? "bg-white text-[#0b1f3a] hover:bg-white/90"
-            : "bg-white/10 text-white hover:bg-white/20"
-        )}
-      >
-        {tier.cta}
-      </Button>
+      {tier.available ? (
+        <Button
+          render={<Link href="/sign-up" />}
+          className={cn(
+            "h-10 w-full",
+            tier.highlighted
+              ? "bg-white text-[#0b1f3a] hover:bg-white/90"
+              : "bg-white/10 text-white hover:bg-white/20"
+          )}
+        >
+          {tier.cta}
+        </Button>
+      ) : (
+        <Button disabled className="h-10 w-full bg-white/10 text-white/60">
+          {tier.cta}
+        </Button>
+      )}
 
       <ul className="flex flex-col gap-3">
         {tier.features.map((feature) => (

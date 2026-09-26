@@ -10,7 +10,7 @@ import { pricingTiers } from "@/data/pricing";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "Simple, transparent pricing for every stage of your application journey.",
+  description: "Acceptify is free during beta. See what is available now and what is planned.",
 };
 
 export default function PricingPage() {
@@ -22,7 +22,7 @@ export default function PricingPage() {
           <SectionHeading
             eyebrow="Pricing"
             title="Simple plans that scale with your application"
-            description="Start free, upgrade when you're ready for unlimited predictions and hands-on guidance."
+            description="Acceptify is free while in beta. Paid plans with hands-on guidance are on the way."
             dark
             className="mb-16"
           />

@@ -21,7 +21,6 @@ import { FIELDS_OF_STUDY } from "@/lib/fields-of-study";
 import { createProgram, deleteProgram } from "@/lib/programs-client";
 import type { Program, University } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
-import { revalidateReferenceData } from "@/lib/reference-actions";
 
 export function AdminProgramList({
   university,
@@ -44,7 +43,6 @@ export function AdminProgramList({
       toast.success(`${name} added to ${university.shortName}`);
       setName("");
       setField("");
-      await revalidateReferenceData();
       router.refresh();
     } catch (error) {
       toast.error(describeApiError(error, "Could not create this program."));
@@ -58,7 +56,6 @@ export function AdminProgramList({
     try {
       await deleteProgram(programId);
       toast.success(`${programName} removed`);
-      await revalidateReferenceData();
       router.refresh();
     } catch (error) {
       toast.error(describeApiError(error, "Could not delete this program."));

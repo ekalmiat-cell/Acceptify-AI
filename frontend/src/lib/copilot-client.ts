@@ -3,9 +3,9 @@
 import { apiFetch } from "@/lib/api-client";
 import type { ChatMessage, CopilotChatResponse } from "@/types/copilot";
 
-/**
- * Sends conversation messages to the backend AI Admissions Copilot (powered by Gemini 3.7 Flash).
- */
+const CHAT_TIMEOUT_MS = 60_000;
+
+/** Sends the conversation so far to the admissions copilot and returns its reply. */
 export async function sendCopilotMessage(
   messages: ChatMessage[],
   includeContext: boolean = true
@@ -16,5 +16,6 @@ export async function sendCopilotMessage(
       messages,
       include_context: includeContext,
     }),
+    signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
 }
