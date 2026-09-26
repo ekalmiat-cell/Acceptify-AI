@@ -18,10 +18,13 @@ export function Hero({
   featuredNames: string[];
 }) {
   return (
-    <section className="relative overflow-hidden pt-40 pb-24 sm:pt-48 sm:pb-32">
+    // At least one full screen tall, so the next (white) section never peeks
+    // in under the hero on a first load. `svh` keeps it steady on phones,
+    // where the browser's address bar grows and shrinks.
+    <section className="relative flex min-h-svh items-center overflow-hidden pt-32 pb-20 sm:pt-36 sm:pb-24">
       <div className="bg-grid-glow pointer-events-none absolute inset-0" />
 
-      <Container className="relative max-w-7xl">
+      <Container className="relative w-full max-w-7xl">
         <div className="grid items-center gap-16 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="flex flex-col items-start gap-7">
             <motion.span
