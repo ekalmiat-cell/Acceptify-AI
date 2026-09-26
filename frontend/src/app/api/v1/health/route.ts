@@ -1,12 +1,13 @@
 import { unstable_cache } from "next/cache";
 
-import { candidateModels, isMockAi, probeModels } from "@/lib/ai/gemini";
+import { runCopilotChat } from "@/lib/ai/copilot";
+import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
 import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { json, route } from "@/lib/route";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /**
  * Public health check: can this deployment reach its database, is it
@@ -35,6 +36,27 @@ const runChecks = unstable_cache(
 
     const probes = isMockAi() || !env.GEMINI_API_KEY ? [] : await probeModels();
 
+    // The copilot's real code path — system prompt, structured output and
+    // reply validation — on a one-line conversation with no student data.
+    let copilot: Record<string, unknown> = { ok: false, skipped: true };
+    if (!isMockAi() && env.GEMINI_API_KEY) {
+      const started = Date.now();
+      try {
+        const reply = await runCopilotChat(
+          [{ role: "user", content: "Reply with a one-sentence greeting." }],
+          null,
+        );
+        copilot = { ok: true, ms: Date.now() - started, replyPreview: reply.reply.slice(0, 80) };
+      } catch (error) {
+        copilot = {
+          ok: false,
+          ms: Date.now() - started,
+          error: error instanceof Error ? error.message : String(error),
+          upstream: error instanceof GeminiError ? error.upstream : null,
+        };
+      }
+    }
+
     return {
       checkedAt: new Date().toISOString(),
       database,
@@ -44,7 +66,8 @@ const runChecks = unstable_cache(
         configuredModel: env.GEMINI_MODEL ?? null,
         modelsTried: candidateModels(),
         probes,
-        working: isMockAi() || probes.some((probe) => probe.ok),
+        copilot,
+        working: isMockAi() || copilot.ok === true,
       },
     };
   },

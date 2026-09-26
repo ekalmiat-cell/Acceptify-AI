@@ -90,12 +90,43 @@ describe("generateJson", () => {
     expect(calls[1].body.generationConfig).not.toHaveProperty("responseSchema");
   });
 
-  it("does not fall back on an ordinary rate limit", async () => {
-    fakeGemini({ "gemini-3.8-flash": [geminiError(429, "Resource exhausted, retry later")] });
+  it("moves on when a model is overloaded or rate-limited (quotas are per model)", async () => {
+    fakeGemini({
+      "gemini-3.8-flash": [geminiError(503, "This model is currently experiencing high demand.", "UNAVAILABLE")],
+      "gemini-3.7-flash": [geminiError(429, "Resource exhausted, retry later")],
+      "gemini-3.5-flash": [geminiOk({ ok: true })],
+    });
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson(request)).resolves.toEqual({ ok: true });
+    expect(calls.map((c) => c.model)).toEqual([
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.5-flash",
+    ]);
+  });
+
+  it("reports 'busy' rather than 'no model' when every model is rate-limited", async () => {
+    fakeGemini({
+      "gemini-3.8-flash": [geminiError(429, "Resource exhausted")],
+      "gemini-3.7-flash": [geminiError(429, "Resource exhausted")],
+      "gemini-3.5-flash": [geminiError(404, "models/gemini-3.5-flash is not found")],
+    });
     const { generateJson } = await loadGemini();
 
     await expect(generateJson(request)).rejects.toMatchObject({ status: 429 });
-    expect(calls).toHaveLength(1);
+  });
+
+  it("tries the next model when one returns an unreadable answer", async () => {
+    fakeGemini({
+      "gemini-3.8-flash": [
+        { status: 200, body: { candidates: [{ content: { parts: [{ text: "not json" }] } }] } },
+      ],
+      "gemini-3.7-flash": [geminiOk({ ok: true })],
+    });
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson(request)).resolves.toEqual({ ok: true });
   });
 
   it("reports a rejected key clearly, keeping Google's message for the logs", async () => {

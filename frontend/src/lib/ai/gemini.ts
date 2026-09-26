@@ -97,15 +97,24 @@ function describeUpstream(status: number, body: string): string {
 }
 
 /**
- * Whether a failure means "this model is not available to this key" — the
- * case where trying the next model can succeed. A quota of zero ("limit: 0")
- * means the model is not on the key's tier, unlike an ordinary rate limit.
+ * Whether this model can never serve this key — unknown, retired, or not on
+ * its tier (a quota of zero, "limit: 0").
  */
 function isModelUnavailable(status: number, body: string): boolean {
   if (status === 404) return true;
   if (status === 400 && /not (found|supported)/i.test(body)) return true;
   if (status === 429 && /limit:\s*0\b/.test(body)) return true;
   return false;
+}
+
+/**
+ * Whether the next model is worth trying. Besides unavailable models, that
+ * covers rate limits — free-tier quotas are per model, so another model
+ * usually still has room — and Google's "high demand" 5xx overloads, which
+ * hit one model at a time.
+ */
+function shouldTryNextModel(status: number, body: string): boolean {
+  return isModelUnavailable(status, body) || status === 429 || status >= 500;
 }
 
 function toUserFacingError(status: number, body: string, model: string): GeminiError {
@@ -219,6 +228,10 @@ export async function generateJson(options: {
 
   const models = candidateModels();
   let lastFailure: GeminiError | null = null;
+  // Whether some model was merely busy or broken rather than unavailable —
+  // then the student should hear that (e.g. "too many requests"), not that
+  // no model exists.
+  let lastFailureWasTransient = false;
 
   for (const model of models) {
     let result = await callModel(model, apiKey, buildBody(true));
@@ -232,13 +245,28 @@ export async function generateJson(options: {
 
     if (!result.ok) {
       console.error(`[gemini] ${model}: ${describeUpstream(result.status, result.text)}`);
-      lastFailure = toUserFacingError(result.status, result.text, model);
-      if (isModelUnavailable(result.status, result.text)) continue;
-      throw lastFailure;
+      const failure = toUserFacingError(result.status, result.text, model);
+      if (!shouldTryNextModel(result.status, result.text)) throw failure;
+
+      const transient = !isModelUnavailable(result.status, result.text);
+      if (transient || !lastFailureWasTransient) {
+        lastFailure = failure;
+        lastFailureWasTransient = transient;
+      }
+      continue;
     }
 
-    return parseReply(result.data, model);
+    try {
+      return parseReply(result.data, model);
+    } catch (error) {
+      // An empty or unreadable answer from one model: another may do better.
+      if (!(error instanceof GeminiError) || error.status !== 502) throw error;
+      lastFailure = error;
+      lastFailureWasTransient = true;
+    }
   }
+
+  if (lastFailure && lastFailureWasTransient) throw lastFailure;
 
   throw new GeminiError(
     503,
