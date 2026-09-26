@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 
 import { runCopilotChat } from "@/lib/ai/copilot";
 import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
+import { recentAiErrors } from "@/lib/data/ai-errors";
 import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { json, route } from "@/lib/route";
@@ -57,9 +58,28 @@ const runChecks = unstable_cache(
       }
     }
 
+    // Whether students' requests reach the server at all, and how the
+    // latest ones failed — counts and reasons only, nothing about who.
+    let recent: Record<string, unknown> = {};
+    try {
+      const usage = await pgPool.query<{ feature: string; requests: string }>(
+        `SELECT feature, sum(count)::text AS requests FROM ai_usage
+         WHERE window_start > now() - interval '24 hours' GROUP BY feature`,
+      );
+      recent = {
+        requestsLast24h: Object.fromEntries(
+          usage.rows.map((row) => [row.feature, Number(row.requests)]),
+        ),
+        errors: await recentAiErrors(10),
+      };
+    } catch (error) {
+      recent = { error: error instanceof Error ? error.message : String(error) };
+    }
+
     return {
       checkedAt: new Date().toISOString(),
       database,
+      recent,
       ai: {
         provider: env.AI_PROVIDER,
         apiKeySet: Boolean(env.GEMINI_API_KEY),
@@ -72,7 +92,7 @@ const runChecks = unstable_cache(
     };
   },
   ["health-check"],
-  { revalidate: 60 },
+  { revalidate: 30 },
 );
 
 export const GET = route(async () => json(await runChecks()));
