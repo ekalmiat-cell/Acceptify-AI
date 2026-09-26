@@ -8,7 +8,7 @@ import type {
 } from "@/types/essay";
 
 /** How long the browser waits for an AI review before giving up. */
-const ANALYZE_TIMEOUT_MS = 90_000;
+const ANALYZE_TIMEOUT_MS = 130_000;
 
 /** Runs the AI review of an admissions essay and saves it to the user's history. */
 export async function analyzeEssay(payload: EssayAnalyzeRequest): Promise<EssayReviewRead> {

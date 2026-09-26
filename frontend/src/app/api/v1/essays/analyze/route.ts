@@ -8,7 +8,7 @@ import { HttpError, json, readJson, requireUser, route } from "@/lib/route";
 import { essayAnalyzeSchema } from "@/lib/validation";
 
 // A thorough review of a long essay can take the model a while.
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /** Reviews an admissions essay with the AI and saves the result. */
 export const POST = route(async (request) => {

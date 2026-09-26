@@ -3,7 +3,7 @@
 import { apiFetch } from "@/lib/api-client";
 import type { ChatMessage, CopilotChatResponse } from "@/types/copilot";
 
-const CHAT_TIMEOUT_MS = 60_000;
+const CHAT_TIMEOUT_MS = 100_000;
 
 /** Sends the conversation so far to the admissions copilot and returns its reply. */
 export async function sendCopilotMessage(

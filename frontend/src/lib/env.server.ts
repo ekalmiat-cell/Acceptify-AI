@@ -83,6 +83,5 @@ export const env = {
       "local-development-secret-not-for-production",
     );
   },
-  GEMINI_MODEL: values.GEMINI_MODEL ?? "gemini-3.7-flash",
   AI_PROVIDER: values.AI_PROVIDER ?? "gemini",
 };

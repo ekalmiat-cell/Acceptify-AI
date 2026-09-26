@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-import { generateJson, isMockAi, type GeminiMessage } from "@/lib/ai/gemini";
+import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@/lib/ai/gemini";
 import { HttpError } from "@/lib/http-error";
 import type { ChatMessage, CopilotChatResponse } from "@/types/copilot";
 
@@ -28,6 +28,17 @@ You must output a valid JSON object with the following structure:
     "Follow-up question 2"
   ]
 }`;
+
+/** The shape Gemini is constrained to produce. */
+const REPLY_SCHEMA: GeminiSchema = {
+  type: "OBJECT",
+  properties: {
+    reply: { type: "STRING" },
+    suggested_followups: { type: "ARRAY", items: { type: "STRING" } },
+  },
+  required: ["reply", "suggested_followups"],
+  propertyOrdering: ["reply", "suggested_followups"],
+};
 
 const replySchema = z.object({
   reply: z.coerce.string().min(1),
@@ -86,7 +97,12 @@ export async function runCopilotChat(
     throw new HttpError(422, "Send a message to start the conversation.");
   }
 
-  const raw = await generateJson({ system, messages: history, temperature: 0.5 });
+  const raw = await generateJson({
+    system,
+    messages: history,
+    temperature: 0.5,
+    schema: REPLY_SCHEMA,
+  });
   const parsed = replySchema.safeParse(raw);
   if (!parsed.success) {
     throw new HttpError(502, "The AI returned an answer we couldn't read. Please try again.");

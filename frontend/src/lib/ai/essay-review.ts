@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
-import { generateJson, isMockAi } from "@/lib/ai/gemini";
+import { generateJson, isMockAi, type GeminiSchema } from "@/lib/ai/gemini";
 import { HttpError } from "@/lib/http-error";
 import type { EssayAnalysisResult } from "@/types/essay";
 
@@ -34,6 +34,46 @@ You must output a strictly formatted, valid JSON object conforming exactly to th
 - \`university_alignment\`: { \`score\`: 0-100, \`assessment\`: string, \`aligned_values\`: array of strings }
 - \`actionable_recommendations\`: Array of prioritized recommendations { \`priority\`: "high"|"medium"|"low", \`category\`, \`advice\`, \`example_improvement\` }
 - \`suggested_next_steps\`: Array of 3-4 immediate next action items for the student.`;
+
+const SCORE: GeminiSchema = { type: "INTEGER" };
+const TEXT: GeminiSchema = { type: "STRING" };
+const TEXT_LIST: GeminiSchema = { type: "ARRAY", items: TEXT };
+
+function object(properties: Record<string, GeminiSchema>): GeminiSchema {
+  const keys = Object.keys(properties);
+  return { type: "OBJECT", properties, required: keys, propertyOrdering: keys };
+}
+
+/** The shape Gemini is constrained to produce — mirrors `essayAnalysisSchema`. */
+const REVIEW_SCHEMA: GeminiSchema = object({
+  overall_score: SCORE,
+  headline_verdict: TEXT,
+  category_scores: object({
+    structure: SCORE,
+    storytelling: SCORE,
+    voice_and_authenticity: SCORE,
+    clarity_and_flow: SCORE,
+    grammar_and_mechanics: SCORE,
+  }),
+  strengths: TEXT_LIST,
+  weaknesses: TEXT_LIST,
+  cliches_detected: {
+    type: "ARRAY",
+    items: object({ quote: TEXT, issue: TEXT, replacement_idea: TEXT }),
+  },
+  prompt_alignment: object({ score: SCORE, assessment: TEXT, missing_elements: TEXT_LIST }),
+  university_alignment: object({ score: SCORE, assessment: TEXT, aligned_values: TEXT_LIST }),
+  actionable_recommendations: {
+    type: "ARRAY",
+    items: object({
+      priority: { type: "STRING", enum: ["high", "medium", "low"] },
+      category: TEXT,
+      advice: TEXT,
+      example_improvement: { type: "STRING", nullable: true },
+    }),
+  },
+  suggested_next_steps: TEXT_LIST,
+});
 
 /** A 0-100 score, tolerating the model answering "85" or 84.6. */
 const score = z.coerce
@@ -150,6 +190,7 @@ export async function reviewEssay(input: {
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", text: formatEssayPrompt(input) }],
     temperature: 0.3,
+    schema: REVIEW_SCHEMA,
   });
 
   const parsed = essayAnalysisSchema.safeParse(raw);

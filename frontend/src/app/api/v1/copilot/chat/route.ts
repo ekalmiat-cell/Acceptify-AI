@@ -5,7 +5,7 @@ import { consumeAiAllowance } from "@/lib/data/ai-usage";
 import { json, readJson, requireUser, route } from "@/lib/route";
 import { copilotChatSchema } from "@/lib/validation";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 /** One turn of the admissions copilot conversation. */
 export const POST = route(async (request) => {
