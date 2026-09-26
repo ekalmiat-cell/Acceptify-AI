@@ -102,9 +102,48 @@ describe("generateJson", () => {
     expect(calls.map((c) => c.model)).toEqual([
       "gemini-3.8-flash",
       "gemini-3.7-flash",
+      "gemini-3.6-flash",
       "gemini-3.5-flash",
     ]);
   });
+
+  it("goes round again after a pause when every model is overloaded at once", async () => {
+    const overloaded = () => geminiError(503, "high demand", "UNAVAILABLE");
+    fakeGemini({
+      "gemini-3.8-flash": [overloaded(), geminiOk({ ok: "second round" })],
+      "gemini-3.7-flash": [overloaded()],
+      "gemini-3.6-flash": [geminiError(404, "models/gemini-3.6-flash is not found")],
+      "gemini-3.5-flash": [overloaded()],
+    });
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson(request)).resolves.toEqual({ ok: "second round" });
+    // The unknown model is dropped after the first pass.
+    expect(calls.map((c) => c.model)).toEqual([
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+      "gemini-3.8-flash",
+    ]);
+  });
+
+  it("tells the student Google is overloaded when it stays that way", async () => {
+    const overloaded = () => geminiError(503, "high demand", "UNAVAILABLE");
+    fakeGemini({
+      "gemini-3.8-flash": [overloaded(), overloaded(), overloaded()],
+      "gemini-3.7-flash": [overloaded(), overloaded(), overloaded()],
+      "gemini-3.6-flash": [overloaded(), overloaded(), overloaded()],
+      "gemini-3.5-flash": [overloaded(), overloaded(), overloaded()],
+    });
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson(request)).rejects.toMatchObject({
+      status: 503,
+      message: "Google's AI is overloaded right now. Please try again in a minute.",
+    });
+    expect(calls).toHaveLength(12);
+  }, 15_000);
 
   it("reports 'busy' rather than 'no model' when every model is rate-limited", async () => {
     fakeGemini({

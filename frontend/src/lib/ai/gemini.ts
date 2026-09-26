@@ -10,14 +10,29 @@ import { HttpError } from "@/lib/http-error";
  */
 
 const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
+/** Longest a single model call may take. */
 const REQUEST_TIMEOUT_MS = 55_000;
+/** Everything one student request may spend on Gemini, across retries. */
+const TOTAL_BUDGET_MS = 85_000;
+/** A retry with less time left than this is not worth starting. */
+const MIN_ATTEMPT_MS = 8_000;
+/** Passes over the model list, and the base pause before each extra pass. */
+const MAX_ROUNDS = 3;
+const ROUND_PAUSE_MS = 1_500;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Models tried in order when GEMINI_MODEL is not set, or when the configured
  * one is unavailable to this API key (retired, or not on its tier). All are
  * on Gemini's free tier.
  */
-export const FALLBACK_MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"];
+export const FALLBACK_MODELS = [
+  "gemini-3.8-flash",
+  "gemini-3.7-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+];
 
 export function candidateModels(): string[] {
   const configured = env.GEMINI_MODEL;
@@ -144,6 +159,14 @@ function toUserFacingError(status: number, body: string, model: string): GeminiE
       model,
     );
   }
+  if (status >= 500) {
+    return new GeminiError(
+      503,
+      "Google's AI is overloaded right now. Please try again in a minute.",
+      upstream,
+      model,
+    );
+  }
   return new GeminiError(502, "The AI service returned an error. Please try again.", upstream, model);
 }
 
@@ -159,6 +182,7 @@ async function callModel(
   model: string,
   apiKey: string,
   body: string,
+  timeoutMs = REQUEST_TIMEOUT_MS,
 ): Promise<{ ok: true; data: GeminiResponse } | { ok: false; status: number; text: string }> {
   let response: Response;
   try {
@@ -170,7 +194,7 @@ async function callModel(
         "x-goog-api-key": apiKey,
       },
       body,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",
     });
   } catch (error) {
@@ -178,7 +202,7 @@ async function callModel(
       throw new GeminiError(
         504,
         "The AI took too long to answer. Please try again.",
-        `timeout after ${REQUEST_TIMEOUT_MS / 1000}s`,
+        `timeout after ${Math.round(timeoutMs / 1000)}s`,
         model,
       );
     }
@@ -226,44 +250,70 @@ export async function generateJson(options: {
       },
     });
 
-  const models = candidateModels();
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  let models = candidateModels();
   let lastFailure: GeminiError | null = null;
   // Whether some model was merely busy or broken rather than unavailable —
-  // then the student should hear that (e.g. "too many requests"), not that
-  // no model exists.
+  // then the student should hear that (e.g. "too busy"), not that no model
+  // exists.
   let lastFailureWasTransient = false;
+  const withSchema = new Map<string, boolean>();
 
-  for (const model of models) {
-    let result = await callModel(model, apiKey, buildBody(true));
-
-    // A model that rejects the structured-output schema still answers well
-    // with the JSON described in the prompt alone; retry once without it.
-    if (!result.ok && result.status === 400 && options.schema && /schema/i.test(result.text)) {
-      console.error(`[gemini] ${model} rejected the response schema: ${result.text.slice(0, 300)}`);
-      result = await callModel(model, apiKey, buildBody(false));
+  // Free-tier overloads come and go within seconds and hit models
+  // independently, so go round all of them a few times with short pauses
+  // before giving up — within one overall time budget.
+  for (let round = 0; round < MAX_ROUNDS && models.length > 0; round++) {
+    if (round > 0) {
+      const pause = ROUND_PAUSE_MS * round;
+      if (Date.now() + pause >= deadline) break;
+      await sleep(pause);
     }
 
-    if (!result.ok) {
-      console.error(`[gemini] ${model}: ${describeUpstream(result.status, result.text)}`);
-      const failure = toUserFacingError(result.status, result.text, model);
-      if (!shouldTryNextModel(result.status, result.text)) throw failure;
+    const stillAvailable: string[] = [];
 
-      const transient = !isModelUnavailable(result.status, result.text);
-      if (transient || !lastFailureWasTransient) {
-        lastFailure = failure;
-        lastFailureWasTransient = transient;
+    for (const model of models) {
+      const remaining = deadline - Date.now();
+      if (remaining < MIN_ATTEMPT_MS) break;
+      const timeout = Math.min(REQUEST_TIMEOUT_MS, remaining);
+
+      const useSchema = withSchema.get(model) ?? true;
+      let result = await callModel(model, apiKey, buildBody(useSchema), timeout);
+
+      // A model that rejects the structured-output schema still answers
+      // well with the JSON described in the prompt alone; retry without it.
+      if (!result.ok && result.status === 400 && useSchema && options.schema && /schema/i.test(result.text)) {
+        console.error(`[gemini] ${model} rejected the response schema: ${result.text.slice(0, 300)}`);
+        withSchema.set(model, false);
+        result = await callModel(model, apiKey, buildBody(false), timeout);
       }
-      continue;
+
+      if (!result.ok) {
+        console.error(`[gemini] ${model}: ${describeUpstream(result.status, result.text)}`);
+        const failure = toUserFacingError(result.status, result.text, model);
+        if (!shouldTryNextModel(result.status, result.text)) throw failure;
+
+        const transient = !isModelUnavailable(result.status, result.text);
+        if (transient) stillAvailable.push(model);
+        if (transient || !lastFailureWasTransient) {
+          lastFailure = failure;
+          lastFailureWasTransient = transient;
+        }
+        continue;
+      }
+
+      try {
+        return parseReply(result.data, model);
+      } catch (error) {
+        // An empty or unreadable answer from one model: another may do better.
+        if (!(error instanceof GeminiError) || error.status !== 502) throw error;
+        stillAvailable.push(model);
+        lastFailure = error;
+        lastFailureWasTransient = true;
+      }
     }
 
-    try {
-      return parseReply(result.data, model);
-    } catch (error) {
-      // An empty or unreadable answer from one model: another may do better.
-      if (!(error instanceof GeminiError) || error.status !== 502) throw error;
-      lastFailure = error;
-      lastFailureWasTransient = true;
-    }
+    // Models that can never serve this key are not worth another round.
+    models = stillAvailable;
   }
 
   if (lastFailure && lastFailureWasTransient) throw lastFailure;
