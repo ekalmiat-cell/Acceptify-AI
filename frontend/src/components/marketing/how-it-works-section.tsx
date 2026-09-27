@@ -30,42 +30,32 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative bg-white py-24 sm:py-32">
+    <section id="how-it-works" className="relative scroll-mt-16 bg-[#071326] py-24 sm:py-32">
       <Container className="max-w-7xl">
         <SectionHeading
           eyebrow="How it works"
           title="From profile to plan in three steps"
           description="The point is not just a number. It is knowing what the number is made of, and what to do about it."
           className="mb-16"
+          dark
         />
 
-        <FadeInStagger className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {steps.map((step, index) => (
-            <FadeInStaggerItem key={step.step}>
-              <div className="relative flex h-full flex-col gap-4 rounded-xl border border-[#0b1f3a]/10 bg-[#f7f8fa] p-7">
+        <FadeInStagger className="grid grid-cols-1 gap-5 md:grid-cols-3" staggerDelay={0.25}>
+          {steps.map((step) => (
+            <FadeInStaggerItem key={step.step} className="h-full">
+              <div className="hover-lift glass-panel group relative flex h-full flex-col gap-4 rounded-2xl p-7">
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex size-10 items-center justify-center rounded-lg bg-[#0b1f3a] text-white">
+                  <span className="inline-flex size-12 items-center justify-center rounded-xl bg-gradient-brand text-white shadow-glow-brand transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                     <step.icon className="size-5" />
                   </span>
-                  <span className="font-mono text-xs font-medium text-[#8590a6]">
+                  <span className="font-mono text-sm font-semibold text-white/30 transition-colors group-hover:text-[#4a8bff]">
                     {step.step}
                   </span>
                 </div>
-                <h3 className="font-heading text-lg font-semibold text-[#0b1f3a]">
-                  {step.title}
-                </h3>
-                <p className="text-sm leading-relaxed text-[#4b5468]">
+                <h3 className="font-heading text-xl font-semibold text-white">{step.title}</h3>
+                <p className="text-sm leading-relaxed font-medium text-white/60">
                   {step.description}
                 </p>
-
-                {/* Connector between steps on wide screens — reads as a flow
-                    rather than three unrelated cards. */}
-                {index < steps.length - 1 ? (
-                  <span
-                    aria-hidden
-                    className="absolute top-12 -right-2 hidden h-px w-4 bg-[#0b1f3a]/15 md:block"
-                  />
-                ) : null}
               </div>
             </FadeInStaggerItem>
           ))}

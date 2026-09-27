@@ -43,12 +43,12 @@ export function Navbar() {
           <Logo dark />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-2 lg:flex">
           {siteConfig.marketingNav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+              className="nav-pill rounded-full px-4 py-1.5 text-sm font-semibold text-white/75 hover:text-white"
             >
               {item.label}
             </Link>
@@ -68,13 +68,13 @@ export function Navbar() {
               <Button
                 render={<Link href="/sign-in" />}
                 variant="ghost"
-                className="text-white/80 hover:bg-white/5 hover:text-white"
+                className="nav-pill rounded-full font-semibold text-white/80 hover:text-white"
               >
                 Sign in
               </Button>
               <Button
                 render={<Link href="/sign-up" />}
-                className="bg-gradient-brand text-white shadow-glow-brand hover:opacity-90"
+                className="btn-shine rounded-full bg-gradient-brand font-semibold text-white shadow-glow-brand transition-transform hover:scale-105 hover:opacity-95"
               >
                 Check My Chances
               </Button>

@@ -11,9 +11,10 @@ interface FadeInProps {
   once?: boolean;
 }
 
+// Unhurried on purpose: a reveal should be noticed, then read.
 const variants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 28, filter: "blur(6px)" },
+  visible: { opacity: 1, y: 0, filter: "blur(0px)" },
 };
 
 /**
@@ -23,8 +24,8 @@ const variants: Variants = {
 export function FadeIn({
   children,
   className,
-  delay = 0,
-  y = 20,
+  delay = 0.1,
+  y = 28,
   once = true,
 }: FadeInProps) {
   return (
@@ -34,10 +35,10 @@ export function FadeIn({
       whileInView="visible"
       viewport={{ once, margin: "-80px" }}
       variants={{
-        hidden: { opacity: 0, y },
-        visible: { opacity: 1, y: 0 },
+        hidden: { opacity: 0, y, filter: "blur(6px)" },
+        visible: { opacity: 1, y: 0, filter: "blur(0px)" },
       }}
-      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
@@ -47,7 +48,7 @@ export function FadeIn({
 export function FadeInStagger({
   children,
   className,
-  staggerDelay = 0.08,
+  staggerDelay = 0.15,
 }: {
   children: ReactNode;
   className?: string;
@@ -79,7 +80,7 @@ export function FadeInStaggerItem({
   className?: string;
 }) {
   return (
-    <motion.div className={className} variants={variants} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}>
+    <motion.div className={className} variants={variants} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
       {children}
     </motion.div>
   );

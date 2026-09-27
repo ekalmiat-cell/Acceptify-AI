@@ -9,7 +9,7 @@ export function PricingCard({ tier }: { tier: PricingTier }) {
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-6 rounded-3xl p-8",
+        "hover-lift relative flex flex-col gap-6 rounded-3xl p-8",
         tier.highlighted
           ? "bg-gradient-brand shadow-glow-brand text-white"
           : "glass-panel text-white"

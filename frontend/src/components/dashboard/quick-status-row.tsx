@@ -17,7 +17,7 @@ export function QuickStatusRow({
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <Link href="/dashboard/profile">
-        <Card className="h-full transition-shadow hover:shadow-md">
+        <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <UserRound className="size-4" />
@@ -36,7 +36,7 @@ export function QuickStatusRow({
       </Link>
 
       <Link href={dreamUniversity ? `/dashboard/universities/${dreamUniversity.slug}` : "/dashboard/profile"}>
-        <Card className="h-full transition-shadow hover:shadow-md">
+        <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <GraduationCap className="size-4" />
@@ -53,7 +53,7 @@ export function QuickStatusRow({
       </Link>
 
       <Link href="/dashboard/analysis">
-        <Card className="h-full transition-shadow hover:shadow-md">
+        <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <ListChecks className="size-4" />

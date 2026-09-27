@@ -21,6 +21,7 @@ import {
 import { MatchBadge } from "@/components/shared/match-badge";
 import { formatProbability } from "@/lib/probability";
 import type { Portfolio } from "@/lib/portfolio";
+import { UniversityLogo } from "@/components/shared/university-logo";
 
 export function PortfolioView({
   portfolio,
@@ -144,9 +145,7 @@ export function PortfolioView({
                       href={`/dashboard/universities/${university.slug}`}
                       className="flex items-center gap-2.5 font-medium text-foreground hover:text-brand"
                     >
-                      <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-[0.65rem] font-semibold">
-                        {university.logoInitials}
-                      </span>
+                      <UniversityLogo university={university} className="size-7 rounded-md p-0.5 text-[0.55rem]" />
                       <span className="flex flex-col">
                         {university.shortName}
                         <span className="text-xs font-normal text-muted-foreground">

@@ -12,6 +12,7 @@ import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/prog
 import { predictMatch } from "@/lib/predict";
 import type { AchievementCriterionKey } from "@/lib/criteria";
 import type { University } from "@/types/domain";
+import { UniversityLogo } from "@/components/shared/university-logo";
 
 const demoUniversityIds = ["uni-mit", "uni-toronto", "uni-nu", "uni-eth"];
 
@@ -105,11 +106,9 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
             {results.map(({ university, score, category }) => (
               <div
                 key={university.id}
-                className="glass-panel flex items-center gap-4 rounded-xl p-5"
+                className="hover-lift glass-panel flex items-center gap-4 rounded-2xl p-5"
               >
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xs font-semibold text-white">
-                  {university.logoInitials}
-                </span>
+                <UniversityLogo university={university} className="size-11 rounded-xl text-xs" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
                     <p className="truncate text-sm font-medium text-white">

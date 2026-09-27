@@ -68,7 +68,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.mit.edu"
+    "website": "https://web.mit.edu"
   },
   {
     "id": "uni-stanford",
@@ -494,7 +494,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.nus.edu.sg"
+    "website": "https://nus.edu.sg"
   },
   {
     "id": "uni-eth",
@@ -920,7 +920,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.harvarduniversity.edu"
+    "website": "https://www.harvard.edu"
   },
   {
     "id": "uni-princeton-university",
@@ -991,7 +991,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.princetonuniversity.edu"
+    "website": "https://www.princeton.edu"
   },
   {
     "id": "uni-yale-university",
@@ -1062,7 +1062,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.yaleuniversity.edu"
+    "website": "https://www.yale.edu"
   },
   {
     "id": "uni-columbia-university",
@@ -1133,7 +1133,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.columbiauniversity.edu"
+    "website": "https://www.columbia.edu"
   },
   {
     "id": "uni-university-of-chicago",
@@ -1204,7 +1204,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofchicago.edu"
+    "website": "https://www.uchicago.edu"
   },
   {
     "id": "uni-university-of-pennsylvania",
@@ -1275,7 +1275,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofpennsylv.edu"
+    "website": "https://www.upenn.edu"
   },
   {
     "id": "uni-duke-university",
@@ -1346,7 +1346,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.dukeuniversity.edu"
+    "website": "https://www.duke.edu"
   },
   {
     "id": "uni-johns-hopkins-university",
@@ -1417,7 +1417,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.johnshopkinsuniversi.edu"
+    "website": "https://www.jhu.edu"
   },
   {
     "id": "uni-northwestern-university",
@@ -1488,7 +1488,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.northwesternuniversi.edu"
+    "website": "https://www.northwestern.edu"
   },
   {
     "id": "uni-brown-university",
@@ -1559,7 +1559,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.brownuniversity.edu"
+    "website": "https://www.brown.edu"
   },
   {
     "id": "uni-cornell-university",
@@ -1630,7 +1630,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.cornelluniversity.edu"
+    "website": "https://www.cornell.edu"
   },
   {
     "id": "uni-university-of-california-los-angeles",
@@ -1701,7 +1701,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityofcaliforn.edu"
+    "website": "https://www.ucla.edu"
   },
   {
     "id": "uni-rice-university",
@@ -1772,7 +1772,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.riceuniversity.edu"
+    "website": "https://www.rice.edu"
   },
   {
     "id": "uni-vanderbilt-university",
@@ -1843,7 +1843,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.vanderbiltuniversity.edu"
+    "website": "https://www.vanderbilt.edu"
   },
   {
     "id": "uni-university-of-notre-dame",
@@ -1914,7 +1914,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofnotredam.edu"
+    "website": "https://www.nd.edu"
   },
   {
     "id": "uni-university-of-michigan",
@@ -1985,7 +1985,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofmichigan.edu"
+    "website": "https://umich.edu"
   },
   {
     "id": "uni-georgetown-university",
@@ -2056,7 +2056,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.georgetownuniversity.edu"
+    "website": "https://www.georgetown.edu"
   },
   {
     "id": "uni-carnegie-mellon-university",
@@ -2127,7 +2127,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.carnegiemellonuniver.edu"
+    "website": "https://www.cmu.edu"
   },
   {
     "id": "uni-university-of-virginia",
@@ -2198,7 +2198,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityofvirginia.edu"
+    "website": "https://www.virginia.edu"
   },
   {
     "id": "uni-university-of-north-carolina-at-chapel-hill",
@@ -2269,7 +2269,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofnorthcar.edu"
+    "website": "https://www.unc.edu"
   },
   {
     "id": "uni-university-of-southern-california",
@@ -2340,7 +2340,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.universityofsouthern.edu"
+    "website": "https://www.usc.edu"
   },
   {
     "id": "uni-university-of-texas-at-austin",
@@ -2411,7 +2411,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityoftexasata.edu"
+    "website": "https://www.utexas.edu"
   },
   {
     "id": "uni-university-of-california-san-diego",
@@ -2482,7 +2482,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.universityofcaliforn.edu"
+    "website": "https://www.ucsd.edu"
   },
   {
     "id": "uni-university-of-california-davis",
@@ -2553,7 +2553,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofcaliforn.edu"
+    "website": "https://www.ucdavis.edu"
   },
   {
     "id": "uni-university-of-california-irvine",
@@ -2624,7 +2624,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofcaliforn.edu"
+    "website": "https://www.uci.edu"
   },
   {
     "id": "uni-university-of-california-santa-barbara",
@@ -2695,7 +2695,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofcaliforn.edu"
+    "website": "https://www.ucsb.edu"
   },
   {
     "id": "uni-university-of-wisconsin-madison",
@@ -2766,7 +2766,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofwisconsi.edu"
+    "website": "https://www.wisc.edu"
   },
   {
     "id": "uni-university-of-illinois-urbana-champaign",
@@ -2837,7 +2837,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofillinois.edu"
+    "website": "https://illinois.edu"
   },
   {
     "id": "uni-georgia-institute-of-technology",
@@ -2908,7 +2908,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.georgiainstituteofte.edu"
+    "website": "https://www.gatech.edu"
   },
   {
     "id": "uni-purdue-university",
@@ -2979,7 +2979,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.purdueuniversity.edu"
+    "website": "https://www.purdue.edu"
   },
   {
     "id": "uni-ohio-state-university",
@@ -3050,7 +3050,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.ohiostateuniversity.edu"
+    "website": "https://www.osu.edu"
   },
   {
     "id": "uni-penn-state-university",
@@ -3121,7 +3121,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.pennstateuniversity.edu"
+    "website": "https://www.psu.edu"
   },
   {
     "id": "uni-university-of-washington",
@@ -3192,7 +3192,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.universityofwashingt.edu"
+    "website": "https://www.washington.edu"
   },
   {
     "id": "uni-university-of-florida",
@@ -3263,7 +3263,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofflorida.edu"
+    "website": "https://www.ufl.edu"
   },
   {
     "id": "uni-boston-university",
@@ -3334,7 +3334,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.bostonuniversity.edu"
+    "website": "https://www.bu.edu"
   },
   {
     "id": "uni-boston-college",
@@ -3405,7 +3405,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.bostoncollege.edu"
+    "website": "https://www.bc.edu"
   },
   {
     "id": "uni-tufts-university",
@@ -3476,7 +3476,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.tuftsuniversity.edu"
+    "website": "https://www.tufts.edu"
   },
   {
     "id": "uni-university-of-rochester",
@@ -3547,7 +3547,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofrocheste.edu"
+    "website": "https://www.rochester.edu"
   },
   {
     "id": "uni-case-western-reserve-university",
@@ -3618,7 +3618,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.casewesternreserveun.edu"
+    "website": "https://www.case.edu"
   },
   {
     "id": "uni-wake-forest-university",
@@ -3689,7 +3689,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.wakeforestuniversity.edu"
+    "website": "https://www.wfu.edu"
   },
   {
     "id": "uni-university-of-miami",
@@ -3760,7 +3760,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.universityofmiami.edu"
+    "website": "https://welcome.miami.edu"
   },
   {
     "id": "uni-northeastern-university",
@@ -3831,7 +3831,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.northeasternuniversi.edu"
+    "website": "https://www.northeastern.edu"
   },
   {
     "id": "uni-rensselaer-polytechnic-institute",
@@ -3902,7 +3902,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.rensselaerpolytechni.edu"
+    "website": "https://www.rpi.edu"
   },
   {
     "id": "uni-university-of-maryland",
@@ -3973,7 +3973,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofmaryland.edu"
+    "website": "https://umd.edu"
   },
   {
     "id": "uni-university-of-minnesota",
@@ -4044,7 +4044,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofminnesot.edu"
+    "website": "https://www.umn.edu"
   },
   {
     "id": "uni-michigan-state-university",
@@ -4115,7 +4115,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.michiganstateunivers.edu"
+    "website": "https://www.msu.edu"
   },
   {
     "id": "uni-university-of-pittsburgh",
@@ -4186,7 +4186,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofpittsbur.edu"
+    "website": "https://www.pitt.edu"
   },
   {
     "id": "uni-indiana-university-bloomington",
@@ -4257,7 +4257,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.indianauniversityblo.edu"
+    "website": "https://bloomington.iu.edu"
   },
   {
     "id": "uni-university-of-iowa",
@@ -4328,7 +4328,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityofiowa.edu"
+    "website": "https://www.uiowa.edu"
   },
   {
     "id": "uni-university-of-colorado-boulder",
@@ -4399,7 +4399,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofcolorado.edu"
+    "website": "https://www.colorado.edu"
   },
   {
     "id": "uni-arizona-state-university",
@@ -4470,7 +4470,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.arizonastateuniversi.edu"
+    "website": "https://www.asu.edu"
   },
   {
     "id": "uni-university-of-arizona",
@@ -4541,7 +4541,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityofarizona.edu"
+    "website": "https://www.arizona.edu"
   },
   {
     "id": "uni-texas-a-m-university",
@@ -4612,7 +4612,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.texasamuniversity.edu"
+    "website": "https://www.tamu.edu"
   },
   {
     "id": "uni-virginia-tech",
@@ -4683,7 +4683,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.virginiatech.edu"
+    "website": "https://www.vt.edu"
   },
   {
     "id": "uni-university-of-georgia",
@@ -4754,7 +4754,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofgeorgia.edu"
+    "website": "https://www.uga.edu"
   },
   {
     "id": "uni-florida-state-university",
@@ -4825,7 +4825,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.floridastateuniversi.edu"
+    "website": "https://www.fsu.edu"
   },
   {
     "id": "uni-university-of-utah",
@@ -4896,7 +4896,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofutah.edu"
+    "website": "https://www.utah.edu"
   },
   {
     "id": "uni-university-of-oregon",
@@ -4967,7 +4967,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityoforegon.edu"
+    "website": "https://www.uoregon.edu"
   },
   {
     "id": "uni-imperial-college-london",
@@ -5038,7 +5038,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.imperialcollegelondo.edu"
+    "website": "https://www.imperial.ac.uk"
   },
   {
     "id": "uni-university-college-london",
@@ -5109,7 +5109,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universitycollegelon.edu"
+    "website": "https://www.ucl.ac.uk"
   },
   {
     "id": "uni-london-school-of-economics",
@@ -5180,7 +5180,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.londonschoolofeconom.edu"
+    "website": "https://www.lse.ac.uk"
   },
   {
     "id": "uni-university-of-edinburgh",
@@ -5251,7 +5251,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofedinburg.edu"
+    "website": "https://www.ed.ac.uk"
   },
   {
     "id": "uni-university-of-manchester",
@@ -5322,7 +5322,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofmanchest.edu"
+    "website": "https://www.manchester.ac.uk"
   },
   {
     "id": "uni-king-s-college-london",
@@ -5393,7 +5393,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.kingscollegelondon.edu"
+    "website": "https://www.kcl.ac.uk"
   },
   {
     "id": "uni-university-of-bristol",
@@ -5464,7 +5464,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofbristol.edu"
+    "website": "https://www.bristol.ac.uk"
   },
   {
     "id": "uni-university-of-warwick",
@@ -5535,7 +5535,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofwarwick.edu"
+    "website": "https://www.warwick.ac.uk"
   },
   {
     "id": "uni-university-of-glasgow",
@@ -5606,7 +5606,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityofglasgow.edu"
+    "website": "https://www.gla.ac.uk"
   },
   {
     "id": "uni-durham-university",
@@ -5677,7 +5677,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.durhamuniversity.edu"
+    "website": "https://www.durham.ac.uk"
   },
   {
     "id": "uni-university-of-southampton",
@@ -5748,7 +5748,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.universityofsouthamp.edu"
+    "website": "https://www.southampton.ac.uk"
   },
   {
     "id": "uni-university-of-birmingham",
@@ -5819,7 +5819,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityofbirmingh.edu"
+    "website": "https://www.bham.ac.uk"
   },
   {
     "id": "uni-university-of-sheffield",
@@ -5890,7 +5890,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.universityofsheffiel.edu"
+    "website": "https://www.sheffield.ac.uk"
   },
   {
     "id": "uni-university-of-leeds",
@@ -5961,7 +5961,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofleeds.edu"
+    "website": "https://www.leeds.ac.uk"
   },
   {
     "id": "uni-university-of-st-andrews",
@@ -6032,7 +6032,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofstandrew.edu"
+    "website": "https://www.st-andrews.ac.uk"
   },
   {
     "id": "uni-university-of-nottingham",
@@ -6103,7 +6103,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofnottingh.edu"
+    "website": "https://www.nottingham.ac.uk"
   },
   {
     "id": "uni-queen-mary-university-of-london",
@@ -6174,7 +6174,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.queenmaryuniversityo.edu"
+    "website": "https://www.qmul.ac.uk"
   },
   {
     "id": "uni-university-of-york",
@@ -6245,7 +6245,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofyork.edu"
+    "website": "https://www.york.ac.uk"
   },
   {
     "id": "uni-lancaster-university",
@@ -6316,7 +6316,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.lancasteruniversity.edu"
+    "website": "https://lancaster.edu.gh"
   },
   {
     "id": "uni-university-of-exeter",
@@ -6387,7 +6387,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofexeter.edu"
+    "website": "https://www.exeter.ac.uk"
   },
   {
     "id": "uni-cardiff-university",
@@ -6458,7 +6458,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.cardiffuniversity.edu"
+    "website": "https://www.cardiff.ac.uk"
   },
   {
     "id": "uni-newcastle-university",
@@ -6529,7 +6529,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.newcastleuniversity.edu"
+    "website": "https://www.ncl.ac.uk"
   },
   {
     "id": "uni-university-of-liverpool",
@@ -6600,7 +6600,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.universityofliverpoo.edu"
+    "website": "https://www.liv.ac.uk"
   },
   {
     "id": "uni-queen-s-university-belfast",
@@ -6671,7 +6671,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.queensuniversitybelf.edu"
+    "website": "https://www.qub.ac.uk"
   },
   {
     "id": "uni-university-of-bath",
@@ -6742,7 +6742,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofbath.edu"
+    "website": "https://www.bath.ac.uk"
   },
   {
     "id": "uni-university-of-leicester",
@@ -6813,7 +6813,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofleiceste.edu"
+    "website": "https://www.le.ac.uk"
   },
   {
     "id": "uni-loughborough-university",
@@ -6884,7 +6884,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.loughboroughuniversi.edu"
+    "website": "https://www.lboro.ac.uk"
   },
   {
     "id": "uni-university-of-sussex",
@@ -6955,7 +6955,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofsussex.edu"
+    "website": "https://www.sussex.ac.uk"
   },
   {
     "id": "uni-university-of-reading",
@@ -7026,7 +7026,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityofreading.edu"
+    "website": "https://www.rdg.ac.uk"
   },
   {
     "id": "uni-university-of-aberdeen",
@@ -7097,7 +7097,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofaberdeen.edu"
+    "website": "https://www.abdn.ac.uk"
   },
   {
     "id": "uni-heriot-watt-university",
@@ -7168,7 +7168,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.heriotwattuniversity.edu"
+    "website": "https://www.hw.ac.uk"
   },
   {
     "id": "uni-university-of-dundee",
@@ -7239,7 +7239,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityofdundee.edu"
+    "website": "https://www.dundee.ac.uk"
   },
   {
     "id": "uni-royal-holloway-university-of-london",
@@ -7310,7 +7310,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.royalhollowayunivers.edu"
+    "website": "https://rhul.ac.uk"
   },
   {
     "id": "uni-city-university-of-london",
@@ -7381,7 +7381,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.cityuniversityoflond.edu"
+    "website": "https://www.city.ac.uk"
   },
   {
     "id": "uni-university-of-east-anglia",
@@ -7452,7 +7452,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofeastangl.edu"
+    "website": "https://www.uea.ac.uk"
   },
   {
     "id": "uni-university-of-surrey",
@@ -7523,7 +7523,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofsurrey.edu"
+    "website": "https://www.surrey.ac.uk"
   },
   {
     "id": "uni-aston-university",
@@ -7594,7 +7594,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.astonuniversity.edu"
+    "website": "https://www.aston.ac.uk"
   },
   {
     "id": "uni-university-of-strathclyde",
@@ -7665,7 +7665,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofstrathcl.edu"
+    "website": "https://www.strath.ac.uk"
   },
   {
     "id": "uni-swansea-university",
@@ -7736,7 +7736,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.swanseauniversity.edu"
+    "website": "https://www.swansea.ac.uk"
   },
   {
     "id": "uni-university-of-kent",
@@ -7807,7 +7807,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofkent.edu"
+    "website": "https://www.kent.ac.uk"
   },
   {
     "id": "uni-al-farabi-kazakh-national-university",
@@ -7877,7 +7877,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.alfarabikazakhnation.edu"
+    "website": "https://www.kaznu.kz"
   },
   {
     "id": "uni-l-n-gumilyov-eurasian-national-university",
@@ -7947,7 +7947,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.lngumilyoveurasianna.edu"
+    "website": "https://www.enu.kz"
   },
   {
     "id": "uni-satbayev-university",
@@ -8017,7 +8017,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.satbayevuniversity.edu"
+    "website": "https://satbayev.university"
   },
   {
     "id": "uni-kbtu-kazakh-british-technical-university",
@@ -8087,7 +8087,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.kbtukazakhbritishtec.edu"
+    "website": "https://kbtu.edu.kz"
   },
   {
     "id": "uni-sdu-university",
@@ -8157,7 +8157,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.sduuniversity.edu"
+    "website": "https://sdu.edu.kz"
   },
   {
     "id": "uni-kimep-university",
@@ -8227,7 +8227,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.kimepuniversity.edu"
+    "website": "https://www.kimep.kz"
   },
   {
     "id": "uni-kazakh-national-medical-university",
@@ -8297,7 +8297,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.kazakhnationalmedica.edu"
+    "website": "https://kaznmu.edu.kz"
   },
   {
     "id": "uni-kazakh-national-agrarian-research-university",
@@ -8367,7 +8367,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.kazakhnationalagrari.edu"
+    "website": "https://kaznaru.edu.kz"
   },
   {
     "id": "uni-abai-kazakh-national-pedagogical-university",
@@ -8437,7 +8437,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.abaikazakhnationalpe.edu"
+    "website": "https://www.kaznpu.kz"
   },
   {
     "id": "uni-international-information-technology-university",
@@ -8507,7 +8507,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.internationalinforma.edu"
+    "website": "https://iitu.edu.kz"
   },
   {
     "id": "uni-karaganda-medical-university",
@@ -8577,7 +8577,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.karagandamedicaluniv.edu"
+    "website": "https://qmu.edu.kz"
   },
   {
     "id": "uni-abylkas-saginov-karaganda-technical-university",
@@ -8647,7 +8647,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.abylkassaginovkaraga.edu"
+    "website": "https://www.kstu.kz"
   },
   {
     "id": "uni-m-auezov-south-kazakhstan-university",
@@ -8717,7 +8717,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.mauezovsouthkazakhst.edu"
+    "website": "https://auezov.edu.kz"
   },
   {
     "id": "uni-west-kazakhstan-marat-ospanov-medical-university",
@@ -8787,7 +8787,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.westkazakhstanmarato.edu"
+    "website": "https://zkmu.edu.kz"
   },
   {
     "id": "uni-s-seifullin-kazakh-agrotechnical-university",
@@ -8857,7 +8857,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.sseifullinkazakhagro.edu"
+    "website": "https://kazatu.edu.kz"
   },
   {
     "id": "uni-turan-university",
@@ -8927,7 +8927,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.turanuniversity.edu"
+    "website": "https://turan-edu.kz"
   },
   {
     "id": "uni-almaty-technological-university",
@@ -8997,7 +8997,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.almatytechnologicalu.edu"
+    "website": "https://atu.edu.kz"
   },
   {
     "id": "uni-ablai-khan-university-of-international-relations-and-world-languages",
@@ -9067,7 +9067,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.ablaikhanuniversityo.edu"
+    "website": "https://www.ablaikhan.kz"
   },
   {
     "id": "uni-s-toraighyrov-pavlodar-state-university",
@@ -9137,7 +9137,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.storaighyrovpavlodar.edu"
+    "website": "https://tou.edu.kz"
   },
   {
     "id": "uni-d-serikbayev-east-kazakhstan-technical-university",
@@ -9207,7 +9207,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.dserikbayeveastkazak.edu"
+    "website": "https://www.ektu.kz"
   },
   {
     "id": "uni-tsinghua-university",
@@ -9277,7 +9277,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.tsinghuauniversity.edu"
+    "website": "https://www.tsinghua.edu.cn"
   },
   {
     "id": "uni-peking-university",
@@ -9347,7 +9347,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.pekinguniversity.edu"
+    "website": "https://www.pku.edu.cn"
   },
   {
     "id": "uni-fudan-university",
@@ -9417,7 +9417,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.fudanuniversity.edu"
+    "website": "https://www.fudan.edu.cn"
   },
   {
     "id": "uni-shanghai-jiao-tong-university",
@@ -9487,7 +9487,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.shanghaijiaotonguniv.edu"
+    "website": "https://www.sjtu.edu.cn"
   },
   {
     "id": "uni-zhejiang-university",
@@ -9557,7 +9557,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.zhejianguniversity.edu"
+    "website": "https://www.zju.edu.cn"
   },
   {
     "id": "uni-university-of-science-and-technology-of-china",
@@ -9627,7 +9627,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofsciencea.edu"
+    "website": "https://www.ustc.edu.cn"
   },
   {
     "id": "uni-nanjing-university",
@@ -9697,7 +9697,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.nanjinguniversity.edu"
+    "website": "https://www.nju.edu.cn"
   },
   {
     "id": "uni-wuhan-university",
@@ -9767,7 +9767,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.wuhanuniversity.edu"
+    "website": "https://www.whu.edu.cn"
   },
   {
     "id": "uni-sun-yat-sen-university",
@@ -9837,7 +9837,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.sunyatsenuniversity.edu"
+    "website": "https://sysu.edu.cn"
   },
   {
     "id": "uni-harbin-institute-of-technology",
@@ -9907,7 +9907,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.harbininstituteoftec.edu"
+    "website": "https://www.hit.edu.cn"
   },
   {
     "id": "uni-xi-an-jiaotong-university",
@@ -9977,7 +9977,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.xianjiaotonguniversi.edu"
+    "website": "https://www.xjtu.edu.cn"
   },
   {
     "id": "uni-beihang-university",
@@ -10047,7 +10047,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.beihanguniversity.edu"
+    "website": "https://ev.buaa.edu.cn"
   },
   {
     "id": "uni-tongji-university",
@@ -10117,7 +10117,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.tongjiuniversity.edu"
+    "website": "https://www.tongji.edu.cn"
   },
   {
     "id": "uni-renmin-university-of-china",
@@ -10187,7 +10187,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.renminuniversityofch.edu"
+    "website": "https://www.ruc.edu.cn"
   },
   {
     "id": "uni-nankai-university",
@@ -10257,7 +10257,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.nankaiuniversity.edu"
+    "website": "https://www.nankai.edu.cn"
   },
   {
     "id": "uni-central-south-university",
@@ -10327,7 +10327,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.centralsouthuniversi.edu"
+    "website": "https://www.csu.edu.cn"
   },
   {
     "id": "uni-sichuan-university",
@@ -10397,7 +10397,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.sichuanuniversity.edu"
+    "website": "https://www.scu.edu.cn"
   },
   {
     "id": "uni-huazhong-university-of-science-and-technology",
@@ -10467,7 +10467,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.huazhonguniversityof.edu"
+    "website": "https://www.hust.edu.cn"
   },
   {
     "id": "uni-southeast-university",
@@ -10537,7 +10537,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.southeastuniversity.edu"
+    "website": "https://www.seu.edu.cn"
   },
   {
     "id": "uni-xiamen-university",
@@ -10607,7 +10607,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.xiamenuniversity.edu"
+    "website": "https://www.xmu.edu.cn"
   },
   {
     "id": "uni-technical-university-of-munich",
@@ -10677,7 +10677,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.technicaluniversityo.edu"
+    "website": "https://www.tum.de"
   },
   {
     "id": "uni-lmu-munich",
@@ -10747,7 +10747,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.lmumunich.edu"
+    "website": "https://www.lmu.de"
   },
   {
     "id": "uni-heidelberg-university",
@@ -10817,7 +10817,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.heidelberguniversity.edu"
+    "website": "https://www.uni-heidelberg.de"
   },
   {
     "id": "uni-humboldt-university-of-berlin",
@@ -10887,7 +10887,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.humboldtuniversityof.edu"
+    "website": "https://www.hu-berlin.de"
   },
   {
     "id": "uni-free-university-of-berlin",
@@ -10957,7 +10957,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.freeuniversityofberl.edu"
+    "website": "https://www.fu-berlin.de"
   },
   {
     "id": "uni-rwth-aachen-university",
@@ -11027,7 +11027,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.rwthaachenuniversity.edu"
+    "website": "https://www.rwth-aachen.de"
   },
   {
     "id": "uni-university-of-t-bingen",
@@ -11097,7 +11097,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityoftbingen.edu"
+    "website": "https://uni-tuebingen.de"
   },
   {
     "id": "uni-karlsruhe-institute-of-technology",
@@ -11167,7 +11167,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.karlsruheinstituteof.edu"
+    "website": "https://www.kit.edu"
   },
   {
     "id": "uni-university-of-freiburg",
@@ -11237,7 +11237,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityoffreiburg.edu"
+    "website": "https://uni-freiburg.de"
   },
   {
     "id": "uni-university-of-bonn",
@@ -11307,7 +11307,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofbonn.edu"
+    "website": "https://www.uni-bonn.de"
   },
   {
     "id": "uni-university-of-g-ttingen",
@@ -11377,7 +11377,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.universityofgttingen.edu"
+    "website": "https://www.uni-goettingen.de"
   },
   {
     "id": "uni-university-of-hamburg",
@@ -11447,7 +11447,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityofhamburg.edu"
+    "website": "https://www.uni-hamburg.de"
   },
   {
     "id": "uni-tu-berlin",
@@ -11517,7 +11517,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.tuberlin.edu"
+    "website": "https://www.tu.berlin"
   },
   {
     "id": "uni-university-of-cologne",
@@ -11587,7 +11587,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofcologne.edu"
+    "website": "https://www.uni-koeln.de"
   },
   {
     "id": "uni-university-of-m-nster",
@@ -11657,7 +11657,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofmnster.edu"
+    "website": "https://www.uni-muenster.de"
   },
   {
     "id": "uni-goethe-university-frankfurt",
@@ -11727,7 +11727,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.goetheuniversityfran.edu"
+    "website": "https://www.goethe-university-frankfurt.de"
   },
   {
     "id": "uni-university-of-stuttgart",
@@ -11797,7 +11797,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofstuttgar.edu"
+    "website": "https://www.uni-stuttgart.de"
   },
   {
     "id": "uni-tu-dresden",
@@ -11867,7 +11867,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.tudresden.edu"
+    "website": "https://tu-dresden.de"
   },
   {
     "id": "uni-university-of-erlangen-nuremberg",
@@ -11937,7 +11937,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityoferlangen.edu"
+    "website": "https://www.fau.eu"
   },
   {
     "id": "uni-university-of-mannheim",
@@ -12007,7 +12007,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofmannheim.edu"
+    "website": "https://www.uni-mannheim.de"
   },
   {
     "id": "uni-university-of-bologna",
@@ -12077,7 +12077,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.universityofbologna.edu"
+    "website": "https://www.unibo.it"
   },
   {
     "id": "uni-sapienza-university-of-rome",
@@ -12147,7 +12147,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.sapienzauniversityof.edu"
+    "website": "https://www.uniroma1.it"
   },
   {
     "id": "uni-politecnico-di-milano",
@@ -12217,7 +12217,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.politecnicodimilano.edu"
+    "website": "https://www.polimi.it"
   },
   {
     "id": "uni-university-of-padua",
@@ -12287,7 +12287,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofpadua.edu"
+    "website": "https://www.unipd.it"
   },
   {
     "id": "uni-university-of-milan",
@@ -12357,7 +12357,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofmilan.edu"
+    "website": "https://www.unimi.it"
   },
   {
     "id": "uni-politecnico-di-torino",
@@ -12427,7 +12427,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.politecnicoditorino.edu"
+    "website": "https://www.polito.it"
   },
   {
     "id": "uni-university-of-florence",
@@ -12497,7 +12497,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofflorence.edu"
+    "website": "https://www.unifi.it"
   },
   {
     "id": "uni-university-of-pisa",
@@ -12567,7 +12567,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofpisa.edu"
+    "website": "https://www.unipi.it"
   },
   {
     "id": "uni-university-of-naples-federico-ii",
@@ -12637,7 +12637,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.universityofnaplesfe.edu"
+    "website": "https://www.unina.it"
   },
   {
     "id": "uni-university-of-turin",
@@ -12707,7 +12707,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityofturin.edu"
+    "website": "https://www.unito.it"
   },
   {
     "id": "uni-bocconi-university",
@@ -12777,7 +12777,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.bocconiuniversity.edu"
+    "website": "https://www.unibocconi.eu"
   },
   {
     "id": "uni-university-of-trento",
@@ -12847,7 +12847,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.universityoftrento.edu"
+    "website": "https://www.unitn.it"
   },
   {
     "id": "uni-university-of-rome-tor-vergata",
@@ -12917,7 +12917,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.universityofrometorv.edu"
+    "website": "https://web.uniroma2.it"
   },
   {
     "id": "uni-university-of-genoa",
@@ -12987,7 +12987,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.universityofgenoa.edu"
+    "website": "https://www.unige.it"
   },
   {
     "id": "uni-university-of-bari-aldo-moro",
@@ -13057,7 +13057,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.universityofbarialdo.edu"
+    "website": "https://www.uniba.it"
   },
   {
     "id": "uni-university-of-verona",
@@ -13127,7 +13127,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.universityofverona.edu"
+    "website": "https://www.univr.it"
   },
   {
     "id": "uni-university-of-pavia",
@@ -13197,7 +13197,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.universityofpavia.edu"
+    "website": "https://www.unipv.it"
   },
   {
     "id": "uni-university-of-siena",
@@ -13267,7 +13267,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.universityofsiena.edu"
+    "website": "https://www.unisi.it"
   },
   {
     "id": "uni-sant-anna-school-of-advanced-studies",
@@ -13337,7 +13337,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.santannaschoolofadva.edu"
+    "website": "https://www.santannapisa.it"
   },
   {
     "id": "uni-scuola-normale-superiore-di-pisa",
@@ -13407,7 +13407,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.scuolanormalesuperio.edu"
+    "website": "https://www.sns.it"
   },
   {
     "id": "uni-nanyang-technological-university",
@@ -13477,7 +13477,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.nanyangtechnological.edu"
+    "website": "https://www.ntu.edu.sg"
   },
   {
     "id": "uni-singapore-management-university",
@@ -13547,7 +13547,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.singaporemanagementu.edu"
+    "website": "https://www.smu.edu.sg"
   },
   {
     "id": "uni-singapore-university-of-technology-and-design",
@@ -13617,7 +13617,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.singaporeuniversityo.edu"
+    "website": "https://www.sutd.edu.sg"
   },
   {
     "id": "uni-singapore-institute-of-technology",
@@ -13687,7 +13687,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.singaporeinstituteof.edu"
+    "website": "https://www.singaporetech.edu.sg"
   },
   {
     "id": "uni-singapore-university-of-social-sciences",
@@ -13757,7 +13757,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.singaporeuniversityo.edu"
+    "website": "https://www.suss.edu.sg"
   },
   {
     "id": "uni-kyoto-university",
@@ -13827,7 +13827,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.kyotouniversity.edu"
+    "website": "https://www.kyoto-u.ac.jp"
   },
   {
     "id": "uni-osaka-university",
@@ -13897,7 +13897,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.osakauniversity.edu"
+    "website": "https://www.osaka-u.ac.jp"
   },
   {
     "id": "uni-tohoku-university",
@@ -13967,7 +13967,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.tohokuuniversity.edu"
+    "website": "https://www.tohoku.ac.jp"
   },
   {
     "id": "uni-tokyo-institute-of-technology",
@@ -14037,7 +14037,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.tokyoinstituteoftech.edu"
+    "website": "https://www.titech.ac.jp"
   },
   {
     "id": "uni-nagoya-university",
@@ -14107,7 +14107,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.nagoyauniversity.edu"
+    "website": "https://www.nagoya-u.ac.jp"
   },
   {
     "id": "uni-kyushu-university",
@@ -14177,7 +14177,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.kyushuuniversity.edu"
+    "website": "https://www.kyushu-u.ac.jp"
   },
   {
     "id": "uni-hokkaido-university",
@@ -14247,7 +14247,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.hokkaidouniversity.edu"
+    "website": "https://www.hokudai.ac.jp"
   },
   {
     "id": "uni-waseda-university",
@@ -14317,7 +14317,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.wasedauniversity.edu"
+    "website": "https://www.waseda.jp"
   },
   {
     "id": "uni-keio-university",
@@ -14387,7 +14387,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.keiouniversity.edu"
+    "website": "https://www.keio.ac.jp"
   },
   {
     "id": "uni-university-of-tsukuba",
@@ -14457,7 +14457,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.universityoftsukuba.edu"
+    "website": "https://www.tsukuba.ac.jp"
   },
   {
     "id": "uni-hiroshima-university",
@@ -14527,7 +14527,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.hiroshimauniversity.edu"
+    "website": "https://www.hiroshima-u.ac.jp"
   },
   {
     "id": "uni-kobe-university",
@@ -14597,7 +14597,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.kobeuniversity.edu"
+    "website": "https://www.kobe-u.ac.jp"
   },
   {
     "id": "uni-chiba-university",
@@ -14667,7 +14667,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.chibauniversity.edu"
+    "website": "https://www.chiba-u.ac.jp"
   },
   {
     "id": "uni-tokyo-medical-and-dental-university",
@@ -14737,7 +14737,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.tokyomedicalanddenta.edu"
+    "website": "https://www.tmd.ac.jp"
   },
   {
     "id": "uni-osaka-metropolitan-university",
@@ -14807,7 +14807,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.osakametropolitanuni.edu"
+    "website": "https://www.omu.ac.jp"
   },
   {
     "id": "uni-yokohama-national-university",
@@ -14877,7 +14877,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.yokohamanationaluniv.edu"
+    "website": "https://www.ynu.ac.jp"
   },
   {
     "id": "uni-nagoya-institute-of-technology",
@@ -14947,7 +14947,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.nagoyainstituteoftec.edu"
+    "website": "https://www.nitech.ac.jp"
   },
   {
     "id": "uni-ritsumeikan-university",
@@ -15017,7 +15017,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.ritsumeikanuniversit.edu"
+    "website": "https://www.ritsumei.ac.jp"
   },
   {
     "id": "uni-sophia-university",
@@ -15087,7 +15087,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.sophiauniversity.edu"
+    "website": "https://www.sophia.ac.jp"
   },
   {
     "id": "uni-seoul-national-university",
@@ -15157,7 +15157,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.seoulnationalunivers.edu"
+    "website": "https://www.snu.ac.kr"
   },
   {
     "id": "uni-kaist",
@@ -15227,7 +15227,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.kaist.edu"
+    "website": "https://www.kaist.ac.kr"
   },
   {
     "id": "uni-yonsei-university",
@@ -15297,7 +15297,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.yonseiuniversity.edu"
+    "website": "https://www.yonsei.ac.kr"
   },
   {
     "id": "uni-korea-university",
@@ -15367,7 +15367,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.koreauniversity.edu"
+    "website": "https://www.korea.ac.kr"
   },
   {
     "id": "uni-postech",
@@ -15437,7 +15437,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.postech.edu"
+    "website": "https://www.postech.ac.kr"
   },
   {
     "id": "uni-sungkyunkwan-university",
@@ -15507,7 +15507,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.sungkyunkwanuniversi.edu"
+    "website": "https://www.skku.ac.kr"
   },
   {
     "id": "uni-hanyang-university",
@@ -15577,7 +15577,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.hanyanguniversity.edu"
+    "website": "https://www.hanyang.ac.kr"
   },
   {
     "id": "uni-kyung-hee-university",
@@ -15647,7 +15647,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.kyungheeuniversity.edu"
+    "website": "https://www.khu.ac.kr"
   },
   {
     "id": "uni-sogang-university",
@@ -15717,7 +15717,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.soganguniversity.edu"
+    "website": "https://www.sogang.ac.kr"
   },
   {
     "id": "uni-ewha-womans-university",
@@ -15787,7 +15787,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.ewhawomansuniversity.edu"
+    "website": "https://www.ewha.ac.kr"
   },
   {
     "id": "uni-chung-ang-university",
@@ -15857,7 +15857,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.chunganguniversity.edu"
+    "website": "https://www.cau.ac.kr"
   },
   {
     "id": "uni-ulsan-national-institute-of-science-and-technology",
@@ -15927,7 +15927,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.ulsannationalinstitu.edu"
+    "website": "https://www.unist.ac.kr"
   },
   {
     "id": "uni-gwangju-institute-of-science-and-technology",
@@ -15997,7 +15997,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.gwangjuinstituteofsc.edu"
+    "website": "https://www.gist.ac.kr"
   },
   {
     "id": "uni-pusan-national-university",
@@ -16067,7 +16067,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.pusannationalunivers.edu"
+    "website": "https://www.pusan.ac.kr"
   },
   {
     "id": "uni-kyungpook-national-university",
@@ -16137,7 +16137,7 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.kyungpooknationaluni.edu"
+    "website": "https://www.knu.ac.kr"
   },
   {
     "id": "uni-chonnam-national-university",
@@ -16207,7 +16207,7 @@
     ],
     "gradientFrom": "#57068C",
     "gradientTo": "#1A1A2E",
-    "website": "https://www.chonnamnationalunive.edu"
+    "website": "https://www.jnu.ac.kr"
   },
   {
     "id": "uni-ajou-university",
@@ -16277,7 +16277,7 @@
     ],
     "gradientFrom": "#003057",
     "gradientTo": "#7B1E3A",
-    "website": "https://www.ajouuniversity.edu"
+    "website": "https://www.ajou.ac.kr"
   },
   {
     "id": "uni-konkuk-university",
@@ -16347,7 +16347,7 @@
     ],
     "gradientFrom": "#2E2E38",
     "gradientTo": "#C9A227",
-    "website": "https://www.konkukuniversity.edu"
+    "website": "https://www.konkuk.ac.kr"
   },
   {
     "id": "uni-dongguk-university",
@@ -16417,7 +16417,7 @@
     ],
     "gradientFrom": "#123456",
     "gradientTo": "#E0A458",
-    "website": "https://www.donggukuniversity.edu"
+    "website": "https://www.dongguk.edu"
   },
   {
     "id": "uni-hongik-university",
@@ -16487,7 +16487,7 @@
     ],
     "gradientFrom": "#0B1F3A",
     "gradientTo": "#2F6FEB",
-    "website": "https://www.hongikuniversity.edu"
+    "website": "https://www.hongik.ac.kr"
   },
   {
     "id": "uni-inha-university",
@@ -16557,7 +16557,7 @@
     ],
     "gradientFrom": "#1F4E79",
     "gradientTo": "#00A0B0",
-    "website": "https://www.inhauniversity.edu"
+    "website": "https://www.inha.ac.kr"
   },
   {
     "id": "uni-sejong-university",
@@ -16627,7 +16627,7 @@
     ],
     "gradientFrom": "#3B2A1A",
     "gradientTo": "#8C1515",
-    "website": "https://www.sejonguniversity.edu"
+    "website": "https://www.sejong.ac.kr"
   },
   {
     "id": "uni-sookmyung-women-s-university",
@@ -16697,7 +16697,7 @@
     ],
     "gradientFrom": "#002147",
     "gradientTo": "#B08D57",
-    "website": "https://www.sookmyungwomensunive.edu"
+    "website": "https://www.sookmyung.ac.kr"
   },
   {
     "id": "uni-kookmin-university",
@@ -16767,7 +16767,7 @@
     ],
     "gradientFrom": "#00274D",
     "gradientTo": "#7A1C1C",
-    "website": "https://www.kookminuniversity.edu"
+    "website": "https://www.kookmin.ac.kr"
   },
   {
     "id": "uni-hallym-university",
@@ -16837,6 +16837,6 @@
     ],
     "gradientFrom": "#0B3D91",
     "gradientTo": "#00A651",
-    "website": "https://www.hallymuniversity.edu"
+    "website": "https://www.hallym.ac.kr"
   }
 ]

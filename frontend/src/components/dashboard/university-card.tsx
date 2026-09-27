@@ -4,6 +4,7 @@ import { MapPin, GraduationCap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchBadge } from "@/components/shared/match-badge";
 import type { MatchCategory, University } from "@/types/domain";
+import { UniversityLogo } from "@/components/shared/university-logo";
 
 export function UniversityCard({
   university,
@@ -15,17 +16,14 @@ export function UniversityCard({
   category: MatchCategory | null;
 }) {
   return (
-    <div className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg">
+    <div className="hover-lift group flex flex-col justify-between rounded-2xl bg-card p-5">
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-2">
           <Link
             href={`/dashboard/universities/${university.slug}`}
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
-            style={{
-              background: `linear-gradient(135deg, ${university.gradientFrom}, ${university.gradientTo})`,
-            }}
+            className="shrink-0 transition-transform hover:scale-105"
           >
-            {university.logoInitials}
+            <UniversityLogo university={university} className="size-11 rounded-xl text-xs" />
           </Link>
           {category ? (
             <MatchBadge category={category} />

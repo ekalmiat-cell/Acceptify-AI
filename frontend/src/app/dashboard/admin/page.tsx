@@ -6,6 +6,7 @@ import { AdminResetLink } from "@/components/admin/admin-reset-link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBetaStats, type BetaStats } from "@/lib/data/beta-stats";
 import { getUniversities } from "@/lib/universities-server";
+import { UniversityLogo } from "@/components/shared/university-logo";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -44,14 +45,7 @@ export default async function AdminPage() {
               href={`/dashboard/admin/${university.id}`}
               className="group flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted"
             >
-              <span
-                className="flex size-9 shrink-0 items-center justify-center rounded-lg text-[0.65rem] font-semibold text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${university.gradientFrom}, ${university.gradientTo})`,
-                }}
-              >
-                {university.logoInitials}
-              </span>
+              <UniversityLogo university={university} className="size-9" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">{university.name}</p>
                 <p className="truncate text-xs text-muted-foreground">

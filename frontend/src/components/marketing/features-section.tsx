@@ -52,38 +52,39 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="relative bg-[#f7f8fa] py-24 sm:py-32">
+    <section id="features" className="relative scroll-mt-16 border-y border-white/5 bg-[#050e1c] py-24 sm:py-32">
       <Container className="max-w-7xl">
         <SectionHeading
           eyebrow="What you get"
           title="Three answers, not one number"
           description="A percentage on its own changes nothing. Acceptify shows where you stand, why, and what moves the needle next."
           className="mb-16"
+          dark
         />
 
-        <FadeInStagger className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <FadeInStagger className="grid grid-cols-1 gap-5 lg:grid-cols-3" staggerDelay={0.2}>
           {features.map((feature) => (
-            <FadeInStaggerItem key={feature.title}>
-              <div className="flex h-full flex-col rounded-xl border border-[#0b1f3a]/10 bg-white p-7 transition-shadow duration-300 hover:shadow-lg hover:shadow-[#0b1f3a]/5">
-                <span className="inline-flex size-11 items-center justify-center rounded-lg bg-[#0b1f3a] text-white">
+            <FadeInStaggerItem key={feature.title} className="h-full">
+              <div className="hover-lift glass-panel group flex h-full flex-col rounded-2xl p-7">
+                <span className="inline-flex size-12 items-center justify-center rounded-xl bg-gradient-brand text-white shadow-glow-brand transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
                   <feature.icon className="size-5" />
                 </span>
-                <p className="mt-5 text-xs font-medium tracking-wide text-[#2f6feb] uppercase">
+                <p className="mt-5 text-xs font-semibold tracking-wide text-[#4a8bff] uppercase">
                   {feature.eyebrow}
                 </p>
-                <h3 className="mt-1.5 font-heading text-lg font-semibold text-[#0b1f3a]">
+                <h3 className="mt-1.5 font-heading text-xl font-semibold text-white">
                   {feature.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#4b5468]">
+                <p className="mt-2 text-sm leading-relaxed font-medium text-white/60">
                   {feature.description}
                 </p>
-                <ul className="mt-5 flex flex-col gap-2.5 border-t border-[#0b1f3a]/10 pt-5">
+                <ul className="mt-5 flex flex-col gap-2.5 border-t border-white/10 pt-5">
                   {feature.points.map((point) => (
                     <li
                       key={point}
-                      className="flex gap-2.5 text-sm leading-relaxed text-[#4b5468]"
+                      className="flex gap-2.5 text-sm leading-relaxed text-white/70"
                     >
-                      <span className="mt-2 size-1 shrink-0 rounded-full bg-[#2f6feb]" />
+                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#4a8bff]" />
                       {point}
                     </li>
                   ))}

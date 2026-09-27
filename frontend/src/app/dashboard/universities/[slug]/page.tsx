@@ -35,6 +35,7 @@ import { predictMatch } from "@/lib/predict";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
 import { resolveWeightsForUniversity } from "@/lib/weights-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
+import { UniversityLogo } from "@/components/shared/university-logo";
 
 export async function generateMetadata({
   params,
@@ -86,9 +87,10 @@ export default async function UniversityDetailPage({
         <div className="absolute inset-0 bg-black/20" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-4">
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-base font-semibold text-white backdrop-blur-sm">
-              {university.logoInitials}
-            </span>
+            <UniversityLogo
+              university={university}
+              className="size-14 rounded-2xl text-base ring-2 ring-white/30"
+            />
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 {university.tags.map((tag) => (

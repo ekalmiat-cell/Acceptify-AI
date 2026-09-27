@@ -31,7 +31,7 @@ export function StatsSection({ universities }: { universities: University[] }) {
             const Icon = icons[index % icons.length];
             return (
               <FadeInStaggerItem key={stat.id}>
-                <div className="glass-panel flex h-full flex-col gap-4 rounded-xl p-6">
+                <div className="hover-lift glass-panel flex h-full flex-col gap-4 rounded-2xl p-6">
                   <span className="flex size-9 items-center justify-center rounded-lg bg-brand/15 text-brand">
                     <Icon className="size-4.5" />
                   </span>

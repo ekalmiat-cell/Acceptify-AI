@@ -8,7 +8,10 @@ import { UniversitiesSection } from "@/components/marketing/universities-section
 import { StatsSection } from "@/components/marketing/stats-section";
 import { FaqSection } from "@/components/marketing/faq-section";
 import { FinalCtaSection } from "@/components/marketing/final-cta-section";
+import logoIds from "@/data/university-logos.json";
 import { getUniversities } from "@/lib/universities-server";
+
+const universitiesWithLogo = new Set<string>(logoIds);
 
 export const metadata: Metadata = {
   description:
@@ -25,12 +28,19 @@ export default async function LandingPage() {
   // The strip under the hero, as proof the catalog is real — taken from the
   // catalog itself (highest-ranked first, plus every Kazakh university for
   // the students we mostly serve), so it can never drift from what's there.
-  const byRank = [...universities].sort((a, b) => a.worldRanking - b.worldRanking);
-  const marqueeNames = Array.from(
-    new Set([
-      ...byRank.slice(0, 20).map((university) => university.name),
-      ...byRank.filter((u) => u.country === "Kazakhstan").map((university) => university.name),
-    ]),
+  // Only those with a real logo, so the strip reads as a wall of logos.
+  const byRank = [...universities]
+    .filter((university) => universitiesWithLogo.has(university.id))
+    .sort((a, b) => a.worldRanking - b.worldRanking);
+  const marqueeUniversities = Array.from(
+    new Map(
+      [...byRank.slice(0, 24), ...byRank.filter((u) => u.country === "Kazakhstan")].map(
+        ({ id, name, logoInitials, gradientFrom, gradientTo }) => [
+          id,
+          { id, name, logoInitials, gradientFrom, gradientTo },
+        ],
+      ),
+    ).values(),
   );
 
   const countryCount = new Set(universities.map((u) => u.country)).size;
@@ -40,7 +50,7 @@ export default async function LandingPage() {
       <Hero
         universityCount={universities.length}
         countryCount={countryCount}
-        marqueeNames={marqueeNames}
+        marqueeUniversities={marqueeUniversities}
       />
       <HowItWorksSection />
       <FeaturesSection />

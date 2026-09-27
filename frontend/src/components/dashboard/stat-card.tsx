@@ -25,7 +25,7 @@ export function StatCard({
   accent = "brand",
 }: StatCardProps) {
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card className="hover-lift">
       <CardContent className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-medium text-muted-foreground">{label}</p>

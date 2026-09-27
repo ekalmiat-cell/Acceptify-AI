@@ -8,18 +8,25 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/shared/container";
 import { HeroAnalysisCard } from "@/components/marketing/hero-analysis-card";
 import { HeroBackdrop } from "@/components/marketing/hero-backdrop";
+import { UniversityLogo } from "@/components/shared/university-logo";
+import type { University } from "@/types/domain";
+
+type MarqueeUniversity = Pick<
+  University,
+  "id" | "name" | "logoInitials" | "gradientFrom" | "gradientTo"
+>;
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export function Hero({
   universityCount,
   countryCount,
-  marqueeNames,
+  marqueeUniversities,
 }: {
   universityCount: number;
   countryCount: number;
-  /** Catalog university names for the scrolling strip under the hero. */
-  marqueeNames: string[];
+  /** Catalog universities for the scrolling logo strip under the hero. */
+  marqueeUniversities: MarqueeUniversity[];
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -36,7 +43,7 @@ export function Hero({
             <motion.span
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
               className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70"
             >
               <Sparkles className="size-3.5 text-brand" />
@@ -44,12 +51,12 @@ export function Hero({
             </motion.span>
 
             <h1 className="text-balance font-heading text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">
-              <RevealWords text="Know your chances." delay={0.1} instant={!!reduceMotion} />{" "}
+              <RevealWords text="Know your chances." delay={0.5} instant={!!reduceMotion} />{" "}
               {/* The gradient goes on each word: background-clip:text on a
                   parent does not reach children animated on their own layer. */}
               <RevealWords
                 text="Build your path."
-                delay={0.45}
+                delay={1.1}
                 instant={!!reduceMotion}
                 className="text-gradient-brand"
               />
@@ -58,7 +65,7 @@ export function Hero({
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.8, ease: EASE }}
+              transition={{ duration: 0.9, delay: 1.8, ease: EASE }}
               className="max-w-lg text-balance text-lg leading-relaxed text-white/60"
             >
               Acceptify scores your profile against a specific university and
@@ -69,7 +76,7 @@ export function Hero({
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.95, ease: EASE }}
+              transition={{ duration: 0.9, delay: 2.2, ease: EASE }}
               className="flex flex-col gap-3 sm:flex-row"
             >
               <Button
@@ -97,7 +104,7 @@ export function Hero({
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 1.1 }}
+                transition={{ duration: 0.8, delay: 2.6 }}
                 className="text-xs font-medium text-white/50"
               >
                 {universityCount} universities across {countryCount} countries — free while in beta
@@ -108,7 +115,7 @@ export function Hero({
           <motion.div
             initial={{ opacity: 0, scale: 0.94, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.3, ease: EASE }}
+            transition={{ duration: 1.1, delay: 0.9, ease: EASE }}
             className="relative mx-auto w-full max-w-md"
           >
             <HeroAnalysisCard />
@@ -116,14 +123,14 @@ export function Hero({
         </div>
       </Container>
 
-      {marqueeNames.length > 0 ? (
+      {marqueeUniversities.length > 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1.2 }}
+          transition={{ duration: 1, delay: 2.8 }}
           className="relative mt-16 w-full"
         >
-          <UniversityMarquee names={marqueeNames} />
+          <UniversityMarquee universities={marqueeUniversities} />
         </motion.div>
       ) : null}
     </section>
@@ -151,7 +158,7 @@ function RevealWords({
             className={`inline-block ${className ?? ""}`}
             initial={instant ? false : { y: "100%", opacity: 0, filter: "blur(8px)" }}
             animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-            transition={{ duration: 0.7, delay: delay + i * 0.09, ease: EASE }}
+            transition={{ duration: 0.9, delay: delay + i * 0.16, ease: EASE }}
           >
             {word}
           </motion.span>
@@ -162,21 +169,25 @@ function RevealWords({
   );
 }
 
-/** An endless strip of catalog names, faded at both edges. */
-function UniversityMarquee({ names }: { names: string[] }) {
+/** An endless strip of catalog universities, faded at both edges. */
+function UniversityMarquee({ universities }: { universities: MarqueeUniversity[] }) {
   // Rendered twice so the loop is seamless; the copy is hidden from readers.
   const row = (hidden: boolean) => (
-    <ul aria-hidden={hidden} className="flex shrink-0 items-center gap-10 pr-10">
-      {names.map((name) => (
-        <li key={name} className="whitespace-nowrap text-sm font-medium text-white/35">
-          {name}
+    <ul aria-hidden={hidden} className="flex shrink-0 items-center gap-4 pr-4">
+      {universities.map((university) => (
+        <li
+          key={university.id}
+          className="nav-pill flex items-center gap-2.5 rounded-full bg-white/[0.03] py-1.5 pr-4 pl-1.5 whitespace-nowrap"
+        >
+          <UniversityLogo university={university} className="size-8 rounded-lg p-1 text-[0.55rem]" />
+          <span className="text-sm font-semibold text-white/60">{university.name}</span>
         </li>
       ))}
     </ul>
   );
 
   return (
-    <div className="marquee-mask flex overflow-hidden border-y border-white/5 py-4">
+    <div className="marquee-mask flex overflow-hidden py-3">
       <div className="marquee-track flex">
         {row(false)}
         {row(true)}

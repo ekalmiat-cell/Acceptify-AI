@@ -15,6 +15,7 @@ import { predictMatch } from "@/lib/predict";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
 import { resolveWeightsByUniversity } from "@/lib/weights-server";
+import { UniversityLogo } from "@/components/shared/university-logo";
 
 export async function RecommendationsList() {
   const [academic, records, universities] = await Promise.all([
@@ -79,14 +80,7 @@ export async function RecommendationsList() {
             href={`/dashboard/universities/${university.slug}`}
             className="group flex items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-muted"
           >
-            <span
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-[0.65rem] font-semibold text-white"
-              style={{
-                background: `linear-gradient(135deg, ${university.gradientFrom}, ${university.gradientTo})`,
-              }}
-            >
-              {university.logoInitials}
-            </span>
+            <UniversityLogo university={university} className="size-9" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-foreground">
                 {university.shortName}
