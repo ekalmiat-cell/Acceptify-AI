@@ -13,15 +13,18 @@ import { env } from "@/lib/env.server";
  * `admin@…` with a password before the real admin ever signed in and inherit
  * the role. Google and Apple sign-ins arrive verified.
  */
+/** The allow-list, lower-cased; commas, semicolons or spaces separate entries. */
+export function adminEmails(): string[] {
+  return (env.ADMIN_EMAILS ?? "")
+    .split(/[,;\s]+/)
+    .map((entry) => entry.trim().replace(/^["']|["']$/g, "").toLowerCase())
+    .filter(Boolean);
+}
+
 export function isAdminUser(
   user: { email?: string | null; emailVerified?: boolean | null } | null | undefined,
 ): boolean {
   if (!user?.email || user.emailVerified !== true) return false;
 
-  const allowed = (env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
-
-  return allowed.includes(user.email.trim().toLowerCase());
+  return adminEmails().includes(user.email.trim().toLowerCase());
 }

@@ -60,6 +60,8 @@ const raw: Record<string, string | undefined> = Object.fromEntries(
 raw.GOOGLE_CLIENT_ID ??=
   clean(process.env.GOOGLE_ID) ?? clean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
 raw.GOOGLE_CLIENT_SECRET ??= clean(process.env.GOOGLE_SECRET);
+// The singular spelling is an easy slip in the dashboard; accept it too.
+raw.ADMIN_EMAILS ??= clean(process.env.ADMIN_EMAIL);
 
 const parsed = schema.safeParse(raw);
 if (!parsed.success) {

@@ -4,6 +4,7 @@ import { runCopilotChat } from "@/lib/ai/copilot";
 import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
 import { recentAiErrors } from "@/lib/data/ai-errors";
 import { pgPool } from "@/lib/db";
+import { adminEmails } from "@/lib/admin";
 import { isMailConfigured, isMailDeliverable } from "@/lib/email";
 import { env } from "@/lib/env.server";
 import { json, route } from "@/lib/route";
@@ -83,6 +84,8 @@ const runChecks = unstable_cache(
       recent,
       // Only the sender's domain: "resend.dev" means Resend's test sender,
       // which delivers to the Resend account owner and nobody else.
+      // How many addresses are on the admin allow-list — never which ones.
+      admin: { allowListEntries: adminEmails().length },
       email: {
         configured: isMailConfigured(),
         deliversToEveryone: isMailDeliverable(),
