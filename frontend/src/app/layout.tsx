@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { AppProviders } from "@/components/providers/app-providers";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
@@ -36,6 +37,16 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AppProviders>{children}</AppProviders>
+        {/*
+          Vercel Web Analytics: cookieless page-view counts, served by Vercel
+          itself at this path once Analytics is enabled for the project. Only
+          production deployments have the endpoint, so nowhere else loads it.
+          (A script tag rather than @vercel/analytics: the package's optional
+          SvelteKit peer clashes with vitest's vite during npm install.)
+        */}
+        {process.env.VERCEL_ENV === "production" ? (
+          <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
+        ) : null}
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { runCopilotChat } from "@/lib/ai/copilot";
 import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
 import { recentAiErrors } from "@/lib/data/ai-errors";
 import { pgPool } from "@/lib/db";
+import { isMailConfigured } from "@/lib/email";
 import { env } from "@/lib/env.server";
 import { json, route } from "@/lib/route";
 
@@ -80,6 +81,12 @@ const runChecks = unstable_cache(
       checkedAt: new Date().toISOString(),
       database,
       recent,
+      // Only the sender's domain: "resend.dev" means Resend's test sender,
+      // which delivers to the Resend account owner and nobody else.
+      email: {
+        configured: isMailConfigured(),
+        senderDomain: process.env.EMAIL_FROM?.match(/@([^\s>]+)/)?.[1] ?? null,
+      },
       ai: {
         provider: env.AI_PROVIDER,
         apiKeySet: Boolean(env.GEMINI_API_KEY),

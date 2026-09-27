@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Bell, Mail, MessageSquareText, Send } from "lucide-react";
 import { Fragment } from "react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -20,11 +20,14 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { siteConfig } from "@/config/site";
 
 const labelOverrides: Record<string, string> = {
   dashboard: "Overview",
@@ -69,6 +72,7 @@ export function DashboardHeader() {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-1">
+        <FeedbackMenu />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -77,7 +81,9 @@ export function DashboardHeader() {
             <Bell />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <div className="px-2 py-4 text-center text-sm text-muted-foreground">
               No notifications yet
@@ -89,5 +95,42 @@ export function DashboardHeader() {
         </Badge>
       </div>
     </header>
+  );
+}
+
+/**
+ * The beta's feedback channel: a direct line to the person building
+ * Acceptify, reachable from every dashboard page.
+ */
+function FeedbackMenu() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button variant="outline" size="sm" className="gap-1.5" />}>
+        <MessageSquareText />
+        <span className="hidden sm:inline">Feedback</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Found a bug or have an idea?</DropdownMenuLabel>
+          <p className="px-1.5 pb-2 text-xs text-muted-foreground">
+            Acceptify is in beta — every message is read by the founder and
+            helps decide what to fix next.
+          </p>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          render={<a href={siteConfig.contact.telegramUrl} target="_blank" rel="noreferrer" />}
+        >
+          <Send />
+          Telegram {siteConfig.contact.telegram}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          render={<a href={`mailto:${siteConfig.contact.email}?subject=Acceptify%20feedback`} />}
+        >
+          <Mail />
+          {siteConfig.contact.email}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronRight, ShieldCheck } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getBetaStats, type BetaStats } from "@/lib/data/beta-stats";
 import { getUniversities } from "@/lib/universities-server";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
-  const universities = await getUniversities();
+  const [universities, stats] = await Promise.all([getUniversities(), getBetaStats()]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,6 +26,8 @@ export default async function AdminPage() {
           </p>
         </div>
       </div>
+
+      <BetaFunnelCard stats={stats} />
 
       <Card>
         <CardHeader>
@@ -58,5 +61,53 @@ export default async function AdminPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function BetaFunnelCard({ stats }: { stats: BetaStats }) {
+  const steps = [
+    { label: "Signed up", value: stats.users },
+    { label: "Filled in scores", value: stats.withProfile },
+    { label: "Ran an analysis", value: stats.withAnalysis },
+    { label: "Reviewed an essay", value: stats.withEssay },
+  ];
+  const percentOf = (value: number) =>
+    stats.users > 0 ? `${Math.round((value / stats.users) * 100)}%` : "—";
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Beta funnel</CardTitle>
+        <CardDescription>
+          {stats.newLast7Days} new and {stats.activeLast7Days} active students in the last 7
+          days. Page views are in Vercel → Analytics.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {steps.map((step) => (
+            <div key={step.label} className="rounded-xl border p-3">
+              <p className="text-xs text-muted-foreground">{step.label}</p>
+              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{step.value}</p>
+              <p className="text-xs text-muted-foreground">{percentOf(step.value)} of sign-ups</p>
+            </div>
+          ))}
+        </div>
+        {stats.signupsByDay.length > 0 ? (
+          <div>
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              Sign-ups per day, last 14 days
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs tabular-nums">
+              {stats.signupsByDay.map((d) => (
+                <span key={d.day}>
+                  {d.day.slice(5)} <span className="font-semibold">{d.count}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }

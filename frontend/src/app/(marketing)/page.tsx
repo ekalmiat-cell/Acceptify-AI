@@ -15,7 +15,9 @@ export const metadata: Metadata = {
     "Know your chances. Build your path. Acceptify estimates your admission chance for a specific university and programme, explains the score, and turns the gaps into an action plan.",
 };
 
-export const dynamic = "force-dynamic";
+// Rendered once and refreshed in the background every five minutes, like the
+// catalog it shows — so the first page a visitor sees is served from the CDN.
+export const revalidate = 300;
 
 export default async function LandingPage() {
   const universities = await getUniversities();
