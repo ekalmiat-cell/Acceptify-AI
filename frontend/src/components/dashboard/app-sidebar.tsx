@@ -32,6 +32,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -162,16 +163,18 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             align="end"
             className="w-(--anchor-width) min-w-56"
           >
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col gap-0.5">
-                <span className="truncate text-sm font-medium">
-                  {user?.name ?? "Your account"}
-                </span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {user?.email ?? ""}
-                </span>
-              </div>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col gap-0.5">
+                  <span className="truncate text-sm font-medium">
+                    {user?.name ?? "Your account"}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {user?.email ?? ""}
+                  </span>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
               <Settings />
