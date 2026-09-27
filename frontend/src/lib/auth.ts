@@ -5,7 +5,8 @@ import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { siteConfig } from "@/config/site";
 import { deleteUserData } from "@/lib/data/account";
-import { isMailConfigured, rememberDevLink, sendEmail } from "@/lib/email";
+import { isMailDeliverable, rememberDevLink, sendEmail } from "@/lib/email";
+import { offerResetLink } from "@/lib/reset-link-capture";
 
 /**
  * Better Auth is the system of record for identity: it owns the user,
@@ -89,6 +90,8 @@ export const auth = betterAuth({
      * the server (and, in development only, shown on the page) instead.
      */
     sendResetPassword: async ({ user, url }) => {
+      // An admin generating a link to pass on by hand (Telegram support).
+      if (offerResetLink(url)) return;
       rememberDevLink(user.email, url);
       await sendEmail({
         to: user.email,
@@ -99,7 +102,7 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
-    sendOnSignUp: isMailConfigured(),
+    sendOnSignUp: isMailDeliverable(),
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       await sendEmail({

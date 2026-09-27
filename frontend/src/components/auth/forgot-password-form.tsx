@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Mail, TriangleAlert } from "lucide-react";
+import { Loader2, Mail, Send, TriangleAlert } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { siteConfig } from "@/config/site";
 import { authClient } from "@/lib/auth-client";
 import { formatAuthError } from "@/lib/auth-config";
 
@@ -29,7 +30,7 @@ const schema = z.object({
 type ForgotPasswordValues = z.infer<typeof schema>;
 
 export function ForgotPasswordForm({
-  /** Whether the server can actually deliver mail — see lib/email.ts. */
+  /** Whether mail reaches any student — see isMailDeliverable in lib/email.ts. */
   mailConfigured,
 }: {
   mailConfigured: boolean;
@@ -72,6 +73,12 @@ export function ForgotPasswordForm({
     if (data?.url) setDevLink(data.url as string);
   }
 
+  // Beta without an email domain: resets go through the founder on Telegram.
+  // (Development keeps the form, which shows the link on the page.)
+  if (!mailConfigured && process.env.NODE_ENV === "production") {
+    return <TelegramResetHelp />;
+  }
+
   if (sentTo) {
     return (
       <div className="flex flex-col gap-4">
@@ -82,7 +89,16 @@ export function ForgotPasswordForm({
               <>
                 If an account exists for <strong>{sentTo}</strong>, a reset
                 link is on its way. It works for one hour — check your spam
-                folder too.
+                folder too. Nothing after a few minutes? Write to{" "}
+                <a
+                  href={siteConfig.contact.telegramUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="underline"
+                >
+                  {siteConfig.contact.telegram}
+                </a>{" "}
+                on Telegram.
               </>
             ) : (
               // Saying "check your email" when no mail provider is configured
@@ -163,5 +179,47 @@ export function ForgotPasswordForm({
         </Button>
       </form>
     </Form>
+  );
+}
+
+function TelegramResetHelp() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Alert>
+        <Send />
+        <AlertDescription>
+          During the beta, password resets are handled by hand. Message{" "}
+          <strong>{siteConfig.contact.telegram}</strong> on Telegram with the
+          email you signed up with, and you&apos;ll get a link to choose a new
+          password — usually within minutes. The link works for one hour.
+        </AlertDescription>
+      </Alert>
+
+      <a
+        href={siteConfig.contact.telegramUrl}
+        target="_blank"
+        rel="noreferrer"
+        className={buttonVariants({ className: "h-10" })}
+      >
+        <Send />
+        Write on Telegram
+      </a>
+
+      <p className="text-center text-xs text-muted-foreground">
+        No Telegram? Email{" "}
+        <a href={`mailto:${siteConfig.contact.email}`} className="underline">
+          {siteConfig.contact.email}
+        </a>
+        . If you signed up with Google or Apple, just use that button to sign
+        in — there is no password to reset.
+      </p>
+
+      <Link
+        href="/sign-in"
+        className={buttonVariants({ variant: "outline", className: "h-10" })}
+      >
+        Back to sign in
+      </Link>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, ShieldCheck } from "lucide-react";
 
+import { AdminResetLink } from "@/components/admin/admin-reset-link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBetaStats, type BetaStats } from "@/lib/data/beta-stats";
 import { getUniversities } from "@/lib/universities-server";
@@ -28,6 +29,8 @@ export default async function AdminPage() {
       </div>
 
       <BetaFunnelCard stats={stats} />
+
+      <AdminResetLink />
 
       <Card>
         <CardHeader>

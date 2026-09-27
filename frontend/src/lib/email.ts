@@ -47,6 +47,16 @@ export function isMailConfigured(): boolean {
 }
 
 /**
+ * Whether mail can reach any student, not just the Resend account owner.
+ * Resend's shared test sender (…@resend.dev) only delivers to the address the
+ * Resend account was registered with; everyone else needs a verified domain.
+ * Until there is one, password resets go through the founder on Telegram.
+ */
+export function isMailDeliverable(): boolean {
+  return isMailConfigured() && !/@resend\.dev/i.test(process.env.EMAIL_FROM ?? "");
+}
+
+/**
  * Sends transactional mail through Resend when it is configured. Resend has a
  * plain HTTPS API, so this needs no SDK dependency.
  *

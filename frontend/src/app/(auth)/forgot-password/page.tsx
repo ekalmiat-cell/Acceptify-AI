@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 
 import { Logo } from "@/components/shared/logo";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
-import { isMailConfigured } from "@/lib/email";
+import { isMailDeliverable } from "@/lib/email";
 
 export const metadata: Metadata = {
   title: "Reset your password",
 };
 
 export default function ForgotPasswordPage() {
+  const mailDeliverable = isMailDeliverable();
+
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 flex flex-col gap-2 lg:hidden">
@@ -19,8 +21,9 @@ export default function ForgotPasswordPage() {
         Reset your password
       </h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Enter the email you signed up with and we&apos;ll send you a link to
-        choose a new password.
+        {mailDeliverable
+          ? "Enter the email you signed up with and we'll send you a link to choose a new password."
+          : "Forgot your password? We'll get you back in."}
       </p>
 
       <div className="mt-6">
@@ -30,7 +33,7 @@ export default function ForgotPasswordPage() {
           resolved here and handed down. Without it the form would promise a
           message that never arrives.
         */}
-        <ForgotPasswordForm mailConfigured={isMailConfigured()} />
+        <ForgotPasswordForm mailConfigured={mailDeliverable} />
       </div>
     </div>
   );

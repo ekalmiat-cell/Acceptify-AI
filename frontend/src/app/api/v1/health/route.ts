@@ -4,7 +4,7 @@ import { runCopilotChat } from "@/lib/ai/copilot";
 import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
 import { recentAiErrors } from "@/lib/data/ai-errors";
 import { pgPool } from "@/lib/db";
-import { isMailConfigured } from "@/lib/email";
+import { isMailConfigured, isMailDeliverable } from "@/lib/email";
 import { env } from "@/lib/env.server";
 import { json, route } from "@/lib/route";
 
@@ -85,6 +85,7 @@ const runChecks = unstable_cache(
       // which delivers to the Resend account owner and nobody else.
       email: {
         configured: isMailConfigured(),
+        deliversToEveryone: isMailDeliverable(),
         senderDomain: process.env.EMAIL_FROM?.match(/@([^\s>]+)/)?.[1] ?? null,
       },
       ai: {
