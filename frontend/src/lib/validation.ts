@@ -113,6 +113,9 @@ export const essayAnalyzeSchema = z.object({
   program_id: optionalId,
   prompt_text: z.string().trim().max(2000).nullable().optional().transform((v) => v || null),
   include_profile_context: z.boolean().default(true),
+  /** The review of the previous draft, when this is a revision. */
+  parent_id: z.uuid().nullable().optional().transform((v) => v ?? null),
+  feedback_language: z.enum(["en", "ru"]).default("en"),
 });
 
 export const copilotChatSchema = z.object({

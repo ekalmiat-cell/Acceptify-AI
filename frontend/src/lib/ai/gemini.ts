@@ -57,6 +57,7 @@ export type GeminiSchema =
       properties: Record<string, GeminiSchema>;
       required?: string[];
       propertyOrdering?: string[];
+      nullable?: boolean;
     };
 
 /**
@@ -231,6 +232,8 @@ export async function generateJson(options: {
   messages: GeminiMessage[];
   temperature: number;
   schema?: GeminiSchema;
+  /** Defaults to 8192; long structured replies (essay reviews) need more. */
+  maxOutputTokens?: number;
 }): Promise<unknown> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new HttpError(503, NOT_CONFIGURED_MESSAGE);
@@ -244,7 +247,7 @@ export async function generateJson(options: {
       })),
       generationConfig: {
         temperature: options.temperature,
-        maxOutputTokens: 8192,
+        maxOutputTokens: options.maxOutputTokens ?? 8192,
         responseMimeType: "application/json",
         ...(withSchema && options.schema ? { responseSchema: options.schema } : {}),
       },

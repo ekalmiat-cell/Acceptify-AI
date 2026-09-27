@@ -2,7 +2,7 @@ import "server-only";
 
 import { pgPool } from "@/lib/db";
 import type {
-  EssayAnalysisResult,
+  AnyEssayAnalysis,
   EssayReviewRead,
   EssayReviewSummaryRead,
 } from "@/types/essay";
@@ -19,14 +19,15 @@ interface EssayRow {
   word_count: number;
   essay_snippet: string;
   essay_text: string;
-  analysis_result: EssayAnalysisResult;
+  analysis_result: AnyEssayAnalysis;
   overall_score: number;
+  parent_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
 const SUMMARY_COLUMNS =
-  "id, university_id, program_id, title, prompt_text, word_count, essay_snippet, overall_score, created_at";
+  "id, university_id, program_id, title, prompt_text, word_count, essay_snippet, overall_score, parent_id, created_at";
 const FULL_COLUMNS = `${SUMMARY_COLUMNS}, user_id, essay_text, analysis_result, updated_at`;
 
 function toSummary(row: EssayRow): EssayReviewSummaryRead {
@@ -39,6 +40,7 @@ function toSummary(row: EssayRow): EssayReviewSummaryRead {
     word_count: row.word_count,
     essay_snippet: row.essay_snippet,
     overall_score: row.overall_score,
+    parent_id: row.parent_id ? String(row.parent_id) : null,
     created_at: row.created_at.toISOString(),
   };
 }
@@ -70,13 +72,14 @@ export async function createEssayReview(input: {
   title: string;
   promptText: string | null;
   essayText: string;
-  analysis: EssayAnalysisResult;
+  analysis: AnyEssayAnalysis;
+  parentId?: string | null;
 }): Promise<EssayReviewRead> {
   const result = await pgPool.query<EssayRow>(
     `INSERT INTO essay_reviews (
        user_id, university_id, program_id, title, prompt_text, word_count,
-       essay_snippet, essay_text, analysis_result, overall_score
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       essay_snippet, essay_text, analysis_result, overall_score, parent_id
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING ${FULL_COLUMNS}`,
     [
       input.userId,
@@ -89,6 +92,7 @@ export async function createEssayReview(input: {
       input.essayText,
       JSON.stringify(input.analysis),
       input.analysis.overall_score,
+      input.parentId ?? null,
     ],
   );
   return toReview(result.rows[0]);

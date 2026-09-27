@@ -18,7 +18,7 @@ import { EssayStrengthsWeaknesses } from "@/components/dashboard/essays/essay-st
 import { EssayClicheDetector } from "@/components/dashboard/essays/essay-cliche-detector";
 import { EssayAlignmentCard } from "@/components/dashboard/essays/essay-alignment-card";
 import { EssayRecommendationsList } from "@/components/dashboard/essays/essay-recommendations-list";
-import type { EssayReviewRead } from "@/types/essay";
+import type { EssayAnalysisResult, EssayReviewRead } from "@/types/essay";
 
 interface EssayAnalysisViewProps {
   review: EssayReviewRead;
@@ -34,7 +34,9 @@ export function EssayAnalysisView({
   const [showFullText, setShowFullText] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const result = review.analysis_result;
+  // Only rendered for first-generation reviews in the history; newer ones
+  // use the rubric view (essay-review-results.tsx).
+  const result = review.analysis_result as EssayAnalysisResult;
 
   const handleCopyFeedback = () => {
     const textToCopy = `=== Acceptify AI Essay Review ===
