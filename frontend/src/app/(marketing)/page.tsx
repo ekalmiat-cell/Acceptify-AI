@@ -22,12 +22,16 @@ export const revalidate = 300;
 export default async function LandingPage() {
   const universities = await getUniversities();
 
-  // Named in the hero as proof the catalog is real — taken from the catalog
-  // itself, highest-ranked first, so it can never drift from what's there.
-  const featuredNames = [...universities]
-    .sort((a, b) => a.worldRanking - b.worldRanking)
-    .slice(0, 6)
-    .map((university) => university.shortName);
+  // The strip under the hero, as proof the catalog is real — taken from the
+  // catalog itself (highest-ranked first, plus every Kazakh university for
+  // the students we mostly serve), so it can never drift from what's there.
+  const byRank = [...universities].sort((a, b) => a.worldRanking - b.worldRanking);
+  const marqueeNames = Array.from(
+    new Set([
+      ...byRank.slice(0, 20).map((university) => university.name),
+      ...byRank.filter((u) => u.country === "Kazakhstan").map((university) => university.name),
+    ]),
+  );
 
   const countryCount = new Set(universities.map((u) => u.country)).size;
 
@@ -36,7 +40,7 @@ export default async function LandingPage() {
       <Hero
         universityCount={universities.length}
         countryCount={countryCount}
-        featuredNames={featuredNames}
+        marqueeNames={marqueeNames}
       />
       <HowItWorksSection />
       <FeaturesSection />
