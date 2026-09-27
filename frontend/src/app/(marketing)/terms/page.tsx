@@ -95,7 +95,7 @@ export default function TermsPage() {
           <li>use the service to harm other people.</li>
         </ul>
         <p>
-          AI features have hourly limits per user to keep them free for
+          AI features have daily limits per user to keep them free for
           everyone. We may suspend accounts that break these terms.
         </p>
       </LegalSection>

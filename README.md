@@ -17,7 +17,7 @@ tiers (Vercel Hobby, Neon, Gemini API, Resend) — see [DEPLOYMENT.md](DEPLOYMEN
 | API            | Next.js route handlers under `src/app/api/v1/*`                    |
 | Database       | PostgreSQL (Neon in production) via `pg`, plain SQL migrations     |
 | Authentication | Better Auth — email/password, Google, Apple                        |
-| AI             | Google Gemini REST API (free tier), per-user hourly limits         |
+| AI             | Google Gemini REST API (free tier), per-user daily limits          |
 | Email          | Resend (password reset, email confirmation)                        |
 | Deployment     | Vercel                                                             |
 

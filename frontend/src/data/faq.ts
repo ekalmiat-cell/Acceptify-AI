@@ -29,7 +29,7 @@ export const faqItems: FaqItem[] = [
     id: "faq-5",
     question: "Is Acceptify free?",
     answer:
-      "Yes. While Acceptify is in beta every feature is free: unlimited admission analyses, the what-if simulator, PDF reports, AI essay reviews and the AI copilot. The AI features have hourly limits so the service stays available for everyone. Paid Pro and Ultimate plans are planned, and nothing can be bought yet.",
+      "Yes. While Acceptify is in beta every feature is free: unlimited admission analyses, the what-if simulator, PDF reports, AI essay reviews and the AI copilot. The AI features have daily limits so the service stays available for everyone. Paid Pro and Ultimate plans are planned, and nothing can be bought yet.",
   },
   {
     id: "faq-6",

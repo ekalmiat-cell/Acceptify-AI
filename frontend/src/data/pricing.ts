@@ -18,7 +18,7 @@ export const pricingTiers: PricingTier[] = [
       "Safe / Target / Reach classification",
       "Catalog of 239 universities in 12 countries",
       "What-if simulator & PDF reports",
-      "AI essay reviews (up to 10 per hour)",
+      "AI essay reviews (3 a day)",
       "AI admissions copilot",
     ],
     cta: "Start for free",

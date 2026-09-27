@@ -12,7 +12,7 @@ import { EssayReviewResults } from "@/components/dashboard/essays/studio/essay-r
 import { StudioSidebar } from "@/components/dashboard/essays/studio/studio-sidebar";
 import { Button } from "@/components/ui/button";
 import { CUSTOM_PROMPT_ID, ESSAY_PROMPTS, findPrompt } from "@/data/essay-prompts";
-import { AI_REVIEWS_PER_HOUR } from "@/lib/ai-limits";
+import { AI_REVIEWS_PER_DAY } from "@/lib/ai-limits";
 import { ApiError, describeApiError } from "@/lib/api-error";
 import { checkEssay } from "@/lib/essay-check";
 import { analyzeEssay, deleteEssayReview, getEssayReview } from "@/lib/essays-client";
@@ -297,15 +297,15 @@ function QuotaDots({ left }: { left: number }) {
   return (
     <div
       className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex"
-      title="AI reviews refill every hour"
+      title="AI reviews refill every day"
     >
       <div className="flex gap-[3px]">
-        {Array.from({ length: AI_REVIEWS_PER_HOUR }, (_, i) => (
-          <span key={i} className={cn("h-3.5 w-1.5 rounded-sm", i < left ? "bg-brand" : "bg-muted")} />
+        {Array.from({ length: AI_REVIEWS_PER_DAY }, (_, i) => (
+          <span key={i} className={cn("h-3.5 w-2.5 rounded-sm", i < left ? "bg-brand" : "bg-muted")} />
         ))}
       </div>
       <span>
-        <span className="font-semibold text-foreground">{left}</span> of {AI_REVIEWS_PER_HOUR} reviews left this hour
+        <span className="font-semibold text-foreground">{left}</span> of {AI_REVIEWS_PER_DAY} reviews left today
       </span>
     </div>
   );

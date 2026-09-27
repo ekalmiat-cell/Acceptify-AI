@@ -5,7 +5,7 @@ import { Globe2, History, Loader2, Sparkles } from "lucide-react";
 import { KIND_DOT } from "@/components/dashboard/essays/studio/essay-editor";
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { Switch } from "@/components/ui/switch";
-import { AI_REVIEWS_PER_HOUR } from "@/lib/ai-limits";
+import { AI_REVIEWS_PER_DAY } from "@/lib/ai-limits";
 import type { EssayCheck } from "@/lib/essay-check";
 import { CRITERIA } from "@/lib/essay-rubric";
 import { cn } from "@/lib/utils";
@@ -110,10 +110,10 @@ export function StudioSidebar({
           {tooShort
             ? `Write at least ${MIN_WORDS} words to get a review.`
             : outOfReviews
-              ? "You've used this hour's reviews. They refill at the top of the hour."
+              ? "You've used today's reviews. They refill tomorrow — the live check still works."
               : revisingScore !== null
-                ? `Compared with your last draft (${revisingScore}/100) · ${reviewsLeft} of ${AI_REVIEWS_PER_HOUR} reviews left this hour`
-                : `About 30 seconds · ${reviewsLeft} of ${AI_REVIEWS_PER_HOUR} reviews left this hour`}
+                ? `Compared with your last draft (${revisingScore}/100) · ${reviewsLeft} of ${AI_REVIEWS_PER_DAY} reviews left today`
+                : `About 30 seconds · ${reviewsLeft} of ${AI_REVIEWS_PER_DAY} reviews left today`}
         </p>
       </div>
     </div>

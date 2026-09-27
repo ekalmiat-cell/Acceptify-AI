@@ -10,21 +10,21 @@ import { HttpError } from "@/lib/http-error";
  * the read are one statement, so parallel requests cannot both slip under.
  */
 export async function consumeAiAllowance(userId: string, feature: AiFeature): Promise<void> {
-  const { perHour } = AI_LIMITS[feature];
+  const { perDay } = AI_LIMITS[feature];
 
   const result = await pgPool.query<{ count: number }>(
     `INSERT INTO ai_usage (user_id, feature, window_start, count)
-     VALUES ($1, $2, date_trunc('hour', now()), 1)
+     VALUES ($1, $2, date_trunc('day', now()), 1)
      ON CONFLICT (user_id, feature, window_start)
        DO UPDATE SET count = ai_usage.count + 1
      RETURNING count`,
     [userId, feature],
   );
 
-  if (result.rows[0].count > perHour) {
+  if (result.rows[0].count > perDay) {
     throw new HttpError(
       429,
-      `You've reached the limit of ${perHour} requests per hour for this feature. Please try again later.`,
+      `You've used today's ${perDay} for this feature. It refills tomorrow.`,
     );
   }
 
@@ -37,12 +37,12 @@ export async function consumeAiAllowance(userId: string, feature: AiFeature): Pr
   }
 }
 
-/** How many uses of `feature` the user has left in the current hour. */
+/** How many uses of `feature` the user has left today. */
 export async function aiAllowanceLeft(userId: string, feature: AiFeature): Promise<number> {
   const result = await pgPool.query<{ count: number }>(
     `SELECT count FROM ai_usage
-     WHERE user_id = $1 AND feature = $2 AND window_start = date_trunc('hour', now())`,
+     WHERE user_id = $1 AND feature = $2 AND window_start = date_trunc('day', now())`,
     [userId, feature],
   );
-  return Math.max(0, AI_LIMITS[feature].perHour - (result.rows[0]?.count ?? 0));
+  return Math.max(0, AI_LIMITS[feature].perDay - (result.rows[0]?.count ?? 0));
 }

@@ -102,7 +102,7 @@ const NOT_CONFIGURED_MESSAGE =
 /**
  * Fails fast when no AI backend is configured — checked before a request is
  * counted against the user's allowance, so a misconfigured server does not
- * also use up everyone's hourly limit.
+ * also use up everyone's daily limit.
  */
 export function assertAiAvailable(): void {
   if (!isMockAi() && !env.GEMINI_API_KEY) {
