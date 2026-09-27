@@ -46,7 +46,7 @@ const studentNavItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "Universities", href: "/dashboard/universities", icon: Building2 },
   { label: "Analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
-  { label: "AI Essay Reviewer", href: "/dashboard/essays", icon: Sparkles },
+  { label: "Essay Studio", href: "/dashboard/essays", icon: Sparkles },
   { label: "Portfolio", href: "/dashboard/portfolio", icon: Layers },
   { label: "Profile", href: "/dashboard/profile", icon: UserRound },
   { label: "Methodology", href: "/dashboard/methodology", icon: FlaskConical },

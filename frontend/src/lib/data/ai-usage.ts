@@ -1,20 +1,8 @@
 import "server-only";
 
+import { AI_LIMITS, type AiFeature } from "@/lib/ai-limits";
 import { pgPool } from "@/lib/db";
 import { HttpError } from "@/lib/http-error";
-
-/**
- * Per-user hourly ceilings on the AI features.
- *
- * Gemini's free tier is one quota shared by every user of the deployment, so
- * without a per-user limit a single busy tab could exhaust it for everybody.
- */
-export const AI_LIMITS = {
-  essay_review: { perHour: 10 },
-  copilot: { perHour: 40 },
-} as const;
-
-export type AiFeature = keyof typeof AI_LIMITS;
 
 /**
  * Counts one use of `feature` against the user's allowance for the current
@@ -47,4 +35,14 @@ export async function consumeAiAllowance(userId: string, feature: AiFeature): Pr
       .query("DELETE FROM ai_usage WHERE window_start < now() - interval '2 days'")
       .catch(() => {});
   }
+}
+
+/** How many uses of `feature` the user has left in the current hour. */
+export async function aiAllowanceLeft(userId: string, feature: AiFeature): Promise<number> {
+  const result = await pgPool.query<{ count: number }>(
+    `SELECT count FROM ai_usage
+     WHERE user_id = $1 AND feature = $2 AND window_start = date_trunc('hour', now())`,
+    [userId, feature],
+  );
+  return Math.max(0, AI_LIMITS[feature].perHour - (result.rows[0]?.count ?? 0));
 }

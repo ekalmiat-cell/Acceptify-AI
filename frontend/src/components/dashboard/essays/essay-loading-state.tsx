@@ -6,11 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
 const STEPS = [
-  "Reading and tokenizing essay submission...",
-  "Analyzing narrative arc, voice, and show-vs-tell balance...",
-  "Scanning for overused clichés and generic tropes...",
-  "Evaluating prompt adherence and university alignment...",
-  "Compiling actionable admissions recommendations...",
+  "Reading the whole essay like an admissions officer…",
+  "Scoring six criteria against the rubric…",
+  "Commenting on individual sentences…",
+  "Mapping what each paragraph does…",
+  "Working out your path to 90+…",
 ];
 
 export function EssayLoadingState() {
@@ -19,7 +19,7 @@ export function EssayLoadingState() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveStep((prev) => (prev < STEPS.length - 1 ? prev + 1 : prev));
-    }, 2800);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, []);
@@ -35,10 +35,10 @@ export function EssayLoadingState() {
 
         <div className="space-y-2">
           <h3 className="text-xl font-bold tracking-tight text-foreground">
-            AI Admissions Reviewer in Progress
+            Reviewing your essay
           </h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Our admissions model is reviewing your draft against top college rubrics. This takes 10–20 seconds.
+            A careful read takes about 30 seconds. Stay on this page — your draft is saved.
           </p>
         </div>
 

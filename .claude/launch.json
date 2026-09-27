@@ -18,6 +18,17 @@
       ],
       "port": 3000,
       "autoPort": false
+    },
+    {
+      "name": "frontend-prod",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-Command",
+        "$env:NEXT_DIST_DIR='.next-prod'; npm run start --prefix frontend -- -p 3001"
+      ],
+      "port": 3001,
+      "autoPort": false
     }
   ]
 }

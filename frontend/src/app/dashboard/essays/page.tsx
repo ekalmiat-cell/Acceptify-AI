@@ -1,35 +1,35 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { auth } from "@/lib/auth";
-import { EssayReviewerView } from "@/components/dashboard/essays/essay-reviewer-view";
-import { getUniversities } from "@/lib/universities-server";
+import { EssayStudio } from "@/components/dashboard/essays/studio/essay-studio";
+import { aiAllowanceLeft } from "@/lib/data/ai-usage";
 import { listEssayReviewsServer } from "@/lib/essays-server";
 import { getAcademicProfile } from "@/lib/profile-server";
+import { getCurrentUserId } from "@/lib/session";
+import { getUniversities } from "@/lib/universities-server";
 
 export const metadata: Metadata = {
-  title: "AI Essay Reviewer | Acceptify AI",
-  description: "Admissions essay critique, narrative feedback, cliché detection, and prompt alignment.",
+  title: "Essay Studio",
+  description: "Write or paste your admissions essay, fix the quick things live, and get a rubric-based AI review.",
 };
 
 export default async function EssaysPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    redirect("/sign-in");
-  }
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/sign-in?redirect=/dashboard/essays");
 
-  const [universities, history, academic] = await Promise.all([
+  const [universities, history, academic, reviewsLeft] = await Promise.all([
     getUniversities(),
     listEssayReviewsServer(),
     getAcademicProfile(),
+    aiAllowanceLeft(userId, "essay_review"),
   ]);
 
   return (
-    <EssayReviewerView
+    <EssayStudio
       universities={universities}
       initialHistory={history}
       initialUniversityId={academic.dreamUniversityId}
+      initialReviewsLeft={reviewsLeft}
     />
   );
 }

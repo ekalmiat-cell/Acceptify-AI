@@ -85,7 +85,7 @@ const CLICHE_MESSAGE =
 const FILLER = /\b(very|really|extremely|basically|literally|incredibly|a lot of|stuff)\b/gi;
 
 const PASSIVE =
-  /\b(am|is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(\w+ed|built|done|given|made|taken|written|shown|seen|told|known|found|held|kept|lost|paid|said|sent|taught|thought|won|chosen|driven|broken|spoken|forgotten|begun|brought|bought|caught|felt|heard|led|meant|met|read|run|sold|understood)\b/gi;
+  /\b(am|is|are|was|were|be|been|being)\s+(\w+ly\s+|so\s+|too\s+|quite\s+|very\s+)?(\w+ed|built|done|given|made|taken|written|shown|seen|told|known|found|held|kept|lost|paid|said|sent|taught|thought|won|chosen|driven|broken|spoken|forgotten|begun|brought|bought|caught|felt|heard|led|meant|met|read|run|sold|understood)\b/gi;
 
 /** Participles that are almost always adjectives ("was tired"), not passive. */
 const ADJECTIVAL = new Set([
@@ -94,7 +94,13 @@ const ADJECTIVAL = new Set([
   "pleased", "relieved", "satisfied", "shocked", "stressed", "terrified", "thrilled", "used",
   "supposed", "based", "involved", "focused", "dedicated", "committed", "prepared", "qualified",
   "married", "concerned", "disappointed", "fascinated", "obsessed", "overwhelmed", "talented",
+  "frustrated", "annoyed", "devastated", "impressed", "intrigued", "captivated", "puzzled",
+  "stunned", "delighted", "ashamed", "isolated", "amused", "horrified", "hooked", "attached",
+  "engaged", "experienced", "skilled", "limited", "stuck",
 ]);
+
+/** An intensifier before the participle marks an adjective: "was really tired". */
+const INTENSIFIER = /^(really|very|so|too|quite|extremely|incredibly|truly|deeply|completely|totally)\s+$/i;
 
 export function checkEssay(text: string): EssayCheck {
   const issues: CheckIssue[] = [];
@@ -116,8 +122,9 @@ export function checkEssay(text: string): EssayCheck {
 
   let passive = 0;
   for (const match of text.matchAll(PASSIVE)) {
-    const participle = match[2].toLowerCase();
+    const participle = match[3].toLowerCase();
     if (ADJECTIVAL.has(participle)) continue;
+    if (match[2] && INTENSIFIER.test(match[2])) continue;
     const start = match.index ?? 0;
     const end = start + match[0].length;
     if (overlaps(issues, start, end)) continue;

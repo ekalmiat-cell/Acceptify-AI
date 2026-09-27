@@ -21,6 +21,8 @@ describe("checkEssay", () => {
     const passive = checkEssay(text).issues.filter((i) => i.kind === "passive");
     expect(passive.map((i) => text.slice(i.start, i.end))).toEqual(["was decided", "was broken"]);
     expect(checkEssay("I was tired.").metrics.passive).toBe(0);
+    expect(checkEssay("I was really frustrated and so exhausted.").metrics.passive).toBe(0);
+    expect(checkEssay("The bridge was quickly built by volunteers.").metrics.passive).toBe(1);
   });
 
   it("counts filler words", () => {
