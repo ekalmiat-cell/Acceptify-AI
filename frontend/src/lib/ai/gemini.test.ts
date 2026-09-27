@@ -35,6 +35,8 @@ function fakeGemini(replies: Record<string, Reply[]>) {
 
 async function loadGemini(env: Record<string, string | undefined> = {}) {
   vi.resetModules();
+  // The daily-quota memory lives on globalThis; start each test clean.
+  delete (globalThis as { __acceptifyGeminiExhausted?: unknown }).__acceptifyGeminiExhausted;
   process.env.GEMINI_API_KEY = "test-key";
   delete process.env.GEMINI_MODEL;
   delete process.env.AI_PROVIDER;
@@ -118,12 +120,14 @@ describe("generateJson", () => {
     const { generateJson } = await loadGemini();
 
     await expect(generateJson(request)).resolves.toEqual({ ok: "second round" });
-    // The unknown model is dropped after the first pass.
+    // Unknown models are dropped after the first pass.
     expect(calls.map((c) => c.model)).toEqual([
       "gemini-3.8-flash",
       "gemini-3.7-flash",
       "gemini-3.6-flash",
       "gemini-3.5-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
       "gemini-3.8-flash",
     ]);
   });
@@ -142,8 +146,46 @@ describe("generateJson", () => {
       status: 503,
       message: "Google's AI is overloaded right now. Please try again in a minute.",
     });
-    expect(calls).toHaveLength(12);
+    // Three rounds of the four busy models, plus one try of each lite model
+    // (unknown to this fake, so dropped after the first round).
+    expect(calls).toHaveLength(14);
   }, 15_000);
+
+  it("skips models out of daily quota and says so when every model is", async () => {
+    const daily = () =>
+      geminiError(429, "Quota exceeded: GenerateRequestsPerDayPerProjectPerModel-FreeTier, limit: 20");
+    fakeGemini({
+      "gemini-3.8-flash": [daily()],
+      "gemini-3.7-flash": [daily()],
+      "gemini-3.6-flash": [daily()],
+      "gemini-3.5-flash": [daily()],
+      "gemini-3.5-flash-lite": [daily()],
+      "gemini-3.1-flash-lite": [daily()],
+    });
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson(request)).rejects.toMatchObject({
+      status: 429,
+      message: expect.stringMatching(/used up/),
+    });
+    // One try each — a daily quota is not retried in later rounds.
+    expect(calls).toHaveLength(6);
+  });
+
+  it("goes straight to a model with quota left on the next request", async () => {
+    const daily = () =>
+      geminiError(429, "Quota exceeded: GenerateRequestsPerDayPerProjectPerModel-FreeTier, limit: 20");
+    fakeGemini({
+      "gemini-3.8-flash": [daily()],
+      "gemini-3.7-flash": [geminiOk({ ok: 1 }), geminiOk({ ok: 2 })],
+    });
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson(request)).resolves.toEqual({ ok: 1 });
+    calls = [];
+    await expect(generateJson(request)).resolves.toEqual({ ok: 2 });
+    expect(calls.map((c) => c.model)).toEqual(["gemini-3.7-flash"]);
+  });
 
   it("reports 'busy' rather than 'no model' when every model is rate-limited", async () => {
     fakeGemini({

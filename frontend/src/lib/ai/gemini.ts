@@ -25,18 +25,45 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * Models tried in order when GEMINI_MODEL is not set, or when the configured
  * one is unavailable to this API key (retired, or not on its tier). All are
- * on Gemini's free tier.
+ * on Gemini's free tier, where each model has its own small daily quota
+ * (about 20 requests), so the lighter models at the end keep the site
+ * answering once the stronger ones are used up for the day.
  */
 export const FALLBACK_MODELS = [
   "gemini-3.8-flash",
   "gemini-3.7-flash",
   "gemini-3.6-flash",
   "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
 ];
+
+/**
+ * Models whose daily free quota ran out, with when to try them again. A
+ * per-instance memory: it only saves the wasted round trips, so an hour is
+ * a safe guess even though Google resets the quota at midnight Pacific.
+ */
+const EXHAUSTED_FOR_MS = 60 * 60 * 1000;
+const exhaustedUntil: Map<string, number> = ((
+  globalThis as { __acceptifyGeminiExhausted?: Map<string, number> }
+).__acceptifyGeminiExhausted ??= new Map());
+
+function isDailyQuotaExhausted(status: number, body: string): boolean {
+  return status === 429 && /PerDay/i.test(body);
+}
 
 export function candidateModels(): string[] {
   const configured = env.GEMINI_MODEL;
   return Array.from(new Set([...(configured ? [configured] : []), ...FALLBACK_MODELS]));
+}
+
+/** Candidates minus those known to be out of daily quota right now. */
+function modelsWithQuota(): string[] {
+  const now = Date.now();
+  const all = candidateModels();
+  const usable = all.filter((model) => (exhaustedUntil.get(model) ?? 0) <= now);
+  // If every model is marked, try them all again rather than refuse outright.
+  return usable.length ? usable : all;
 }
 
 export interface GeminiMessage {
@@ -254,7 +281,8 @@ export async function generateJson(options: {
     });
 
   const deadline = Date.now() + TOTAL_BUDGET_MS;
-  let models = candidateModels();
+  let models = modelsWithQuota();
+  let dailyQuotaHits = 0;
   let lastFailure: GeminiError | null = null;
   // Whether some model was merely busy or broken rather than unavailable —
   // then the student should hear that (e.g. "too busy"), not that no model
@@ -295,6 +323,14 @@ export async function generateJson(options: {
         const failure = toUserFacingError(result.status, result.text, model);
         if (!shouldTryNextModel(result.status, result.text)) throw failure;
 
+        // Out of today's quota: no use retrying it this round or the next.
+        if (isDailyQuotaExhausted(result.status, result.text)) {
+          exhaustedUntil.set(model, Date.now() + EXHAUSTED_FOR_MS);
+          dailyQuotaHits++;
+          lastFailure ??= failure;
+          continue;
+        }
+
         const transient = !isModelUnavailable(result.status, result.text);
         if (transient) stillAvailable.push(model);
         if (transient || !lastFailureWasTransient) {
@@ -320,6 +356,15 @@ export async function generateJson(options: {
   }
 
   if (lastFailure && lastFailureWasTransient) throw lastFailure;
+
+  if (dailyQuotaHits > 0) {
+    throw new GeminiError(
+      429,
+      "Today's free AI allowance for the whole site is used up. It resets overnight — please try again tomorrow.",
+      lastFailure?.upstream ?? "daily quota exhausted",
+      lastFailure?.model ?? null,
+    );
+  }
 
   throw new GeminiError(
     503,
