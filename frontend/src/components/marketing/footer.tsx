@@ -14,29 +14,34 @@ export function Footer() {
             profile and available university data — never an admission
             guarantee.
           </p>
-          <div className="flex items-center gap-3 pt-2">
-            {siteConfig.socials.map((social) => (
-              <Link
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noreferrer"
-                className="flex size-8 items-center justify-center rounded-full border border-white/10 text-xs font-medium text-white/60 transition-colors hover:border-white/25 hover:text-white"
-              >
-                {social.label.slice(0, 1)}
-              </Link>
-            ))}
-          </div>
+          {siteConfig.socials.length > 0 ? (
+            <div className="flex items-center gap-3 pt-2">
+              {siteConfig.socials.map((social) => (
+                <Link
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex size-8 items-center justify-center rounded-full border border-white/10 text-xs font-medium text-white/60 transition-colors hover:border-white/25 hover:text-white"
+                >
+                  {social.label.slice(0, 1)}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <FooterColumn title="Product" links={siteConfig.footerNav.product} />
-        <FooterColumn title="Company" links={siteConfig.footerNav.company} />
+        <FooterColumn title="Contact" links={siteConfig.footerNav.contact} />
         <FooterColumn title="Legal" links={siteConfig.footerNav.legal} />
       </div>
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-white/40 sm:flex-row md:px-10">
-          <p>© {new Date().getFullYear()} Acceptify AI. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} {siteConfig.name} · {siteConfig.contact.operator},{" "}
+            {siteConfig.contact.country}
+          </p>
           <p>Built for students navigating admissions worldwide.</p>
         </div>
       </div>
@@ -59,6 +64,9 @@ function FooterColumn({
           <li key={link.label}>
             <Link
               href={link.href}
+              {...(link.href.startsWith("http")
+                ? { target: "_blank", rel: "noreferrer" }
+                : {})}
               className="text-sm text-white/50 transition-colors hover:text-white"
             >
               {link.label}

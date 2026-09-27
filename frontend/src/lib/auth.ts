@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { siteConfig } from "@/config/site";
+import { deleteUserData } from "@/lib/data/account";
 import { isMailConfigured, rememberDevLink, sendEmail } from "@/lib/email";
 
 /**
@@ -128,6 +129,20 @@ export const auth = betterAuth({
           },
         }
       : {}),
+  },
+  user: {
+    /**
+     * Self-service account deletion from Settings → Account. Better Auth asks
+     * for the password (email accounts) or a session younger than a day
+     * (Google/Apple), then removes the user, sessions and linked accounts;
+     * beforeDelete wipes the profile, predictions, essays and AI usage first.
+     */
+    deleteUser: {
+      enabled: true,
+      beforeDelete: async (user) => {
+        await deleteUserData(user.id);
+      },
+    },
   },
   account: {
     /**

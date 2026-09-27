@@ -59,8 +59,16 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
         <SignUpForm callbackURL={callbackURL} />
       </div>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        By creating an account you agree to our Terms of Service and Privacy Policy.
+      <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
+        By continuing with Google or Apple you also agree to our{" "}
+        <Link href="/terms" className="text-primary hover:underline">
+          Terms of Use
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="text-primary hover:underline">
+          Privacy Policy
+        </Link>
+        . Under 18? Please ask a parent or guardian first.
       </p>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">

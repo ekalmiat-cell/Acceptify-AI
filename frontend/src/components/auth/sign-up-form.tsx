@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -25,6 +27,10 @@ const schema = z.object({
   name: z.string().min(2, "Enter your full name."),
   email: z.email("Enter a valid email address."),
   password: z.string().min(8, "Use at least 8 characters."),
+  // Consent to the Terms and Privacy Policy, and — for students under 18 —
+  // a parent's or guardian's agreement. Required by Kazakhstan's personal
+  // data law before we store anything about the student.
+  consent: z.boolean().refine((value) => value, "Please accept the Terms and Privacy Policy to continue."),
 });
 
 type SignUpValues = z.infer<typeof schema>;
@@ -35,7 +41,7 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", email: "", password: "" },
+    defaultValues: { name: "", email: "", password: "", consent: false },
   });
 
   async function onSubmit(values: SignUpValues) {
@@ -116,6 +122,36 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="consent"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex flex-row items-start gap-2">
+                <FormControl>
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                  />
+                </FormControl>
+                <FormLabel className="block text-xs leading-relaxed font-normal text-muted-foreground">
+                  I agree to the{" "}
+                  <Link href="/terms" target="_blank" className="text-primary hover:underline">
+                    Terms of Use
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank" className="text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                  . If I am under 18, my parent or guardian has read them and agrees.
+                </FormLabel>
+              </div>
               <FormMessage />
             </FormItem>
           )}

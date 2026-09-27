@@ -20,21 +20,25 @@ export const siteConfig = {
       { label: "Universities", href: "/#universities" },
       { label: "Pricing", href: "/pricing" },
     ],
-    company: [
-      { label: "About", href: "/#" },
-      { label: "Blog", href: "/#" },
-      { label: "Careers", href: "/#" },
-      { label: "Contact", href: "/#" },
+    contact: [
+      { label: "Telegram", href: "https://t.me/ekowlss" },
+      { label: "Email", href: "mailto:ekalmiat@gmail.com" },
     ],
     legal: [
-      { label: "Privacy Policy", href: "/#" },
-      { label: "Terms of Service", href: "/#" },
-      { label: "Cookie Policy", href: "/#" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Use", href: "/terms" },
     ],
   },
-  socials: [
-    { label: "X", href: "https://x.com" },
-    { label: "LinkedIn", href: "https://linkedin.com" },
-    { label: "Instagram", href: "https://instagram.com" },
-  ],
+  /** Where students reach a person: support, bug reports, data requests. */
+  contact: {
+    operator: "Elarys Kalmiuatuly",
+    country: "Republic of Kazakhstan",
+    email: "ekalmiat@gmail.com",
+    telegram: "@ekowlss",
+    telegramUrl: "https://t.me/ekowlss",
+  },
+  /** Official social accounts — left empty until they exist. */
+  socials: [] as readonly { label: string; href: string }[],
+  /** Date the current Privacy Policy and Terms of Use took effect. */
+  legalUpdated: "27 September 2026",
 } as const;
