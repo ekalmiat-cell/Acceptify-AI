@@ -59,9 +59,8 @@ const trustedOrigins = [
   process.env.VERCEL_BRANCH_URL,
   process.env.VERCEL_PROJECT_PRODUCTION_URL,
   ...(env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? []),
-  // The project's known production domains.
+  // The project's production domain.
   "https://acceptify-ai.vercel.app",
-  "https://acceptify-ai-iylh.vercel.app",
   // Sign in with Apple returns via a cross-origin form_post from Apple.
   "https://appleid.apple.com",
   ...(isDevelopment ? ["http://localhost:3000", "http://127.0.0.1:3000"] : []),
