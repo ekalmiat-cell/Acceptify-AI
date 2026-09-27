@@ -84,8 +84,13 @@ const runChecks = unstable_cache(
       recent,
       // Only the sender's domain: "resend.dev" means Resend's test sender,
       // which delivers to the Resend account owner and nobody else.
-      // How many addresses are on the admin allow-list — never which ones.
-      admin: { allowListEntries: adminEmails().length },
+      // The admin allow-list, masked (ek***@gmail.com) — enough to spot a
+      // typo, not enough to learn an address.
+      admin: {
+        allowListEntries: adminEmails().length,
+        allowList: adminEmails().map((email) => email.replace(/^(.{2})[^@]*/, "$1***")),
+        rawLength: env.ADMIN_EMAILS?.length ?? 0,
+      },
       email: {
         configured: isMailConfigured(),
         deliversToEveryone: isMailDeliverable(),
