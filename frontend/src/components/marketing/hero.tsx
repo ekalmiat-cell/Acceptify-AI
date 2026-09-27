@@ -137,7 +137,7 @@ export function Hero({
   );
 }
 
-/** Words rise and un-blur one after another. */
+/** Words rise into place one after another. */
 function RevealWords({
   text,
   delay,
@@ -156,8 +156,8 @@ function RevealWords({
         <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
           <motion.span
             className={`inline-block ${className ?? ""}`}
-            initial={instant ? false : { y: "100%", opacity: 0, filter: "blur(8px)" }}
-            animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+            initial={instant ? false : { y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.9, delay: delay + i * 0.16, ease: EASE }}
           >
             {word}

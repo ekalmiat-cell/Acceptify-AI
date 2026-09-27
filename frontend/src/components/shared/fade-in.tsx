@@ -11,10 +11,12 @@ interface FadeInProps {
   once?: boolean;
 }
 
-// Unhurried on purpose: a reveal should be noticed, then read.
+// Unhurried on purpose: a reveal should be noticed, then read. Only opacity
+// and transform move — both stay on the GPU; animating `filter` repaints
+// every frame and made long pages stutter.
 const variants: Variants = {
-  hidden: { opacity: 0, y: 28, filter: "blur(6px)" },
-  visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0 },
 };
 
 /**
@@ -35,8 +37,8 @@ export function FadeIn({
       whileInView="visible"
       viewport={{ once, margin: "-80px" }}
       variants={{
-        hidden: { opacity: 0, y, filter: "blur(6px)" },
-        visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+        hidden: { opacity: 0, y },
+        visible: { opacity: 1, y: 0 },
       }}
       transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
     >

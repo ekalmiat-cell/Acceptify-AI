@@ -13,6 +13,7 @@ import {
 import { Sparkles } from "lucide-react";
 
 import { MatchBadge } from "@/components/shared/match-badge";
+import { UniversityLogo } from "@/components/shared/university-logo";
 import type { MatchCategory } from "@/types/domain";
 
 /**
@@ -21,6 +22,8 @@ import type { MatchCategory } from "@/types/domain";
  * statistics. The live version is the demo section further down the page.
  */
 const EXAMPLES: {
+  /** Catalog id, for the logo. */
+  id: string;
   initials: string;
   university: string;
   programme: string;
@@ -30,6 +33,7 @@ const EXAMPLES: {
   action: string;
 }[] = [
   {
+    id: "uni-nu",
     initials: "NU",
     university: "Nazarbayev University",
     programme: "Engineering",
@@ -44,6 +48,7 @@ const EXAMPLES: {
     action: "Next best action: you are a strong fit — spend the time on scholarship essays.",
   },
   {
+    id: "uni-toronto",
     initials: "UofT",
     university: "University of Toronto",
     programme: "Computer Science",
@@ -58,6 +63,7 @@ const EXAMPLES: {
     action: "Next best action: strengthen leadership — the weakest part of this profile.",
   },
   {
+    id: "uni-university-of-edinburgh",
     initials: "UoE",
     university: "University of Edinburgh",
     programme: "Economics",
@@ -125,7 +131,7 @@ export function HeroAnalysisCard() {
     <div style={{ perspective: 1200 }} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>
       <motion.div
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="glass-panel shadow-glow-brand relative overflow-hidden rounded-2xl p-6"
+        className="glass-panel shadow-glow-brand relative overflow-hidden rounded-2xl p-6 backdrop-blur-md"
       >
         {/* Scan line sweeping the card while it "analyses". */}
         <AnimatePresence>
@@ -182,9 +188,16 @@ export function HeroAnalysisCard() {
               transition={{ duration: 0.35 }}
               className="flex items-center gap-2.5"
             >
-              <span className="flex size-9 items-center justify-center rounded-lg bg-white/10 text-xs font-semibold text-white">
-                {example.initials}
-              </span>
+              <UniversityLogo
+                university={{
+                  id: example.id,
+                  name: example.university,
+                  logoInitials: example.initials,
+                  gradientFrom: "#1d4fd8",
+                  gradientTo: "#2f6feb",
+                }}
+                className="size-9 text-[0.6rem]"
+              />
               <div>
                 <p className="text-sm font-medium text-white">{example.university}</p>
                 <p className="text-xs text-white/45">{example.programme}</p>

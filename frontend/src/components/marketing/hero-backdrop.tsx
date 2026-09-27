@@ -22,8 +22,9 @@ export function HeroBackdrop() {
     function onMove(event: PointerEvent) {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        el!.style.setProperty("--x", `${event.clientX}px`);
-        el!.style.setProperty("--y", `${event.clientY}px`);
+        // Relative to the hero, which scrolls with the page.
+        const box = el!.parentElement!.getBoundingClientRect();
+        el!.style.transform = `translate3d(${event.clientX - box.left}px, ${event.clientY - box.top}px, 0)`;
         el!.style.opacity = "1";
       });
     }

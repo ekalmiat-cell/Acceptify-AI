@@ -202,10 +202,12 @@
     background: linear-gradient(180deg, #2f6feb 0%, #2159cd 100%);
   }
 
+  /* Marketing cards sit on solid navy, where a backdrop blur is invisible
+     but costly (every card re-blurs what is behind it each frame), so this
+     is a plain translucent fill. Add `backdrop-blur-*` where something
+     actually moves behind a panel, as the hero card does. */
   .glass-panel {
-    background: color-mix(in oklab, #0d1c33 55%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: color-mix(in oklab, #0d1c33 75%, transparent);
     border: 1px solid color-mix(in oklab, #ffffff 10%, transparent);
   }
 
@@ -239,66 +241,74 @@
 
 /* ── Landing hero motion ─────────────────────────────────────────────── */
 
+/* Soft glows drawn as radial gradients: already soft, so no `filter: blur`
+   (which the browser would recompute every frame while they drift). Only
+   `transform` animates. */
 .hero-glow {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
   will-change: transform;
 }
 
 .hero-glow-a {
-  top: -10%;
-  left: 55%;
-  width: 36rem;
-  height: 36rem;
-  background: color-mix(in oklab, #2f6feb 30%, transparent);
+  top: -25%;
+  left: 45%;
+  width: 56rem;
+  height: 56rem;
+  background: radial-gradient(closest-side, color-mix(in oklab, #2f6feb 32%, transparent), transparent);
   animation: hero-drift-a 18s ease-in-out infinite alternate;
 }
 
 .hero-glow-b {
-  top: 30%;
-  left: -10%;
-  width: 30rem;
-  height: 30rem;
-  background: color-mix(in oklab, #4a8bff 16%, transparent);
+  top: 15%;
+  left: -20%;
+  width: 48rem;
+  height: 48rem;
+  background: radial-gradient(closest-side, color-mix(in oklab, #4a8bff 18%, transparent), transparent);
   animation: hero-drift-b 22s ease-in-out infinite alternate;
 }
 
 .hero-glow-c {
-  bottom: -15%;
-  left: 35%;
-  width: 28rem;
-  height: 28rem;
-  background: color-mix(in oklab, #1d4fd8 22%, transparent);
+  bottom: -30%;
+  left: 25%;
+  width: 44rem;
+  height: 44rem;
+  background: radial-gradient(closest-side, color-mix(in oklab, #1d4fd8 24%, transparent), transparent);
   animation: hero-drift-c 26s ease-in-out infinite alternate;
 }
 
 @keyframes hero-drift-a {
   to {
-    transform: translate(-8rem, 6rem) scale(1.15);
+    transform: translate3d(-8rem, 6rem, 0) scale(1.15);
   }
 }
 @keyframes hero-drift-b {
   to {
-    transform: translate(10rem, -4rem) scale(0.9);
+    transform: translate3d(10rem, -4rem, 0) scale(0.9);
   }
 }
 @keyframes hero-drift-c {
   to {
-    transform: translate(-6rem, -8rem) scale(1.1);
+    transform: translate3d(-6rem, -8rem, 0) scale(1.1);
   }
 }
 
-/* Soft light under the pointer; positioned by hero-backdrop.tsx. */
+/* Soft light under the pointer: a fixed-size disc moved with transform by
+   hero-backdrop.tsx, so following the mouse never repaints the page. */
 .hero-spotlight {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 1200px;
+  height: 1200px;
+  margin: -600px 0 0 -600px;
   opacity: 0;
   transition: opacity 0.6s;
+  will-change: transform;
   background: radial-gradient(
-    600px circle at var(--x, 50%) var(--y, 50%),
+    closest-side,
     color-mix(in oklab, #4a8bff 10%, transparent),
-    transparent 60%
+    transparent
   );
 }
 
@@ -330,6 +340,7 @@
 }
 .marquee-track {
   animation: marquee 60s linear infinite;
+  will-change: transform;
 }
 .marquee-mask:hover .marquee-track {
   animation-play-state: paused;
