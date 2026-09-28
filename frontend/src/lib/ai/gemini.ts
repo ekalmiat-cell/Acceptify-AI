@@ -66,6 +66,12 @@ function modelsWithQuota(): string[] {
   return usable.length ? usable : all;
 }
 
+/** The same models with the Flash-Lite ones moved to the front. */
+export function liteFirst(models: string[]): string[] {
+  const isLite = (model: string) => model.includes("lite");
+  return [...models.filter(isLite), ...models.filter((model) => !isLite(model))];
+}
+
 export interface GeminiMessage {
   role: "user" | "model";
   text: string;
@@ -261,6 +267,11 @@ export async function generateJson(options: {
   schema?: GeminiSchema;
   /** Defaults to 8192; long structured replies (essay reviews) need more. */
   maxOutputTokens?: number;
+  /**
+   * Try the Flash-Lite models first. For short, simple replies: they are
+   * cheaper, and it leaves the stronger models' quota for essay reviews.
+   */
+  preferLite?: boolean;
 }): Promise<unknown> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new HttpError(503, NOT_CONFIGURED_MESSAGE);
@@ -281,7 +292,7 @@ export async function generateJson(options: {
     });
 
   const deadline = Date.now() + TOTAL_BUDGET_MS;
-  let models = modelsWithQuota();
+  let models = options.preferLite ? liteFirst(modelsWithQuota()) : modelsWithQuota();
   let dailyQuotaHits = 0;
   let lastFailure: GeminiError | null = null;
   // Whether some model was merely busy or broken rather than unavailable —

@@ -130,3 +130,15 @@ export const copilotChatSchema = z.object({
     .max(50),
   include_context: z.boolean().default(true),
 });
+
+const drillId = z.string().trim().min(1).max(80);
+
+export const trainingCompleteSchema = z.object({
+  drill_id: drillId,
+});
+
+export const drillFeedbackSchema = z.object({
+  drill_id: drillId,
+  answer: z.string().trim().min(3, "Write your attempt first.").max(2000),
+  language: z.enum(["en", "ru"]).default("en"),
+});

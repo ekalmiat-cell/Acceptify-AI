@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   ArrowRight,
   Check,
   Copy,
+  Dumbbell,
   FilePlus2,
   Lock,
   PenLine,
@@ -15,6 +17,7 @@ import {
 
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { CRITERIA, readinessFor } from "@/lib/essay-rubric";
+import { UNITS } from "@/lib/training/drills";
 import { cn } from "@/lib/utils";
 import type { University } from "@/types/domain";
 import type {
@@ -123,6 +126,13 @@ export function EssayReviewResults({
               <FilePlus2 className="size-4" />
               New essay
             </button>
+            <Link
+              href="/dashboard/training"
+              className="nav-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
+            >
+              <Dumbbell className="size-4" />
+              Practise weak sentences
+            </Link>
             <CopyButton review={review} />
           </div>
         </div>
@@ -157,6 +167,15 @@ export function EssayReviewResults({
                     <ArrowRight className="mt-0.5 size-4 shrink-0 text-brand" />
                     {item.to_improve}
                   </p>
+                ) : null}
+                {item.score < 80 && UNITS.some((unit) => unit.criterion === c.key) ? (
+                  <Link
+                    href={`/dashboard/training?focus=${c.key}`}
+                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
+                  >
+                    <Dumbbell className="size-4" />
+                    Train this skill
+                  </Link>
                 ) : null}
               </div>
             );

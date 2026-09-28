@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Dumbbell,
   LayoutDashboard,
   Building2,
   UserRound,
@@ -47,6 +48,7 @@ const studentNavItems = [
   { label: "Universities", href: "/dashboard/universities", icon: Building2 },
   { label: "Analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
   { label: "Essay Studio", href: "/dashboard/essays", icon: Sparkles },
+  { label: "Training", href: "/dashboard/training", icon: Dumbbell },
   { label: "Portfolio", href: "/dashboard/portfolio", icon: Layers },
   { label: "Profile", href: "/dashboard/profile", icon: UserRound },
   { label: "Methodology", href: "/dashboard/methodology", icon: FlaskConical },

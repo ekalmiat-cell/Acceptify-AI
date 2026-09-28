@@ -13,6 +13,8 @@ const USER_DATA_TABLES = [
   "predictions",
   "essay_reviews",
   "ai_usage",
+  "training_progress",
+  "training_days",
 ] as const;
 
 /**

@@ -8,8 +8,10 @@
 export const AI_LIMITS = {
   essay_review: { perDay: 3 },
   copilot: { perDay: 20 },
+  training_feedback: { perDay: 3 },
 } as const;
 
 export type AiFeature = keyof typeof AI_LIMITS;
 
 export const AI_REVIEWS_PER_DAY = AI_LIMITS.essay_review.perDay;
+export const AI_COACH_PER_DAY = AI_LIMITS.training_feedback.perDay;

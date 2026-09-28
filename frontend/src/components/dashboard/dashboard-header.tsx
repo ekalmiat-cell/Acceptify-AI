@@ -51,6 +51,8 @@ export function DashboardHeader() {
             const isLast = index === segments.length - 1;
             const label =
               labelOverrides[segment] ??
+              // Training drills have ids, not names; one from the student's own essay says so.
+              (segments[index - 1] === "training" ? (segment.startsWith("own-") ? "Your sentence" : "Drill") : null) ??
               segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
             return (
