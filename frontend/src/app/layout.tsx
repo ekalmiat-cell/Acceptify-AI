@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { AppProviders } from "@/components/providers/app-providers";
@@ -34,8 +34,16 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: copy[locale].description,
     metadataBase: new URL(siteConfig.url),
+    applicationName: siteConfig.name,
+    // Lets iPhone "Add to Home Screen" open full-screen, like the installed
+    // app on Android and Windows (see app/manifest.ts).
+    appleWebApp: { capable: true, title: siteConfig.shortName, statusBarStyle: "default" },
   };
 }
+
+export const viewport: Viewport = {
+  themeColor: "#0b1f3a",
+};
 
 export default async function RootLayout({
   children,

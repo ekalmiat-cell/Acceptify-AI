@@ -7,8 +7,8 @@ import { getLocale } from "@/lib/i18n/server";
 import { getPredictionHistory } from "@/lib/predictions-server";
 
 const copy = defineCopy({
-  en: { title: "Settings", subtitle: "Manage your language, appearance, notifications, account, and billing." },
-  ru: { title: "Настройки", subtitle: "Язык, оформление, уведомления, аккаунт и тариф." },
+  en: { title: "Settings", subtitle: "Manage your language, appearance, notifications, account, billing, and app." },
+  ru: { title: "Настройки", subtitle: "Язык, оформление, уведомления, аккаунт, тариф и приложение." },
 });
 
 export async function generateMetadata(): Promise<Metadata> {

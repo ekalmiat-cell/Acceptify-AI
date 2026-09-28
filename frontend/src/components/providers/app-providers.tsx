@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import type { Locale } from "@/lib/i18n/core";
 import { LocaleProvider } from "@/lib/i18n/client";
+import { usePwaSetup } from "@/lib/pwa";
 
 /**
  * Single composition root for every app-wide client provider. Add new
@@ -13,6 +14,7 @@ import { LocaleProvider } from "@/lib/i18n/client";
  * thin server component.
  */
 export function AppProviders({ locale, children }: { locale: Locale; children: ReactNode }) {
+  usePwaSetup();
   return (
     <LocaleProvider locale={locale}>
       <ThemeProvider

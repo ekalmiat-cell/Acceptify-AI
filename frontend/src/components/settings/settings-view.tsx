@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Palette, Bell, UserRound, CreditCard } from "lucide-react";
+import { Palette, Bell, UserRound, CreditCard, Smartphone } from "lucide-react";
 
 import { LanguageSettings } from "@/components/settings/language-settings";
 import { defineCopy } from "@/lib/i18n/core";
@@ -12,17 +12,19 @@ import { ThemeSettings } from "@/components/settings/theme-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { AccountSettings } from "@/components/settings/account-settings";
 import { BillingSettings } from "@/components/settings/billing-settings";
+import { InstallAppSettings } from "@/components/settings/install-app-settings";
 
 const tabs = [
   { value: "theme", icon: Palette },
   { value: "notifications", icon: Bell },
   { value: "account", icon: UserRound },
   { value: "billing", icon: CreditCard },
+  { value: "app", icon: Smartphone },
 ] as const;
 
 const copy = defineCopy({
-  en: { theme: "Language and theme", notifications: "Notifications", account: "Account", billing: "Billing" },
-  ru: { theme: "Язык и тема", notifications: "Уведомления", account: "Аккаунт", billing: "Тариф" },
+  en: { theme: "Language and theme", notifications: "Notifications", account: "Account", billing: "Billing", app: "App" },
+  ru: { theme: "Язык и тема", notifications: "Уведомления", account: "Аккаунт", billing: "Тариф", app: "Приложение" },
 });
 
 export function SettingsView({ predictionsUsed }: { predictionsUsed: number }) {
@@ -62,6 +64,9 @@ export function SettingsView({ predictionsUsed }: { predictionsUsed: number }) {
         </TabsContent>
         <TabsContent value="billing">
           <BillingSettings predictionsUsed={predictionsUsed} />
+        </TabsContent>
+        <TabsContent value="app">
+          <InstallAppSettings />
         </TabsContent>
       </div>
     </Tabs>
