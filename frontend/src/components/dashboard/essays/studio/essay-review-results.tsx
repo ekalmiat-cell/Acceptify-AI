@@ -17,6 +17,9 @@ import {
 
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { CRITERIA, readinessFor } from "@/lib/essay-rubric";
+import { capReason, criterionLabel, criterionShort, readinessLabel } from "@/lib/essay-rubric-copy";
+import { defineCopy, type Locale } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 import { UNITS } from "@/lib/training/drills";
 import { cn } from "@/lib/utils";
 import type { University } from "@/types/domain";
@@ -28,25 +31,118 @@ import type {
   ParagraphRole,
 } from "@/types/essay";
 
-const TYPE_STYLE: Record<LineFeedbackType, { label: string; mark: string; dot: string }> = {
-  cliche: { label: "Overused", mark: "bg-amber-400/20 shadow-[inset_0_-2px_0_0_rgb(251_191_36)]", dot: "bg-amber-400" },
-  vague: { label: "Vague", mark: "bg-sky-400/15 shadow-[inset_0_-2px_0_0_rgb(56_189_248)]", dot: "bg-sky-400" },
-  telling: { label: "Telling, not showing", mark: "bg-violet-400/15 shadow-[inset_0_-2px_0_0_rgb(167_139_250)]", dot: "bg-violet-400" },
-  passive: { label: "Passive", mark: "bg-rose-400/15 shadow-[inset_0_-2px_0_0_rgb(251_113_133)]", dot: "bg-rose-400" },
-  wordy: { label: "Wordy", mark: "bg-slate-400/15 shadow-[inset_0_-2px_0_0_rgb(148_163_184)]", dot: "bg-slate-400" },
-  grammar: { label: "Grammar", mark: "bg-red-500/15 shadow-[inset_0_-2px_0_0_rgb(239_68_68)]", dot: "bg-red-500" },
-  strong: { label: "Keep this", mark: "bg-emerald-400/15 shadow-[inset_0_-2px_0_0_rgb(52_211_153)]", dot: "bg-emerald-400" },
+const TYPE_STYLE: Record<LineFeedbackType, { mark: string; dot: string }> = {
+  cliche: { mark: "bg-amber-400/20 shadow-[inset_0_-2px_0_0_rgb(251_191_36)]", dot: "bg-amber-400" },
+  vague: { mark: "bg-sky-400/15 shadow-[inset_0_-2px_0_0_rgb(56_189_248)]", dot: "bg-sky-400" },
+  telling: { mark: "bg-violet-400/15 shadow-[inset_0_-2px_0_0_rgb(167_139_250)]", dot: "bg-violet-400" },
+  passive: { mark: "bg-rose-400/15 shadow-[inset_0_-2px_0_0_rgb(251_113_133)]", dot: "bg-rose-400" },
+  wordy: { mark: "bg-slate-400/15 shadow-[inset_0_-2px_0_0_rgb(148_163_184)]", dot: "bg-slate-400" },
+  grammar: { mark: "bg-red-500/15 shadow-[inset_0_-2px_0_0_rgb(239_68_68)]", dot: "bg-red-500" },
+  strong: { mark: "bg-emerald-400/15 shadow-[inset_0_-2px_0_0_rgb(52_211_153)]", dot: "bg-emerald-400" },
 };
 
-const ROLE_LABEL: Record<ParagraphRole, string> = {
-  hook: "Hook",
-  context: "Context",
-  story: "Story",
-  turning_point: "Turning point",
-  reflection: "Reflection",
-  conclusion: "Conclusion",
-  other: "Other",
-};
+const copy = defineCopy({
+  en: {
+    types: {
+      cliche: "Overused",
+      vague: "Vague",
+      telling: "Telling, not showing",
+      passive: "Passive",
+      wordy: "Wordy",
+      grammar: "Grammar",
+      strong: "Keep this",
+    } as Record<LineFeedbackType, string>,
+    roles: {
+      hook: "Hook",
+      context: "Context",
+      story: "Story",
+      turning_point: "Turning point",
+      reflection: "Reflection",
+      conclusion: "Conclusion",
+      other: "Other",
+    } as Record<ParagraphRole, string>,
+    strength: { strong: "strong", adequate: "adequate", weak: "weak" },
+    howRead: "How a reader read it: ",
+    heldAt: (max: number) => `Held at ${max}:`,
+    without: (score: number) => `Without this, the criteria alone would give ${score}.`,
+    revise: "Revise this draft",
+    newEssay: "New essay",
+    practise: "Practise weak sentences",
+    breakdown: "Score breakdown",
+    trainThis: "Train this skill",
+    works: "What already works",
+    fitWith: (name: string) => `Fit with ${name}`,
+    shows: "Shows",
+    missing: "Missing",
+    outOf: "out of 100",
+    polish: "Optional polish",
+    pathTo90: "Your path to 90+",
+    reach: "Do these three and you could reach about",
+    better: "Better than last draft",
+    noImprovement: "No clear improvement yet.",
+    stillToFix: "Still to fix",
+    sentenceBySentence: "Sentence by sentence",
+    forExample: "For example: ",
+    copied: "Feedback copied",
+    copyFailed: "Couldn't copy. Select the text and copy it instead.",
+    copyFeedback: "Copy feedback",
+    copyHeader: (title: string) => `Acceptify essay review — ${title}`,
+    copyScore: (score: number, label: string) => `Score: ${score}/100 (${label})`,
+    copyPath: "Path to 90+:",
+    copyComments: "Comments:",
+  },
+  ru: {
+    types: {
+      cliche: "Заезженно",
+      vague: "Размыто",
+      telling: "Рассказ вместо показа",
+      passive: "Пассив",
+      wordy: "Многословно",
+      grammar: "Грамматика",
+      strong: "Оставь так",
+    },
+    roles: {
+      hook: "Начало",
+      context: "Контекст",
+      story: "История",
+      turning_point: "Поворот",
+      reflection: "Рефлексия",
+      conclusion: "Концовка",
+      other: "Другое",
+    },
+    strength: { strong: "сильно", adequate: "нормально", weak: "слабо" },
+    howRead: "Как это прочитал читатель: ",
+    heldAt: (max: number) => `Потолок оценки — ${max}:`,
+    without: (score: number) => `Без этого ограничения критерии дали бы ${score}.`,
+    revise: "Доработать черновик",
+    newEssay: "Новое эссе",
+    practise: "Потренировать слабые места",
+    breakdown: "Оценка по критериям",
+    trainThis: "Потренировать этот навык",
+    works: "Что уже работает",
+    fitWith: (name: string) => `Соответствие ${name}`,
+    shows: "Видно",
+    missing: "Не хватает",
+    outOf: "из 100",
+    polish: "Можно отшлифовать",
+    pathTo90: "Твой путь к 90+",
+    reach: "Сделай эти три шага — и сможешь выйти примерно на",
+    better: "Лучше, чем в прошлом черновике",
+    noImprovement: "Явных улучшений пока нет.",
+    stillToFix: "Что ещё исправить",
+    sentenceBySentence: "По предложениям",
+    forExample: "Например: ",
+    copied: "Отзыв скопирован",
+    copyFailed: "Не удалось скопировать. Выдели текст и скопируй вручную.",
+    copyFeedback: "Скопировать отзыв",
+    copyHeader: (title: string) => `Разбор эссе Acceptify — ${title}`,
+    copyScore: (score: number, label: string) => `Оценка: ${score}/100 (${label})`,
+    copyPath: "Путь к 90+:",
+    copyComments: "Комментарии:",
+  },
+});
+
+type Copy = (typeof copy)["en"];
 
 const TONE_TEXT = {
   success: "text-emerald-400",
@@ -73,16 +169,18 @@ export function EssayReviewResults({
   onRevise: () => void;
   onNewEssay: () => void;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const result = review.analysis_result as EssayReviewV2;
   const readiness = readinessFor(result.overall_score);
 
   return (
     <div className="flex flex-col gap-5">
       <section className="grid gap-5 rounded-2xl border bg-card p-5 sm:p-6 lg:grid-cols-[auto_1fr]">
-        <ScoreRing score={result.overall_score} tone={readiness.tone} />
+        <ScoreRing t={t} score={result.overall_score} tone={readiness.tone} />
         <div className="flex min-w-0 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={cn("text-sm font-semibold", TONE_TEXT[readiness.tone])}>{readiness.label}</span>
+            <span className={cn("text-sm font-semibold", TONE_TEXT[readiness.tone])}>{readinessLabel(readiness.label, locale)}</span>
             {result.revision ? <Delta from={result.revision.previous_score} to={result.overall_score} /> : null}
             {university ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
@@ -94,7 +192,7 @@ export function EssayReviewResults({
           <h2 className="font-heading text-xl font-semibold leading-snug sm:text-2xl">{result.headline_verdict}</h2>
           {result.essay_summary ? (
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">How a reader read it: </span>
+              <span className="font-medium text-foreground">{t.howRead}</span>
               {result.essay_summary}
             </p>
           ) : null}
@@ -102,10 +200,8 @@ export function EssayReviewResults({
             <p className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-sm">
               <Lock className="mt-0.5 size-4 shrink-0 text-amber-400" />
               <span>
-                <span className="font-semibold">Held at {result.cap.max}:</span> {result.cap.reason}{" "}
-                <span className="text-muted-foreground">
-                  Without this, the criteria alone would give {result.weighted_score}.
-                </span>
+                <span className="font-semibold">{t.heldAt(result.cap.max)}</span> {capReason(result.cap, locale)}{" "}
+                <span className="text-muted-foreground">{t.without(result.weighted_score)}</span>
               </span>
             </p>
           ) : null}
@@ -116,7 +212,7 @@ export function EssayReviewResults({
               className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-semibold text-white shadow-glow-brand transition-transform hover:scale-105"
             >
               <PenLine className="size-4" />
-              Revise this draft
+              {t.revise}
             </button>
             <button
               type="button"
@@ -124,26 +220,26 @@ export function EssayReviewResults({
               className="nav-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
             >
               <FilePlus2 className="size-4" />
-              New essay
+              {t.newEssay}
             </button>
             <Link
               href="/dashboard/training"
               className="nav-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
             >
               <Dumbbell className="size-4" />
-              Practise weak sentences
+              {t.practise}
             </Link>
-            <CopyButton review={review} />
+            <CopyButton t={t} locale={locale} review={review} />
           </div>
         </div>
       </section>
 
-      <PathTo90 result={result} />
+      <PathTo90 t={t} locale={locale} result={result} />
 
-      {result.revision ? <RevisionCard revision={result.revision} /> : null}
+      {result.revision ? <RevisionCard t={t} revision={result.revision} /> : null}
 
       <section className="rounded-2xl border bg-card p-5 sm:p-6">
-        <h3 className="font-heading text-lg font-semibold">Score breakdown</h3>
+        <h3 className="font-heading text-lg font-semibold">{t.breakdown}</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {CRITERIA.map((c) => {
             const item = result.criteria[c.key];
@@ -151,7 +247,7 @@ export function EssayReviewResults({
               <div key={c.key} className="rounded-xl border bg-muted/20 p-4">
                 <div className="flex items-baseline justify-between gap-2">
                   <p className="text-sm font-semibold">
-                    {c.label} <span className="font-normal text-muted-foreground">· {c.weight}%</span>
+                    {criterionLabel(c.key, locale)} <span className="font-normal text-muted-foreground">· {c.weight}%</span>
                   </p>
                   <span className="font-mono text-sm font-semibold">{item.score}</span>
                 </div>
@@ -174,7 +270,7 @@ export function EssayReviewResults({
                     className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline"
                   >
                     <Dumbbell className="size-4" />
-                    Train this skill
+                    {t.trainThis}
                   </Link>
                 ) : null}
               </div>
@@ -183,12 +279,12 @@ export function EssayReviewResults({
         </div>
       </section>
 
-      <AnnotatedEssay text={review.essay_text} result={result} />
+      <AnnotatedEssay t={t} text={review.essay_text} result={result} />
 
       <div className="grid gap-5 lg:grid-cols-2">
         {result.strengths.length ? (
           <section className="rounded-2xl border bg-card p-5">
-            <h3 className="font-heading text-base font-semibold">What already works</h3>
+            <h3 className="font-heading text-base font-semibold">{t.works}</h3>
             <ul className="mt-3 flex flex-col gap-2">
               {result.strengths.map((s) => (
                 <li key={s} className="flex gap-2 text-sm">
@@ -204,13 +300,13 @@ export function EssayReviewResults({
             <div className="flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 font-heading text-base font-semibold">
                 <UniversityLogo university={university} className="size-6 rounded-md p-0.5 text-[0.5rem]" />
-                Fit with {university.shortName}
+                {t.fitWith(university.shortName)}
               </h3>
               <span className="font-mono text-sm font-semibold">{result.university_fit.score}/100</span>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">{result.university_fit.assessment}</p>
-            <ChipList title="Shows" items={result.university_fit.aligned_values} tone="good" />
-            <ChipList title="Missing" items={result.university_fit.gaps} tone="gap" />
+            <ChipList title={t.shows} items={result.university_fit.aligned_values} tone="good" />
+            <ChipList title={t.missing} items={result.university_fit.gaps} tone="gap" />
           </section>
         ) : null}
       </div>
@@ -218,7 +314,7 @@ export function EssayReviewResults({
   );
 }
 
-function ScoreRing({ score, tone }: { score: number; tone: keyof typeof TONE_STROKE }) {
+function ScoreRing({ t, score, tone }: { t: Copy; score: number; tone: keyof typeof TONE_STROKE }) {
   const r = 52;
   const circumference = 2 * Math.PI * r;
   return (
@@ -240,7 +336,7 @@ function ScoreRing({ score, tone }: { score: number; tone: keyof typeof TONE_STR
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="font-heading text-4xl font-bold tabular-nums">{score}</span>
-        <span className="text-xs text-muted-foreground">out of 100</span>
+        <span className="text-xs text-muted-foreground">{t.outOf}</span>
       </div>
     </div>
   );
@@ -262,7 +358,7 @@ function Delta({ from, to }: { from: number; to: number }) {
   );
 }
 
-function PathTo90({ result }: { result: EssayReviewV2 }) {
+function PathTo90({ t, locale, result }: { t: Copy; locale: Locale; result: EssayReviewV2 }) {
   if (!result.path_to_90.length) return null;
   const done = result.overall_score >= 90;
   const reach = Math.min(100, result.overall_score + result.path_to_90.reduce((s, p) => s + p.estimated_gain, 0));
@@ -272,10 +368,10 @@ function PathTo90({ result }: { result: EssayReviewV2 }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="flex items-center gap-2 font-heading text-lg font-semibold">
           <Target className="size-5 text-brand" />
-          {done ? "Optional polish" : "Your path to 90+"}
+          {done ? t.polish : t.pathTo90}
         </h3>
         <span className="text-sm text-muted-foreground">
-          Do these three and you could reach about <span className="font-semibold text-foreground">{reach}</span>
+          {t.reach} <span className="font-semibold text-foreground">{reach}</span>
         </span>
       </div>
       <ol className="mt-4 grid gap-3 md:grid-cols-3">
@@ -292,7 +388,7 @@ function PathTo90({ result }: { result: EssayReviewV2 }) {
             <p className="text-sm font-semibold">{step.change}</p>
             {step.why ? <p className="text-sm text-muted-foreground">{step.why}</p> : null}
             <p className="mt-auto text-[11px] tracking-wide text-muted-foreground uppercase">
-              {CRITERIA.find((c) => c.key === step.criterion)?.short}
+              {CRITERIA.some((c) => c.key === step.criterion) ? criterionShort(step.criterion, locale) : null}
             </p>
           </li>
         ))}
@@ -301,11 +397,11 @@ function PathTo90({ result }: { result: EssayReviewV2 }) {
   );
 }
 
-function RevisionCard({ revision }: { revision: NonNullable<EssayReviewV2["revision"]> }) {
+function RevisionCard({ t, revision }: { t: Copy; revision: NonNullable<EssayReviewV2["revision"]> }) {
   return (
     <section className="grid gap-4 rounded-2xl border bg-card p-5 sm:p-6 md:grid-cols-2">
       <div>
-        <h3 className="font-heading text-base font-semibold">Better than last draft</h3>
+        <h3 className="font-heading text-base font-semibold">{t.better}</h3>
         <ul className="mt-2 flex flex-col gap-1.5">
           {revision.improved.length ? (
             revision.improved.map((item) => (
@@ -315,12 +411,12 @@ function RevisionCard({ revision }: { revision: NonNullable<EssayReviewV2["revis
               </li>
             ))
           ) : (
-            <li className="text-sm text-muted-foreground">No clear improvement yet.</li>
+            <li className="text-sm text-muted-foreground">{t.noImprovement}</li>
           )}
         </ul>
       </div>
       <div>
-        <h3 className="font-heading text-base font-semibold">Still to fix</h3>
+        <h3 className="font-heading text-base font-semibold">{t.stillToFix}</h3>
         <ul className="mt-2 flex flex-col gap-1.5">
           {revision.still_to_fix.map((item) => (
             <li key={item} className="flex gap-2 text-sm">
@@ -342,7 +438,7 @@ interface Placed {
 }
 
 /** The essay with every commented quote marked and numbered. */
-function AnnotatedEssay({ text, result }: { text: string; result: EssayReviewV2 }) {
+function AnnotatedEssay({ t, text, result }: { t: Copy; text: string; result: EssayReviewV2 }) {
   const [active, setActive] = useState<number | null>(null);
   const markRefs = useRef(new Map<number, HTMLElement>());
 
@@ -382,7 +478,7 @@ function AnnotatedEssay({ text, result }: { text: string; result: EssayReviewV2 
   return (
     <section className="rounded-2xl border bg-card">
       <div className="border-b p-5 sm:px-6">
-        <h3 className="font-heading text-lg font-semibold">Sentence by sentence</h3>
+        <h3 className="font-heading text-lg font-semibold">{t.sentenceBySentence}</h3>
         {result.paragraph_map.length ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {result.paragraph_map.map((p) => (
@@ -396,15 +492,17 @@ function AnnotatedEssay({ text, result }: { text: string; result: EssayReviewV2 
                 )}
               >
                 <span className="font-mono text-muted-foreground">¶{p.paragraph}</span>
-                <span className="font-semibold">{ROLE_LABEL[p.role]}</span>
-                <span className="opacity-70">· {p.strength}</span>
+                <span className="font-semibold">{t.roles[p.role]}</span>
+                <span className="opacity-70">· {t.strength[p.strength]}</span>
               </span>
             ))}
           </div>
         ) : null}
       </div>
       <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="p-5 font-serif text-[17px] leading-[1.9] whitespace-pre-wrap sm:px-6">{body}</div>
+        <div lang="en" className="p-5 font-serif text-[17px] leading-[1.9] whitespace-pre-wrap sm:px-6">
+          {body}
+        </div>
         <ol className="flex max-h-[720px] flex-col gap-2 overflow-y-auto border-t p-4 lg:sticky lg:top-20 lg:border-t-0 lg:border-l">
           {[...placed.map((p) => ({ item: p.item, number: p.number })), ...unplaced.map((item) => ({ item, number: null }))].map(
             ({ item, number }) => (
@@ -422,15 +520,17 @@ function AnnotatedEssay({ text, result }: { text: string; result: EssayReviewV2 
                       <span className="flex size-5 items-center justify-center rounded-full bg-brand/15 text-brand">{number}</span>
                     ) : null}
                     <span className={cn("size-2 rounded-full", TYPE_STYLE[item.type].dot)} />
-                    {TYPE_STYLE[item.type].label}
+                    {t.types[item.type]}
                   </div>
-                  <p className="mt-1.5 line-clamp-2 font-serif text-[13px] text-muted-foreground italic">“{item.quote}”</p>
+                  <p lang="en" className="mt-1.5 line-clamp-2 font-serif text-[13px] text-muted-foreground italic">
+                    “{item.quote}”
+                  </p>
                   <p className="mt-1.5 text-sm">{item.comment}</p>
                   {item.suggestion ? <p className="mt-1 text-sm text-muted-foreground">{item.suggestion}</p> : null}
                   {item.example ? (
                     <p className="mt-2 rounded-lg bg-muted/50 px-2.5 py-1.5 text-[13px]">
-                      <span className="font-semibold text-brand">For example: </span>
-                      {item.example}
+                      <span className="font-semibold text-brand">{t.forExample}</span>
+                      <span lang="en">{item.example}</span>
                     </p>
                   ) : null}
                 </button>
@@ -479,42 +579,44 @@ function ChipList({ title, items, tone }: { title: string; items: string[]; tone
   );
 }
 
-function CopyButton({ review }: { review: EssayReviewRead }) {
+function CopyButton({ t, locale, review }: { t: Copy; locale: Locale; review: EssayReviewRead }) {
   const [copied, setCopied] = useState(false);
   const result = review.analysis_result as EssayReviewV2;
 
-  const copy = async () => {
+  const copyText = async () => {
     const lines = [
-      `Acceptify essay review — ${review.title}`,
-      `Score: ${result.overall_score}/100 (${readinessFor(result.overall_score).label})`,
+      t.copyHeader(review.title),
+      t.copyScore(result.overall_score, readinessLabel(readinessFor(result.overall_score).label, locale)),
       result.headline_verdict,
       "",
-      "Path to 90+:",
+      t.copyPath,
       ...result.path_to_90.map((s, i) => `${i + 1}. ${s.change} (+${s.estimated_gain})`),
       "",
-      ...CRITERIA.map((c) => `${c.label}: ${result.criteria[c.key].score} — ${result.criteria[c.key].to_improve}`),
+      ...CRITERIA.map(
+        (c) => `${criterionLabel(c.key, locale)}: ${result.criteria[c.key].score} — ${result.criteria[c.key].to_improve}`,
+      ),
       "",
-      "Comments:",
+      t.copyComments,
       ...result.line_feedback.map((f) => `• "${f.quote}" — ${f.comment} ${f.suggestion}`.trim()),
     ];
     try {
       await navigator.clipboard.writeText(lines.join("\n"));
       setCopied(true);
-      toast.success("Feedback copied");
+      toast.success(t.copied);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn't copy. Select the text and copy it instead.");
+      toast.error(t.copyFailed);
     }
   };
 
   return (
     <button
       type="button"
-      onClick={copy}
+      onClick={copyText}
       className="nav-pill inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
     >
       {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-      Copy feedback
+      {t.copyFeedback}
     </button>
   );
 }

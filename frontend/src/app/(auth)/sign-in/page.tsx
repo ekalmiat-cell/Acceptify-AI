@@ -10,10 +10,29 @@ import {
   formatOAuthCallbackError,
   sanitizeRedirectPath,
 } from "@/lib/auth-config";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-};
+const copy = defineCopy({
+  en: {
+    meta: "Sign in",
+    title: "Welcome back",
+    subtitle: "Sign in to see your latest predictions and saved universities.",
+    noAccount: "Don't have an account?",
+    create: "Create one for free",
+  },
+  ru: {
+    meta: "Вход",
+    title: "С возвращением",
+    subtitle: "Войди, чтобы увидеть свои прогнозы и сохранённые университеты.",
+    noAccount: "Ещё нет аккаунта?",
+    create: "Создай бесплатно",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].meta };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +42,10 @@ type SignInPageProps = {
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const params = await searchParams;
+  const locale = await getLocale();
+  const t = copy[locale];
   const callbackURL = sanitizeRedirectPath(params.redirect);
-  const oauthError = formatOAuthCallbackError(params.error);
+  const oauthError = formatOAuthCallbackError(params.error, locale);
 
   const errorCallbackURL = `/sign-in${
     params.redirect ? `?redirect=${encodeURIComponent(callbackURL)}` : ""
@@ -37,11 +58,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       </div>
 
       <h1 className="font-heading text-2xl font-semibold text-foreground">
-        Welcome back
+        {t.title}
       </h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        Sign in to see your latest predictions and saved universities.
-      </p>
+      <p className="mt-1.5 text-sm text-muted-foreground">{t.subtitle}</p>
 
       {oauthError ? (
         <Alert variant="destructive" className="mt-6">
@@ -60,9 +79,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       </div>
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
-        Don&apos;t have an account?{" "}
+        {t.noAccount}{" "}
         <Link href="/sign-up" className="font-medium text-primary hover:underline">
-          Create one for free
+          {t.create}
         </Link>
       </p>
     </div>

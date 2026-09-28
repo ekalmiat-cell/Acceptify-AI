@@ -6,7 +6,7 @@
  */
 
 import { countWords, splitSentences } from "@/lib/essay-check";
-import type { RewriteDrill, Rule, UnitKey } from "@/lib/training/drills";
+import type { Localized, RewriteDrill, Rule, UnitKey } from "@/lib/training/drills";
 import type { EssayReviewV2, LineFeedbackType } from "@/types/essay";
 
 export interface PersonalDrill extends RewriteDrill {
@@ -19,30 +19,30 @@ export const MAX_PERSONAL_DRILLS = 5;
 
 type TrainableType = Exclude<LineFeedbackType, "strong" | "grammar">;
 
-const TRAINABLE: Record<TrainableType, { unit: UnitKey; title: string; rules: (quote: string) => Rule[] }> = {
+const TRAINABLE: Record<TrainableType, { unit: UnitKey; title: Localized; rules: (quote: string) => Rule[] }> = {
   cliche: {
     unit: "voice",
-    title: "Rewrite your cliché",
+    title: { en: "Rewrite your cliché", ru: "Перепиши своё клише" },
     rules: () => [{ type: "noCliches" }, { type: "rewritten" }, { type: "maxSentences", n: 3 }],
   },
   telling: {
     unit: "specificity",
-    title: "Show it — your sentence",
+    title: { en: "Show it — your sentence", ru: "Покажи — твоё предложение" },
     rules: () => [{ type: "concrete" }, { type: "rewritten" }, { type: "maxSentences", n: 3 }],
   },
   vague: {
     unit: "specificity",
-    title: "Make your sentence specific",
+    title: { en: "Make your sentence specific", ru: "Сделай предложение конкретнее" },
     rules: () => [{ type: "concrete" }, { type: "rewritten" }, { type: "maxSentences", n: 3 }],
   },
   passive: {
     unit: "concise",
-    title: "Say who did it — your sentence",
+    title: { en: "Say who did it — your sentence", ru: "Скажи, кто это сделал — твоё предложение" },
     rules: () => [{ type: "noPassive" }, { type: "maxSentences", n: 2 }],
   },
   wordy: {
     unit: "concise",
-    title: "Tighten your sentence",
+    title: { en: "Tighten your sentence", ru: "Сожми своё предложение" },
     rules: (quote) => [
       { type: "maxWords", n: Math.max(5, Math.floor(countWords(quote) * 0.75)) },
       { type: "noFillers" },
@@ -123,6 +123,8 @@ export function personalDrill(
   if (!line || !isTrainable(line.type) || !line.quote.trim()) return null;
   const kind = TRAINABLE[line.type];
   const source = sentenceAround(essayText, line.quote);
+  // The review's own comment, already in the language the review was asked in.
+  const task = [line.comment, line.suggestion].filter(Boolean).join(" ");
   return {
     id: personalDrillId(reviewId, index),
     reviewId,
@@ -130,12 +132,15 @@ export function personalDrill(
     unit: kind.unit,
     kind: "rewrite",
     title: kind.title,
-    task: [line.comment, line.suggestion].filter(Boolean).join(" "),
+    task: { en: task, ru: task },
     source,
     placeholder: "Rewrite it in your own words…",
     rules: kind.rules(source),
     model: line.example?.trim() || line.suggestion,
-    modelWhy: "One possible version from your AI review. Yours should sound like you — don't copy it.",
+    modelWhy: {
+      en: "One possible version from your AI review. Yours should sound like you — don't copy it.",
+      ru: "Один из возможных вариантов из твоего разбора. Твой должен звучать как ты — не копируй его.",
+    },
   };
 }
 

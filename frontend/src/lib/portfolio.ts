@@ -20,6 +20,7 @@ import {
   type PortfolioOdds,
   type ProbabilityEstimate,
 } from "@/lib/probability";
+import { plural, type Locale } from "@/lib/i18n/core";
 import type { MatchCategory, University } from "@/types/domain";
 
 export interface PortfolioEntry {
@@ -75,7 +76,8 @@ export function buildPortfolio(
   shortlist: University[],
   profile: StudentProfileInput,
   weightsByUniversity: Record<string, CriterionWeights>,
-  confidence: number
+  confidence: number,
+  locale: Locale = "en"
 ): Portfolio {
   const entries = shortlist
     .map((university) =>
@@ -98,38 +100,41 @@ export function buildPortfolio(
     entries,
     balance,
     odds: atLeastOneAdmission(entries.map((entry) => entry.probability.p)),
-    warnings: warningsFor(entries, balance),
+    warnings: warningsFor(entries, balance, locale),
   };
 }
 
-function warningsFor(entries: PortfolioEntry[], balance: PortfolioBalance): string[] {
+const WARNINGS = {
+  en: {
+    noSafety:
+      "No safety school. Every application on this list is one you could plausibly be turned down by — one safe choice changes the shape of the whole outcome.",
+    thin: (n: number) =>
+      `Only ${n} application${n === 1 ? "" : "s"}. A thin list makes the combined odds fragile: one unlucky decision is a large share of it.`,
+    allReach: "Every school here is a reach. That can be a deliberate choice, but it should be a deliberate one.",
+    noTarget:
+      "No target schools — the list jumps straight from safeties to reaches, and targets are where most admissions actually happen.",
+  },
+  ru: {
+    noSafety:
+      "Нет надёжного варианта. В любой из этих университетов тебе вполне могут отказать — один надёжный вариант меняет весь расклад.",
+    thin: (n: number) =>
+      `Всего ${n} ${plural("ru", n, { one: "заявка", few: "заявки", many: "заявок" })}. Короткий список делает общие шансы хрупкими: одно неудачное решение слишком много весит.`,
+    allReach: "Все университеты здесь амбициозные. Это может быть осознанным выбором — но пусть он будет осознанным.",
+    noTarget:
+      "Нет целевых вариантов — список прыгает от надёжных сразу к амбициозным, а большинство поступлений случается именно в целевых.",
+  },
+} satisfies Record<Locale, unknown>;
+
+function warningsFor(entries: PortfolioEntry[], balance: PortfolioBalance, locale: Locale): string[] {
+  const t = WARNINGS[locale];
   const warnings: string[] = [];
 
   if (entries.length === 0) return warnings;
 
-  if (balance.safe === 0) {
-    warnings.push(
-      "No safety school. Every application on this list is one you could plausibly be turned down by — one safe choice changes the shape of the whole outcome."
-    );
-  }
-
-  if (entries.length < 5) {
-    warnings.push(
-      `Only ${entries.length} application${entries.length === 1 ? "" : "s"}. A thin list makes the combined odds fragile: one unlucky decision is a large share of it.`
-    );
-  }
-
-  if (balance.reach > 0 && balance.reach === entries.length) {
-    warnings.push(
-      "Every school here is a reach. That can be a deliberate choice, but it should be a deliberate one."
-    );
-  }
-
-  if (balance.target === 0 && entries.length >= 3) {
-    warnings.push(
-      "No target schools — the list jumps straight from safeties to reaches, and targets are where most admissions actually happen."
-    );
-  }
+  if (balance.safe === 0) warnings.push(t.noSafety);
+  if (entries.length < 5) warnings.push(t.thin(entries.length));
+  if (balance.reach > 0 && balance.reach === entries.length) warnings.push(t.allReach);
+  if (balance.target === 0 && entries.length >= 3) warnings.push(t.noTarget);
 
   return warnings;
 }

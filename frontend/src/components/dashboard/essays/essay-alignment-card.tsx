@@ -4,7 +4,26 @@ import { Building, FileText, Check, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import type { PromptAlignment, UniversityAlignment } from "@/types/essay";
+
+const copy = defineCopy({
+  en: {
+    prompt: "Answers the question",
+    unaddressed: "Parts of the question not addressed",
+    fit: (name: string) => `Fit with ${name}`,
+    institutionalFit: "University fit",
+    values: "Values it shows:",
+  },
+  ru: {
+    prompt: "Ответ на вопрос",
+    unaddressed: "Части вопроса без ответа",
+    fit: (name: string) => `Соответствие ${name}`,
+    institutionalFit: "Соответствие университету",
+    values: "Какие ценности видны:",
+  },
+});
 
 interface EssayAlignmentCardProps {
   promptAlignment: PromptAlignment;
@@ -17,6 +36,7 @@ export function EssayAlignmentCard({
   universityAlignment,
   universityName,
 }: EssayAlignmentCardProps) {
+  const t = useCopy(copy);
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* Prompt Adherence */}
@@ -27,7 +47,7 @@ export function EssayAlignmentCard({
               <div className="rounded-full bg-primary/10 p-1.5 text-primary">
                 <FileText className="h-4 w-4" />
               </div>
-              <CardTitle className="text-base font-semibold">Prompt Adherence</CardTitle>
+              <CardTitle className="text-base font-semibold">{t.prompt}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-foreground">
@@ -47,7 +67,7 @@ export function EssayAlignmentCard({
             <div className="rounded-md border border-amber-200/80 bg-amber-50/50 p-3 text-xs dark:border-amber-900/50 dark:bg-amber-950/20">
               <div className="mb-1.5 flex items-center gap-1.5 font-semibold text-amber-900 dark:text-amber-300">
                 <AlertCircle className="h-3.5 w-3.5" />
-                <span>Unaddressed Prompt Elements</span>
+                <span>{t.unaddressed}</span>
               </div>
               <ul className="list-inside list-disc space-y-1 text-muted-foreground">
                 {promptAlignment.missing_elements.map((item, i) => (
@@ -68,7 +88,7 @@ export function EssayAlignmentCard({
                 <Building className="h-4 w-4" />
               </div>
               <CardTitle className="text-base font-semibold">
-                {universityName ? `${universityName} Fit` : "Institutional Fit"}
+                {universityName ? t.fit(universityName) : t.institutionalFit}
               </CardTitle>
             </div>
             <div className="flex items-center gap-2">
@@ -87,7 +107,7 @@ export function EssayAlignmentCard({
 
           {universityAlignment.aligned_values && universityAlignment.aligned_values.length > 0 && (
             <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-foreground">Demonstrated Values:</span>
+              <span className="text-xs font-semibold text-foreground">{t.values}</span>
               <div className="flex flex-wrap gap-1.5">
                 {universityAlignment.aligned_values.map((val, i) => (
                   <Badge

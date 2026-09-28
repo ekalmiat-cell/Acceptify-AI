@@ -17,8 +17,19 @@ import { Logo } from "@/components/shared/logo";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
+import { LanguageSwitch } from "@/components/shared/language-switch";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
+import { navLabel } from "@/lib/nav-copy";
+
+const copy = defineCopy({
+  en: { dashboard: "Go to dashboard", signIn: "Sign in", cta: "Check my chances", menu: "Open menu" },
+  ru: { dashboard: "В кабинет", signIn: "Войти", cta: "Проверить шансы", menu: "Открыть меню" },
+});
 
 export function Navbar() {
+  const locale = useLocale();
+  const t = copy[locale];
   const [scrolled, setScrolled] = useState(false);
   const { data: session, isPending } = useSession();
 
@@ -50,18 +61,19 @@ export function Navbar() {
               href={item.href}
               className="nav-pill rounded-full px-4 py-1.5 text-sm font-semibold text-white/75 hover:text-white"
             >
-              {item.label}
+              {navLabel(item.label, locale)}
             </Link>
           ))}
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
+          <LanguageSwitch />
           {!isPending && session ? (
             <Button
               render={<Link href="/dashboard" />}
               className="bg-gradient-brand text-white hover:opacity-90"
             >
-              Go to dashboard
+              {t.dashboard}
             </Button>
           ) : (
             <>
@@ -70,13 +82,13 @@ export function Navbar() {
                 variant="ghost"
                 className="nav-pill rounded-full font-semibold text-white/80 hover:text-white"
               >
-                Sign in
+                {t.signIn}
               </Button>
               <Button
                 render={<Link href="/sign-up" />}
                 className="btn-shine rounded-full bg-gradient-brand font-semibold text-white shadow-glow-brand transition-transform hover:scale-105 hover:opacity-95"
               >
-                Check My Chances
+                {t.cta}
               </Button>
             </>
           )}
@@ -93,7 +105,7 @@ export function Navbar() {
             }
           >
             <Menu />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t.menu}</span>
           </SheetTrigger>
           <SheetContent side="right" className="bg-[#071326] text-white">
             <SheetHeader>
@@ -108,22 +120,23 @@ export function Navbar() {
                   render={<Link href={item.href} />}
                   className="rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-white/5"
                 >
-                  {item.label}
+                  {navLabel(item.label, locale)}
                 </SheetClose>
               ))}
             </nav>
             <div className="mt-auto flex flex-col gap-2 border-t border-white/10 p-4">
+              <LanguageSwitch className="self-start" />
               {!isPending && session ? (
                 <Button render={<Link href="/dashboard" />} className="bg-gradient-brand text-white">
-                  Go to dashboard
+                  {t.dashboard}
                 </Button>
               ) : (
                 <>
                   <Button render={<Link href="/sign-in" />} variant="outline" className="border-white/15 text-white">
-                    Sign in
+                    {t.signIn}
                   </Button>
                   <Button render={<Link href="/sign-up" />} className="bg-gradient-brand text-white">
-                    Check My Chances
+                    {t.cta}
                   </Button>
                 </>
               )}

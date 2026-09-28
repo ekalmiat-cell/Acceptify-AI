@@ -1,5 +1,8 @@
+"use client";
+
+import { categoryLabel } from "@/lib/catalog-copy";
+import { useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { matchCategoryMeta } from "@/lib/predict";
 import type { MatchCategory } from "@/types/domain";
 
 const styles: Record<MatchCategory, string> = {
@@ -23,6 +26,7 @@ export function MatchBadge({
   className?: string;
   showLabel?: boolean;
 }) {
+  const locale = useLocale();
   return (
     <span
       className={cn(
@@ -32,7 +36,7 @@ export function MatchBadge({
       )}
     >
       <span className={cn("size-1.5 rounded-full", dots[category])} />
-      {showLabel ? matchCategoryMeta[category].label : null}
+      {showLabel ? categoryLabel(category, locale) : null}
     </span>
   );
 }

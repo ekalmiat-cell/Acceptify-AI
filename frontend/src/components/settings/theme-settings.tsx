@@ -11,15 +11,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 const options = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Laptop },
+  { value: "light", icon: Sun },
+  { value: "dark", icon: Moon },
+  { value: "system", icon: Laptop },
 ] as const;
 
+const copy = defineCopy({
+  en: {
+    title: "Appearance",
+    description: "Choose how Acceptify AI looks on this device.",
+    light: "Light",
+    dark: "Dark",
+    system: "System",
+  },
+  ru: {
+    title: "Оформление",
+    description: "Выбери, как Acceptify AI выглядит на этом устройстве.",
+    light: "Светлая",
+    dark: "Тёмная",
+    system: "Как в системе",
+  },
+});
+
 export function ThemeSettings() {
+  const t = useCopy(copy);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -28,8 +48,8 @@ export function ThemeSettings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Appearance</CardTitle>
-        <CardDescription>Choose how Acceptify AI looks on this device.</CardDescription>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -53,7 +73,7 @@ export function ThemeSettings() {
                   </span>
                 ) : null}
                 <option.icon className="size-5" />
-                {option.label}
+                {t[option.value]}
               </button>
             );
           })}

@@ -13,11 +13,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { achievementCatalog } from "@/data/achievement-catalog";
 import { ACADEMIC_SCALE_MAX, academicBenchmark } from "@/lib/benchmarks";
+import { achievementLabel, criterionName } from "@/lib/catalog-copy";
+import { defineCopy, plural } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 import {
   ACADEMIC_CRITERIA,
-  ACADEMIC_CRITERION_LABELS,
   ACHIEVEMENT_CRITERIA,
   type AcademicCriterionKey,
   type AchievementCriterionKey,
@@ -49,7 +50,54 @@ function format(criterion: AcademicCriterionKey, value: number): string {
   return String(Math.round(value));
 }
 
-const achievementLabels = new Map(achievementCatalog.map((item) => [item.id, item.label]));
+const copy = defineCopy({
+  en: {
+    title: "What if",
+    subtitle: (name: string) =>
+      `Move a score or add an achievement to see what it does to your fit at ${name}. Nothing here changes your saved profile.`,
+    fitScore: "fit score / 100",
+    reset: "Reset",
+    notOnProfile: "not on your profile",
+    tryScore: "Try a score",
+    was: (value: string) => `was ${value}`,
+    clear: "clear",
+    national: " (national baseline)",
+    weighted: "Achievements this programme weights",
+    yours: "yours",
+    cheapest: (target: number) => `Cheapest path to ${target}`,
+    reached: (steps: number, weeks: number) =>
+      `${steps} step${steps === 1 ? "" : "s"}, roughly ${weeks} weeks of work.`,
+    unreachable: (to: number) =>
+      `Every worthwhile action taken together reaches ${to}. This university may simply be a reach.`,
+    nothing:
+      "Nothing on this programme's evaluation model would move your score right now — you are already scoring on everything it weights.",
+    biggest: "Biggest single wins",
+    ranked: "Ranked by points gained; the plan above re-ranks them by points per week of work.",
+  },
+  ru: {
+    title: "Что если",
+    subtitle: (name: string) =>
+      `Измени балл или добавь достижение — и увидишь, как меняется соответствие ${name}. Сохранённый профиль при этом не меняется.`,
+    fitScore: "соответствие / 100",
+    reset: "Сбросить",
+    notOnProfile: "нет в профиле",
+    tryScore: "Попробовать балл",
+    was: (value: string) => `было ${value}`,
+    clear: "убрать",
+    national: " (национальный уровень)",
+    weighted: "Достижения, которые учитывает программа",
+    yours: "есть у тебя",
+    cheapest: (target: number) => `Самый короткий путь к ${target}`,
+    reached: (steps: number, weeks: number) =>
+      `${steps} ${plural("ru", steps, { one: "шаг", few: "шага", many: "шагов" })}, примерно ${weeks} ${plural("ru", weeks, { one: "неделя", few: "недели", many: "недель" })} работы.`,
+    unreachable: (to: number) =>
+      `Даже все полезные шаги вместе дают ${to}. Возможно, этот университет просто амбициозный вариант.`,
+    nothing:
+      "Сейчас ничто в модели оценки этой программы не поднимет твой балл — ты уже закрываешь всё, что она учитывает.",
+    biggest: "Самые сильные шаги",
+    ranked: "Отсортировано по приросту баллов; план выше пересортировывает их по баллам за неделю работы.",
+  },
+});
 
 /**
  * "What would change my score, and by how much?" — answered by running the
@@ -69,6 +117,8 @@ export function WhatIfPanel({
   profile: StudentProfileInput;
   weights: CriterionWeights;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const [draft, setDraft] = useState<StudentProfileInput>(profile);
 
   const baseline = useMemo(
@@ -83,8 +133,8 @@ export function WhatIfPanel({
   /** Suggestions are computed against the *draft*, so the list keeps
    * answering "what's worth doing next" as the student explores. */
   const levers = useMemo(
-    () => simulateLevers(university, draft, weights, { limit: 5 }),
-    [university, draft, weights]
+    () => simulateLevers(university, draft, weights, { limit: 5, locale }),
+    [university, draft, weights, locale]
   );
 
   /** The next round number worth aiming at. Targets below the student's
@@ -98,8 +148,8 @@ export function WhatIfPanel({
    * "what do I actually have to do", which doesn't change because someone
    * dragged a slider. */
   const plan = useMemo(
-    () => planToTarget(university, profile, weights, target),
-    [university, profile, weights, target]
+    () => planToTarget(university, profile, weights, target, { locale }),
+    [university, profile, weights, target, locale]
   );
 
   const delta = current - baseline;
@@ -138,12 +188,9 @@ export function WhatIfPanel({
             <span className="flex size-7 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Sparkles className="size-4" />
             </span>
-            What if
+            {t.title}
           </CardTitle>
-          <CardDescription>
-            Move a score or add an achievement to see what it does to your fit at{" "}
-            {university.shortName}. Nothing here changes your saved profile.
-          </CardDescription>
+          <CardDescription>{t.subtitle(university.shortName)}</CardDescription>
         </CardHeader>
 
         <CardContent className="flex flex-col gap-5">
@@ -152,7 +199,7 @@ export function WhatIfPanel({
               <span className="font-mono text-sm text-muted-foreground">{baseline}</span>
               <ArrowRight className="size-3.5 text-muted-foreground" />
               <span className="font-heading text-3xl font-semibold text-foreground">{current}</span>
-              <span className="text-xs text-muted-foreground">fit score / 100</span>
+              <span className="text-xs text-muted-foreground">{t.fitScore}</span>
             </div>
             <div className="flex items-center gap-2">
               {delta !== 0 ? (
@@ -175,7 +222,7 @@ export function WhatIfPanel({
                 disabled={!isDirty}
               >
                 <RotateCcw />
-                Reset
+                {t.reset}
               </Button>
             </div>
           </div>
@@ -184,7 +231,7 @@ export function WhatIfPanel({
             {academicRows.map((criterion) => {
               const value = academicValue(criterion, draft);
               const original = academicValue(criterion, profile);
-              const benchmark = academicBenchmark(criterion, university);
+              const benchmark = academicBenchmark(criterion, university, locale);
               const max = ACADEMIC_SCALE_MAX[criterion];
 
               if (value == null) {
@@ -194,8 +241,8 @@ export function WhatIfPanel({
                     className="flex items-center justify-between gap-3 text-sm"
                   >
                     <div>
-                      <span className="font-medium">{ACADEMIC_CRITERION_LABELS[criterion]}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">not on your profile</span>
+                      <span className="font-medium">{criterionName(criterion, locale)}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{t.notOnProfile}</span>
                     </div>
                     <Button
                       variant="outline"
@@ -204,7 +251,7 @@ export function WhatIfPanel({
                         setAcademic(criterion, Math.min(benchmark?.value ?? max / 2, max))
                       }
                     >
-                      Try a score
+                      {t.tryScore}
                     </Button>
                   </div>
                 );
@@ -213,12 +260,12 @@ export function WhatIfPanel({
               return (
                 <div key={criterion} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{ACADEMIC_CRITERION_LABELS[criterion]}</span>
+                    <span className="font-medium">{criterionName(criterion, locale)}</span>
                     <span className="flex items-center gap-2">
                       <span className="font-mono text-sm">{format(criterion, value)}</span>
                       {original != null && value !== original ? (
                         <span className="font-mono text-xs text-muted-foreground">
-                          was {format(criterion, original)}
+                          {t.was(format(criterion, original))}
                         </span>
                       ) : null}
                       {original == null ? (
@@ -228,7 +275,7 @@ export function WhatIfPanel({
                           className="h-6 px-2 text-xs"
                           onClick={() => setAcademic(criterion, null)}
                         >
-                          clear
+                          {t.clear}
                         </Button>
                       ) : null}
                     </span>
@@ -245,7 +292,7 @@ export function WhatIfPanel({
                   {benchmark ? (
                     <span className="text-xs text-muted-foreground">
                       {university.shortName}: {benchmark.label}
-                      {benchmark.source === "national" ? " (national baseline)" : ""}
+                      {benchmark.source === "national" ? t.national : ""}
                     </span>
                   ) : null}
                 </div>
@@ -255,7 +302,7 @@ export function WhatIfPanel({
 
           {achievementRows.length > 0 ? (
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium">Achievements this programme weights</p>
+              <p className="text-sm font-medium">{t.weighted}</p>
               <div className="flex flex-wrap gap-2">
                 {achievementRows.map((criterion) => {
                   const on = Boolean(draft.achievements[criterion]);
@@ -271,9 +318,9 @@ export function WhatIfPanel({
                           : "rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-brand/40 hover:text-foreground"
                       }
                     >
-                      {achievementLabels.get(criterion) ?? criterion}
+                      {achievementLabel(criterion, locale)}
                       <span className="ml-1.5 opacity-60">{weights[criterion]}</span>
-                      {owned ? <span className="ml-1 opacity-60">·&nbsp;yours</span> : null}
+                      {owned ? <span className="ml-1 opacity-60">·&nbsp;{t.yours}</span> : null}
                     </button>
                   );
                 })}
@@ -289,21 +336,16 @@ export function WhatIfPanel({
             <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
               <TrendingUp className="size-4" />
             </span>
-            Cheapest path to {target}
+            {t.cheapest(target)}
           </CardTitle>
           <CardDescription>
-            {plan.reached
-              ? `${plan.steps.length} step${plan.steps.length === 1 ? "" : "s"}, roughly ${plan.totalEffortWeeks} weeks of work.`
-              : `Every worthwhile action taken together reaches ${plan.to}. This university may simply be a reach.`}
+            {plan.reached ? t.reached(plan.steps.length, plan.totalEffortWeeks) : t.unreachable(plan.to)}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4">
           {plan.steps.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing on this programme&apos;s evaluation model would move your score right
-              now — you are already scoring on everything it weights.
-            </p>
+            <p className="text-sm text-muted-foreground">{t.nothing}</p>
           ) : (
             <ol className="flex flex-col gap-3">
               {plan.steps.map((step, index) => (
@@ -325,7 +367,7 @@ export function WhatIfPanel({
 
           {levers.length > 0 ? (
             <div className="flex flex-col gap-2 border-t border-border pt-4">
-              <p className="text-sm font-medium">Biggest single wins</p>
+              <p className="text-sm font-medium">{t.biggest}</p>
               {levers.map((lever) => (
                 <button
                   key={lever.id}
@@ -339,10 +381,7 @@ export function WhatIfPanel({
                   </span>
                 </button>
               ))}
-              <p className="text-xs text-muted-foreground">
-                Ranked by points gained; the plan above re-ranks them by points per week of
-                work.
-              </p>
+              <p className="text-xs text-muted-foreground">{t.ranked}</p>
             </div>
           ) : null}
         </CardContent>

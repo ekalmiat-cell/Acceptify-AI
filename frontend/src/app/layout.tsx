@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { AppProviders } from "@/components/providers/app-providers";
 import { siteConfig } from "@/config/site";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,28 +17,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: siteConfig.name,
-    template: `%s · ${siteConfig.name}`,
+const copy = defineCopy({
+  en: { description: siteConfig.description as string },
+  ru: {
+    description:
+      "Платформа с ИИ для поступления в университеты: помогает спланировать, собрать и подать сильную заявку.",
   },
-  description: siteConfig.description,
-  metadataBase: new URL(siteConfig.url),
-};
+});
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return {
+    title: {
+      default: siteConfig.name,
+      template: `%s · ${siteConfig.name}`,
+    },
+    description: copy[locale].description,
+    metadataBase: new URL(siteConfig.url),
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
     <html
-      lang="en"
+      lang={locale}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AppProviders>{children}</AppProviders>
+        <AppProviders locale={locale}>{children}</AppProviders>
         {/*
           Vercel Web Analytics: cookieless page-view counts, served by Vercel
           itself at this path once Analytics is enabled for the project. Only

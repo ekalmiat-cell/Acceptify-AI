@@ -7,13 +7,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getBetaStats, type BetaStats } from "@/lib/data/beta-stats";
 import { getUniversities } from "@/lib/universities-server";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { countryName } from "@/lib/countries";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Admin",
-};
+const copy = defineCopy({
+  en: {
+    title: "Admin",
+    intro: "Manage each university's programs and their per-criterion evaluation weights.",
+    universities: "Universities",
+    universitiesNote: "Pick a university to manage its programs and evaluation profiles.",
+    funnel: "Beta funnel",
+    funnelNote: (created: number, active: number) =>
+      `${created} new and ${active} active students in the last 7 days. Page views are in Vercel → Analytics.`,
+    steps: ["Signed up", "Filled in scores", "Ran an analysis", "Reviewed an essay"],
+    ofSignups: (percent: string) => `${percent} of sign-ups`,
+    perDay: "Sign-ups per day, last 14 days",
+  },
+  ru: {
+    title: "Админка",
+    intro: "Программы университетов и веса критериев в их моделях оценки.",
+    universities: "Университеты",
+    universitiesNote: "Выбери университет, чтобы управлять его программами и профилями оценки.",
+    funnel: "Воронка беты",
+    funnelNote: (created: number, active: number) =>
+      `За последние 7 дней: ${created} новых и ${active} активных учеников. Просмотры страниц — в Vercel → Analytics.`,
+    steps: ["Зарегистрировались", "Заполнили баллы", "Сделали анализ", "Отправили эссе на разбор"],
+    ofSignups: (percent: string) => `${percent} от регистраций`,
+    perDay: "Регистрации по дням, последние 14 дней",
+  },
+});
+
+type Copy = (typeof copy)["en"];
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].title };
+}
 
 export default async function AdminPage() {
-  const [universities, stats] = await Promise.all([getUniversities(), getBetaStats()]);
+  const [universities, stats, locale] = await Promise.all([getUniversities(), getBetaStats(), getLocale()]);
+  const t = copy[locale];
 
   return (
     <div className="flex flex-col gap-6">
@@ -22,21 +55,19 @@ export default async function AdminPage() {
           <ShieldCheck className="size-5" />
         </span>
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">Admin</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage each university&apos;s programs and their per-criterion evaluation weights.
-          </p>
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">{t.title}</h1>
+          <p className="text-sm text-muted-foreground">{t.intro}</p>
         </div>
       </div>
 
-      <BetaFunnelCard stats={stats} />
+      <BetaFunnelCard t={t} stats={stats} />
 
       <AdminResetLink />
 
       <Card>
         <CardHeader>
-          <CardTitle>Universities</CardTitle>
-          <CardDescription>Pick a university to manage its programs and evaluation profiles.</CardDescription>
+          <CardTitle>{t.universities}</CardTitle>
+          <CardDescription>{t.universitiesNote}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           {universities.map((university) => (
@@ -49,7 +80,7 @@ export default async function AdminPage() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">{university.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {university.city}, {university.country}
+                  {university.city}, {countryName(university.country, locale)}
                 </p>
               </div>
               <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
@@ -61,12 +92,12 @@ export default async function AdminPage() {
   );
 }
 
-function BetaFunnelCard({ stats }: { stats: BetaStats }) {
+function BetaFunnelCard({ t, stats }: { t: Copy; stats: BetaStats }) {
   const steps = [
-    { label: "Signed up", value: stats.users },
-    { label: "Filled in scores", value: stats.withProfile },
-    { label: "Ran an analysis", value: stats.withAnalysis },
-    { label: "Reviewed an essay", value: stats.withEssay },
+    { label: t.steps[0], value: stats.users },
+    { label: t.steps[1], value: stats.withProfile },
+    { label: t.steps[2], value: stats.withAnalysis },
+    { label: t.steps[3], value: stats.withEssay },
   ];
   const percentOf = (value: number) =>
     stats.users > 0 ? `${Math.round((value / stats.users) * 100)}%` : "—";
@@ -74,11 +105,8 @@ function BetaFunnelCard({ stats }: { stats: BetaStats }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Beta funnel</CardTitle>
-        <CardDescription>
-          {stats.newLast7Days} new and {stats.activeLast7Days} active students in the last 7
-          days. Page views are in Vercel → Analytics.
-        </CardDescription>
+        <CardTitle>{t.funnel}</CardTitle>
+        <CardDescription>{t.funnelNote(stats.newLast7Days, stats.activeLast7Days)}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -86,14 +114,14 @@ function BetaFunnelCard({ stats }: { stats: BetaStats }) {
             <div key={step.label} className="rounded-xl border p-3">
               <p className="text-xs text-muted-foreground">{step.label}</p>
               <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{step.value}</p>
-              <p className="text-xs text-muted-foreground">{percentOf(step.value)} of sign-ups</p>
+              <p className="text-xs text-muted-foreground">{t.ofSignups(percentOf(step.value))}</p>
             </div>
           ))}
         </div>
         {stats.signupsByDay.length > 0 ? (
           <div>
             <p className="mb-2 text-xs font-medium text-muted-foreground">
-              Sign-ups per day, last 14 days
+              {t.perDay}
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-xs tabular-nums">
               {stats.signupsByDay.map((d) => (

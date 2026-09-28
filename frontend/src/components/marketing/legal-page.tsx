@@ -2,9 +2,22 @@ import type { ReactNode } from "react";
 
 import { Container } from "@/components/shared/container";
 import { siteConfig } from "@/config/site";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
+
+const copy = defineCopy({
+  en: {
+    updated: `Last updated ${siteConfig.legalUpdated}`,
+    orEmail: "or email",
+  },
+  ru: {
+    updated: "Обновлено 28 сентября 2026 г.",
+    orEmail: "или почта",
+  },
+});
 
 /** Shared frame for the Privacy Policy and Terms of Use. */
-export function LegalPage({
+export async function LegalPage({
   title,
   intro,
   children,
@@ -13,12 +26,11 @@ export function LegalPage({
   intro: ReactNode;
   children: ReactNode;
 }) {
+  const t = copy[await getLocale()];
   return (
     <section className="relative pt-32 pb-24 sm:pt-40">
       <Container className="max-w-3xl">
-        <p className="text-sm font-medium text-white/50">
-          Last updated {siteConfig.legalUpdated}
-        </p>
+        <p className="text-sm font-medium text-white/50">{t.updated}</p>
         <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-white sm:text-4xl">
           {title}
         </h1>
@@ -49,14 +61,15 @@ export function LegalSection({
 }
 
 /** "Telegram @… or email …" — the one way we ask people to reach us. */
-export function ContactLine() {
+export async function ContactLine() {
+  const t = copy[await getLocale()];
   return (
     <>
       Telegram{" "}
       <a href={siteConfig.contact.telegramUrl} target="_blank" rel="noreferrer">
         {siteConfig.contact.telegram}
       </a>{" "}
-      or email <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>
+      {t.orEmail} <a href={`mailto:${siteConfig.contact.email}`}>{siteConfig.contact.email}</a>
     </>
   );
 }

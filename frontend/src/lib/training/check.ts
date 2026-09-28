@@ -6,6 +6,7 @@
  */
 
 import { checkEssay, countWords, splitSentences } from "@/lib/essay-check";
+import { defineCopy, plural, type Locale } from "@/lib/i18n/core";
 import type { Rule } from "@/lib/training/drills";
 
 export interface RuleResult {
@@ -85,113 +86,175 @@ function overlapWithSource(answer: string, source: string): number {
   return shared / mine.size;
 }
 
-function runRule(rule: Rule, answer: string, source: string): RuleResult {
-  const words = countWords(answer);
-  const sentences = splitSentences(withoutAbbreviations(answer)).length || (words > 0 ? 1 : 0);
+const words = (locale: Locale, n: number) =>
+  `${n} ${plural(locale, n, locale === "ru" ? { one: "слово", few: "слова", many: "слов" } : { one: "word", other: "words" })}`;
+const sentencesOf = (locale: Locale, n: number) =>
+  `${n} ${plural(locale, n, locale === "ru" ? { one: "предложение", few: "предложения", many: "предложений" } : { one: "sentence", other: "sentences" })}`;
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** What each rule says — explanations in the interface language; quotes from the answer stay as written. */
+const copy = defineCopy({
+  en: {
+    limit: (count: string, n: number) => `${count} (limit ${n})`,
+    cutMore: (count: string) => `Cut ${count} more.`,
+    atLeast: (count: string) => `At least ${count}`,
+    sayMore: "Say a little more — you cut too much.",
+    keepTo: (count: string) => `Keep it to ${count}.`,
+    quote: (text: string) => `“${text}”`,
+    cliche: (quotes: string) => `Cliché: ${quotes}`,
+    noCliches: "No clichés",
+    replaceCliche: "Replace it with your own words or a specific detail.",
+    fillers: (n: number) => `${n} filler word${n === 1 ? "" : "s"} (very, really, basically…)`,
+    noFillers: "No filler words",
+    cutFillers: "Cut them, or replace them with something precise.",
+    passive: (quotes: string) => `Passive voice: ${quotes}`,
+    active: "Active voice",
+    sayWho: "Say who did it: “I wrote”, not “was written by me”.",
+    stillFound: (label: string, quotes: string) => `Still ${label}: ${quotes}`,
+    noneFound: (label: string) => `No ${label}`,
+    showInstead: "Show it through what happened instead of naming it.",
+    concrete: "Has a concrete detail",
+    noConcrete: "No concrete detail yet",
+    addConcrete: "Add a number, a time, a name or a quote — something a reader can picture.",
+    sensory: "Something a reader can see, hear or smell",
+    noSensory: "Nothing to see, hear or smell yet",
+    addSensory: "Add one detail for the senses: a colour, a sound, a smell.",
+    name: "Names a real person or place",
+    noName: "No name yet",
+    addName: "Give the person a name — “Mr. Seitkali”, “my aunt Gulnara”.",
+    mentions: (n: number, list: string) => `Mentions ${n}: ${list}`,
+    pickOne: "Pick just one and go deeper into it.",
+    rewritten: "Really rewritten",
+    tooClose: "Too close to the original",
+    newAngle: "Start from a new angle rather than swapping a word or two.",
+  },
+  ru: {
+    limit: (count: string, n: number) => `${count} (лимит ${n})`,
+    cutMore: (count: string) => `Убери ещё ${count}.`,
+    atLeast: (count: string) => `Не меньше: ${count}`,
+    sayMore: "Добавь немного — сокращено слишком сильно.",
+    keepTo: (count: string) => `Уложись в ${count}.`,
+    quote: (text: string) => `«${text}»`,
+    cliche: (quotes: string) => `Клише: ${quotes}`,
+    noCliches: "Клише нет",
+    replaceCliche: "Замени своими словами или конкретной деталью.",
+    fillers: (n: number) =>
+      `${n} ${plural("ru", n, { one: "слово-паразит", few: "слова-паразита", many: "слов-паразитов" })} (very, really, basically…)`,
+    noFillers: "Слов-паразитов нет",
+    cutFillers: "Убери их или замени чем-то точным.",
+    passive: (quotes: string) => `Пассивный залог: ${quotes}`,
+    active: "Активный залог",
+    sayWho: "Скажи, кто это сделал: «I wrote», а не «was written by me».",
+    stillFound: (label: string, quotes: string) => `${capitalize(label)}: ${quotes}`,
+    noneFound: (label: string) => `${capitalize(label)}: всё чисто`,
+    showInstead: "Покажи это через события, а не называй прямо.",
+    concrete: "Есть конкретная деталь",
+    noConcrete: "Конкретной детали пока нет",
+    addConcrete: "Добавь число, время, имя или цитату — то, что читатель может представить.",
+    sensory: "Есть то, что можно увидеть, услышать или почуять",
+    noSensory: "Пока нечего увидеть, услышать или почуять",
+    addSensory: "Добавь одну деталь для чувств: цвет, звук, запах.",
+    name: "Назван реальный человек или место",
+    noName: "Имени пока нет",
+    addName: "Дай человеку имя — «Mr. Seitkali», «my aunt Gulnara».",
+    mentions: (n: number, list: string) => `Упомянуто сразу ${n}: ${list}`,
+    pickOne: "Выбери что-то одно и раскрой глубже.",
+    rewritten: "Действительно переписано",
+    tooClose: "Слишком близко к оригиналу",
+    newAngle: "Зайди с новой стороны, а не меняй одно-два слова.",
+  },
+});
+
+function runRule(rule: Rule, answer: string, source: string, locale: Locale): RuleResult {
+  const t = copy[locale];
+  const wordCount = countWords(answer);
+  const sentences = splitSentences(withoutAbbreviations(answer)).length || (wordCount > 0 ? 1 : 0);
+  const quotes = (texts: string[]) => texts.map(t.quote).join(", ");
 
   switch (rule.type) {
     case "maxWords":
       return {
-        ok: words <= rule.n,
-        label: `${words} word${words === 1 ? "" : "s"} (limit ${rule.n})`,
-        hint: words <= rule.n ? null : `Cut ${words - rule.n} more word${words - rule.n === 1 ? "" : "s"}.`,
+        ok: wordCount <= rule.n,
+        label: t.limit(words(locale, wordCount), rule.n),
+        hint: wordCount <= rule.n ? null : t.cutMore(words(locale, wordCount - rule.n)),
       };
     case "minWords":
       return {
-        ok: words >= rule.n,
-        label: `At least ${rule.n} words`,
-        hint: words >= rule.n ? null : "Say a little more — you cut too much.",
+        ok: wordCount >= rule.n,
+        label: t.atLeast(words(locale, rule.n)),
+        hint: wordCount >= rule.n ? null : t.sayMore,
       };
     case "maxSentences":
       return {
         ok: sentences <= rule.n,
-        label: `${sentences} sentence${sentences === 1 ? "" : "s"} (limit ${rule.n})`,
-        hint: sentences <= rule.n ? null : `Keep it to ${rule.n} sentence${rule.n === 1 ? "" : "s"}.`,
+        label: t.limit(sentencesOf(locale, sentences), rule.n),
+        hint: sentences <= rule.n ? null : t.keepTo(sentencesOf(locale, rule.n)),
       };
     case "noCliches": {
       const found = checkEssay(answer).issues.filter((issue) => issue.kind === "cliche");
-      const quotes = found.map((issue) => `“${answer.slice(issue.start, issue.end)}”`);
       return {
         ok: found.length === 0,
-        label: found.length ? `Cliché: ${quotes.join(", ")}` : "No clichés",
-        hint: found.length ? "Replace it with your own words or a specific detail." : null,
+        label: found.length ? t.cliche(quotes(found.map((issue) => answer.slice(issue.start, issue.end)))) : t.noCliches,
+        hint: found.length ? t.replaceCliche : null,
       };
     }
     case "noFillers": {
       const n = checkEssay(answer).metrics.fillers;
-      return {
-        ok: n === 0,
-        label: n ? `${n} filler word${n === 1 ? "" : "s"} (very, really, basically…)` : "No filler words",
-        hint: n ? "Cut them, or replace them with something precise." : null,
-      };
+      return { ok: n === 0, label: n ? t.fillers(n) : t.noFillers, hint: n ? t.cutFillers : null };
     }
     case "noPassive": {
       const found = checkEssay(answer).issues.filter((issue) => issue.kind === "passive");
-      const quotes = found.map((issue) => `“${answer.slice(issue.start, issue.end)}”`);
       return {
         ok: found.length === 0,
-        label: found.length ? `Passive voice: ${quotes.join(", ")}` : "Active voice",
-        hint: found.length ? "Say who did it: “I wrote”, not “was written by me”." : null,
+        label: found.length ? t.passive(quotes(found.map((issue) => answer.slice(issue.start, issue.end)))) : t.active,
+        hint: found.length ? t.sayWho : null,
       };
     }
     case "avoid": {
       const found = rule.words.filter((word) => containsWord(answer, word));
       return {
         ok: found.length === 0,
-        label: found.length ? `Still ${rule.label}: “${found.join("”, “")}”` : `No ${rule.label}`,
-        hint: found.length ? "Show it through what happened instead of naming it." : null,
+        label: found.length ? t.stillFound(rule.label[locale], quotes(found)) : t.noneFound(rule.label[locale]),
+        hint: found.length ? t.showInstead : null,
       };
     }
     case "include": {
       const ok = new RegExp(rule.pattern, "i").test(answer);
-      return { ok, label: rule.label, hint: ok ? null : rule.hint };
+      return { ok, label: rule.label[locale], hint: ok ? null : rule.hint[locale] };
     }
     case "concrete": {
       const ok = hasConcrete(answer);
-      return {
-        ok,
-        label: ok ? "Has a concrete detail" : "No concrete detail yet",
-        hint: ok ? null : "Add a number, a time, a name or a quote — something a reader can picture.",
-      };
+      return { ok, label: ok ? t.concrete : t.noConcrete, hint: ok ? null : t.addConcrete };
     }
     case "sensory": {
       const ok = SENSORY.test(answer);
-      return {
-        ok,
-        label: ok ? "Something a reader can see, hear or smell" : "Nothing to see, hear or smell yet",
-        hint: ok ? null : "Add one detail for the senses: a colour, a sound, a smell.",
-      };
+      return { ok, label: ok ? t.sensory : t.noSensory, hint: ok ? null : t.addSensory };
     }
     case "name": {
       const ok = hasName(answer);
-      return {
-        ok,
-        label: ok ? "Names a real person or place" : "No name yet",
-        hint: ok ? null : "Give the person a name — “Mr. Seitkali”, “my aunt Gulnara”.",
-      };
+      return { ok, label: ok ? t.name : t.noName, hint: ok ? null : t.addName };
     }
     case "atMostOf": {
       const found = rule.words.filter((word) => containsWord(answer, word));
       const ok = found.length <= rule.max;
       return {
         ok,
-        label: ok ? rule.label : `Mentions ${found.length}: ${found.join(", ")}`,
-        hint: ok ? null : "Pick just one and go deeper into it.",
+        label: ok ? rule.label[locale] : t.mentions(found.length, found.join(", ")),
+        hint: ok ? null : t.pickOne,
       };
     }
     case "rewritten": {
       const ok = overlapWithSource(answer, source) < 0.7;
-      return {
-        ok,
-        label: ok ? "Really rewritten" : "Too close to the original",
-        hint: ok ? null : "Start from a new angle rather than swapping a word or two.",
-      };
+      return { ok, label: ok ? t.rewritten : t.tooClose, hint: ok ? null : t.newAngle };
     }
   }
 }
 
-export function checkDrillAnswer(rules: Rule[], answer: string, source = ""): DrillCheck {
-  const results = rules.map((rule) => runRule(rule, answer, source));
+export function checkDrillAnswer(rules: Rule[], answer: string, source = "", locale: Locale = "en"): DrillCheck {
+  const results = rules.map((rule) => runRule(rule, answer, source, locale));
   const passed = results.filter((result) => result.ok).length;
   return { results, passed, done: passed === results.length };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -22,22 +22,70 @@ import {
 } from "@/components/ui/form";
 import { authClient } from "@/lib/auth-client";
 import { formatAuthError } from "@/lib/auth-config";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 
-const schema = z.object({
-  name: z.string().min(2, "Enter your full name."),
-  email: z.email("Enter a valid email address."),
-  password: z.string().min(8, "Use at least 8 characters."),
-  // Consent to the Terms and Privacy Policy, and — for students under 18 —
-  // a parent's or guardian's agreement. Required by Kazakhstan's personal
-  // data law before we store anything about the student.
-  consent: z.boolean().refine((value) => value, "Please accept the Terms and Privacy Policy to continue."),
+const copy = defineCopy({
+  en: {
+    fullNameError: "Enter your full name.",
+    validEmail: "Enter a valid email address.",
+    passwordLength: "Use at least 8 characters.",
+    consentError: "Please accept the Terms and Privacy Policy to continue.",
+    failed: "Could not create your account.",
+    created: "Account created — welcome to Acceptify AI!",
+    fullName: "Full name",
+    namePlaceholder: "Aidana Kenzhebayeva",
+    email: "Email",
+    password: "Password",
+    passwordPlaceholder: "At least 8 characters",
+    agree: "I agree to the",
+    terms: "Terms of Use",
+    and: "and",
+    privacy: "Privacy Policy",
+    minor: ". If I am under 18, my parent or guardian has read them and agrees.",
+    create: "Create account",
+  },
+  ru: {
+    fullNameError: "Введи имя и фамилию.",
+    validEmail: "Введи корректную почту.",
+    passwordLength: "Минимум 8 символов.",
+    consentError: "Чтобы продолжить, прими Условия использования и Политику конфиденциальности.",
+    failed: "Не удалось создать аккаунт.",
+    created: "Аккаунт создан — добро пожаловать в Acceptify AI!",
+    fullName: "Имя и фамилия",
+    namePlaceholder: "Айдана Кенжебаева",
+    email: "Почта",
+    password: "Пароль",
+    passwordPlaceholder: "Минимум 8 символов",
+    agree: "Я принимаю",
+    terms: "Условия использования",
+    and: "и",
+    privacy: "Политику конфиденциальности",
+    minor: ". Если мне меньше 18 лет, мой родитель или опекун прочитал их и согласен.",
+    create: "Создать аккаунт",
+  },
 });
 
-type SignUpValues = z.infer<typeof schema>;
-
 export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: string }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(2, t.fullNameError),
+        email: z.email(t.validEmail),
+        password: z.string().min(8, t.passwordLength),
+        // Consent to the Terms and Privacy Policy, and — for students under 18 —
+        // a parent's or guardian's agreement. Required by Kazakhstan's personal
+        // data law before we store anything about the student.
+        consent: z.boolean().refine((value) => value, t.consentError),
+      }),
+    [t],
+  );
+  type SignUpValues = z.infer<typeof schema>;
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(schema),
@@ -56,12 +104,12 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
     });
 
     if (error) {
-      toast.error(formatAuthError(error.message, "Could not create your account."));
+      toast.error(formatAuthError(error.message, t.failed, locale));
       setIsSubmitting(false);
       return;
     }
 
-    toast.success("Account created — welcome to Acceptify AI!");
+    toast.success(t.created);
     router.push(callbackURL);
   }
 
@@ -73,14 +121,9 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full name</FormLabel>
+              <FormLabel>{t.fullName}</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Aidana Kenzhebayeva"
-                  autoComplete="name"
-                  className="h-10"
-                  {...field}
-                />
+                <Input placeholder={t.namePlaceholder} autoComplete="name" className="h-10" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,7 +135,7 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t.email}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -112,11 +155,11 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>{t.password}</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="At least 8 characters"
+                  placeholder={t.passwordPlaceholder}
                   autoComplete="new-password"
                   className="h-10"
                   {...field}
@@ -141,15 +184,15 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
                   />
                 </FormControl>
                 <FormLabel className="block text-xs leading-relaxed font-normal text-muted-foreground">
-                  I agree to the{" "}
+                  {t.agree}{" "}
                   <Link href="/terms" target="_blank" className="text-primary hover:underline">
-                    Terms of Use
+                    {t.terms}
                   </Link>{" "}
-                  and{" "}
+                  {t.and}{" "}
                   <Link href="/privacy" target="_blank" className="text-primary hover:underline">
-                    Privacy Policy
+                    {t.privacy}
                   </Link>
-                  . If I am under 18, my parent or guardian has read them and agrees.
+                  {t.minor}
                 </FormLabel>
               </div>
               <FormMessage />
@@ -159,7 +202,7 @@ export function SignUpForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
 
         <Button type="submit" className="mt-2 h-10" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="animate-spin" /> : <UserPlus />}
-          Create account
+          {t.create}
         </Button>
       </form>
     </Form>

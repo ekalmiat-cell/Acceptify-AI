@@ -12,8 +12,29 @@ import { Button } from "@/components/ui/button";
 import { Progress, ProgressIndicator, ProgressTrack } from "@/components/ui/progress";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
 import { computeGroupProgress, computeProfileCompleteness, resolveAchievements } from "@/lib/profile";
+import { groupName } from "@/lib/catalog-copy";
+import { defineCopy, plural } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
+
+const copy = defineCopy({
+  en: {
+    title: "Profile completeness",
+    categories: (done: number, total: number) => `${done} of ${total} categories completed`,
+    overall: "Overall progress",
+    complete: "Complete your profile",
+  },
+  ru: {
+    title: "Заполненность профиля",
+    categories: (done: number, total: number) =>
+      `Заполнено ${done} из ${total} ${plural("ru", total, { one: "категории", few: "категорий", many: "категорий" })}`,
+    overall: "Общий прогресс",
+    complete: "Заполнить профиль",
+  },
+});
 
 export async function ProfileProgressCard() {
+  const locale = await getLocale();
+  const t = copy[locale];
   const [academic, records] = await Promise.all([getAcademicProfile(), getAchievementRecords()]);
   const achievements = resolveAchievements(records);
   const completeness = computeProfileCompleteness(academic, achievements);
@@ -24,15 +45,13 @@ export async function ProfileProgressCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile completeness</CardTitle>
-        <CardDescription>
-          {totalAchieved} of {totalItems} categories completed
-        </CardDescription>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.categories(totalAchieved, totalItems)}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <div>
           <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-medium">Overall progress</span>
+            <span className="font-medium">{t.overall}</span>
             <span className="font-mono text-muted-foreground">{completeness}%</span>
           </div>
           <Progress value={completeness}>
@@ -47,7 +66,7 @@ export async function ProfileProgressCard() {
             const pct = total > 0 ? Math.round((achieved / total) * 100) : 0;
             return (
               <div key={group} className="flex items-center gap-3">
-                <span className="w-24 shrink-0 text-xs text-muted-foreground">{group}</span>
+                <span className="w-24 shrink-0 text-xs text-muted-foreground">{groupName(group, locale)}</span>
                 <Progress value={pct} className="flex-1">
                   <ProgressTrack>
                     <ProgressIndicator />
@@ -62,7 +81,7 @@ export async function ProfileProgressCard() {
         </div>
 
         <Button render={<Link href="/dashboard/profile" />} variant="outline" className="justify-center">
-          Complete your profile
+          {t.complete}
           <ArrowRight />
         </Button>
       </CardContent>

@@ -6,11 +6,48 @@ import { Check, ChevronDown, FileQuestion, Globe2, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { CUSTOM_PROMPT_ID, ESSAY_PROMPTS } from "@/data/essay-prompts";
+import { countryName } from "@/lib/countries";
+import { defineCopy, plural } from "@/lib/i18n/core";
+import { useCopy, useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import type { University } from "@/types/domain";
 
+const copy = defineCopy({
+  en: {
+    optional: "optional",
+    university: "University",
+    anyUniversity: "Any university",
+    anyUniversityNote: "A general essay — the AI skips university fit",
+    search: (n: number) => `Search ${n} universities`,
+    noMatch: (query: string) => `No university matches “${query}”.`,
+    question: "Essay question",
+    ownQuestion: "My own question",
+    ownQuestionNote: "Paste the question your university asks",
+    noQuestion: "No specific question",
+    noQuestionNote: "Reviewed as a general personal statement",
+    groups: { "Common App": "Common App", "University-specific": "University-specific" },
+    words: (n: number) => `${n} words`,
+  },
+  ru: {
+    optional: "необязательно",
+    university: "Университет",
+    anyUniversity: "Любой университет",
+    anyUniversityNote: "Общее эссе — ИИ не оценивает соответствие университету",
+    search: (n: number) => `Поиск среди ${n} ${plural("ru", n, { one: "университета", few: "университетов", many: "университетов" })}`,
+    noMatch: (query: string) => `Ничего не найдено по запросу «${query}».`,
+    question: "Вопрос эссе",
+    ownQuestion: "Свой вопрос",
+    ownQuestionNote: "Вставь вопрос, который задаёт твой университет",
+    noQuestion: "Без конкретного вопроса",
+    noQuestionNote: "Разбор как общего личного эссе",
+    groups: { "Common App": "Common App", "University-specific": "Вопросы университетов" },
+    words: (n: number) => `${n} ${plural("ru", n, { one: "слово", few: "слова", many: "слов" })}`,
+  },
+});
+
 /** The labelled box both pickers open from. */
 function PickerTrigger({ label, children }: { label: string; children: ReactNode }) {
+  const t = useCopy(copy);
   return (
     <PopoverTrigger
       render={
@@ -21,7 +58,7 @@ function PickerTrigger({ label, children }: { label: string; children: ReactNode
       }
     >
       <span className="text-[11px] font-semibold text-muted-foreground">
-        {label} <span className="font-normal opacity-70">· optional</span>
+        {label} <span className="font-normal opacity-70">· {t.optional}</span>
       </span>
       <span className="flex w-full min-w-0 items-center gap-2 pr-6 text-sm font-semibold">
         {children}
@@ -64,6 +101,8 @@ export function UniversityPicker({
   value: string | null;
   onChange: (id: string | null) => void;
 }) {
+  const t = useCopy(copy);
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const selected = universities.find((u) => u.id === value) ?? null;
@@ -72,11 +111,11 @@ export function UniversityPicker({
     const q = query.trim().toLowerCase();
     const list = q
       ? universities.filter((u) =>
-          `${u.name} ${u.shortName} ${u.city} ${u.country}`.toLowerCase().includes(q),
+          `${u.name} ${u.shortName} ${u.city} ${u.country} ${countryName(u.country, locale)}`.toLowerCase().includes(q),
         )
       : universities;
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
-  }, [universities, query]);
+  }, [universities, query, locale]);
 
   const pick = (id: string | null) => {
     onChange(id);
@@ -86,7 +125,7 @@ export function UniversityPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PickerTrigger label="University">
+      <PickerTrigger label={t.university}>
         {selected ? (
           <>
             <UniversityLogo university={selected} className="size-5 rounded p-0.5 text-[0.5rem]" />
@@ -95,7 +134,7 @@ export function UniversityPicker({
         ) : (
           <>
             <Globe2 className="size-4 shrink-0 text-muted-foreground" />
-            <span className="truncate text-muted-foreground">Any university</span>
+            <span className="truncate text-muted-foreground">{t.anyUniversity}</span>
           </>
         )}
       </PickerTrigger>
@@ -106,7 +145,7 @@ export function UniversityPicker({
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search 239 universities"
+            placeholder={t.search(universities.length)}
             className="h-9 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
@@ -115,10 +154,8 @@ export function UniversityPicker({
             <Option selected={!value} onSelect={() => pick(null)}>
               <Globe2 className="size-5 shrink-0 text-muted-foreground" />
               <span>
-                Any university
-                <span className="block text-xs text-muted-foreground">
-                  A general essay — the AI skips university fit
-                </span>
+                {t.anyUniversity}
+                <span className="block text-xs text-muted-foreground">{t.anyUniversityNote}</span>
               </span>
             </Option>
           ) : null}
@@ -132,13 +169,13 @@ export function UniversityPicker({
               <span className="min-w-0">
                 <span className="block truncate">{university.name}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {university.city}, {university.country}
+                  {university.city}, {countryName(university.country, locale)}
                 </span>
               </span>
             </Option>
           ))}
           {matches.length === 0 ? (
-            <p className="px-2 py-6 text-center text-sm text-muted-foreground">No university matches “{query}”.</p>
+            <p className="px-2 py-6 text-center text-sm text-muted-foreground">{t.noMatch(query)}</p>
           ) : null}
         </div>
       </PopoverContent>
@@ -153,6 +190,8 @@ export function PromptPicker({
   value: string | null;
   onChange: (id: string | null) => void;
 }) {
+  const t = useCopy(copy);
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const selected = ESSAY_PROMPTS.find((p) => p.id === value) ?? null;
   const groups = ["Common App", "University-specific"] as const;
@@ -164,36 +203,36 @@ export function PromptPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PickerTrigger label="Essay question">
+      <PickerTrigger label={t.question}>
         <FileQuestion className="size-4 shrink-0 text-muted-foreground" />
         <span className={cn("truncate", !value && "text-muted-foreground")}>
           {selected
-            ? `${selected.group === "Common App" ? "Common App · " : ""}${selected.label}`
+            ? `${selected.group === "Common App" ? "Common App · " : ""}${selected.label[locale]}`
             : value === CUSTOM_PROMPT_ID
-              ? "My own question"
-              : "No specific question"}
+              ? t.ownQuestion
+              : t.noQuestion}
         </span>
       </PickerTrigger>
       <PopoverContent align="start" className="w-96 gap-1 p-2">
         <div className="max-h-96 overflow-y-auto">
           <Option selected={!value} onSelect={() => pick(null)}>
             <span>
-              No specific question
-              <span className="block text-xs text-muted-foreground">Reviewed as a general personal statement</span>
+              {t.noQuestion}
+              <span className="block text-xs text-muted-foreground">{t.noQuestionNote}</span>
             </span>
           </Option>
           {groups.map((group) => (
             <div key={group} className="mt-1">
               <p className="px-2 pt-2 pb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                {group}
+                {t.groups[group]}
               </p>
               {ESSAY_PROMPTS.filter((p) => p.group === group).map((prompt) => (
                 <Option key={prompt.id} selected={prompt.id === value} onSelect={() => pick(prompt.id)}>
                   <span className="min-w-0">
-                    <span className="block">{prompt.label}</span>
+                    <span className="block">{prompt.label[locale]}</span>
                     <span className="block line-clamp-1 text-xs text-muted-foreground">
-                      {prompt.wordLimit ? `${prompt.wordLimit} words · ` : ""}
-                      {prompt.text}
+                      {prompt.wordLimit ? `${t.words(prompt.wordLimit)} · ` : ""}
+                      <span lang="en">{prompt.text}</span>
                     </span>
                   </span>
                 </Option>
@@ -203,8 +242,8 @@ export function PromptPicker({
           <div className="mt-1 border-t pt-1">
             <Option selected={value === CUSTOM_PROMPT_ID} onSelect={() => pick(CUSTOM_PROMPT_ID)}>
               <span>
-                My own question
-                <span className="block text-xs text-muted-foreground">Paste the question your university asks</span>
+                {t.ownQuestion}
+                <span className="block text-xs text-muted-foreground">{t.ownQuestionNote}</span>
               </span>
             </Option>
           </div>

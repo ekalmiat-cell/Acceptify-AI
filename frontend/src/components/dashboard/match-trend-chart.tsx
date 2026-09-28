@@ -15,27 +15,42 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { defineCopy, formatDate, plural } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 import type { PredictionHistoryEntry } from "@/types/domain";
 
-const chartConfig = {
-  score: {
-    label: "Match score",
-    color: "var(--color-chart-1)",
+const copy = defineCopy({
+  en: {
+    score: "Match score",
+    title: "Match score trend",
+    empty: "Your fit scores over time",
+    emptyNote: "No predictions yet — run one to start tracking your match score over time.",
+    last: (n: number) => `Your fit scores over your last ${n} predictions`,
   },
-} satisfies ChartConfig;
+  ru: {
+    score: "Соответствие",
+    title: "Динамика соответствия",
+    empty: "Твои баллы соответствия во времени",
+    emptyNote: "Прогнозов пока нет — сделай первый, чтобы следить за динамикой.",
+    last: (n: number) =>
+      `Баллы соответствия за последние ${n} ${plural("ru", n, { one: "прогноз", few: "прогноза", many: "прогнозов" })}`,
+  },
+});
 
 export function MatchTrendChart({
   predictions,
 }: {
   predictions: PredictionHistoryEntry[];
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
+  const chartConfig = {
+    score: { label: t.score, color: "var(--color-chart-1)" },
+  } satisfies ChartConfig;
   const data = [...predictions]
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     .map((p) => ({
-      date: new Date(p.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      }),
+      date: formatDate(locale, p.createdAt, { month: "short", day: "numeric" }),
       score: p.matchScore,
     }));
 
@@ -43,13 +58,11 @@ export function MatchTrendChart({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Match score trend</CardTitle>
-          <CardDescription>Your fit scores over time</CardDescription>
+          <CardTitle>{t.title}</CardTitle>
+          <CardDescription>{t.empty}</CardDescription>
         </CardHeader>
         <CardContent className="flex h-64 items-center justify-center text-center">
-          <p className="text-sm text-muted-foreground">
-            No predictions yet — run one to start tracking your match score over time.
-          </p>
+          <p className="text-sm text-muted-foreground">{t.emptyNote}</p>
         </CardContent>
       </Card>
     );
@@ -58,8 +71,8 @@ export function MatchTrendChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Match score trend</CardTitle>
-        <CardDescription>Your fit scores over your last {data.length} predictions</CardDescription>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.last(data.length)}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-auto h-64 w-full">

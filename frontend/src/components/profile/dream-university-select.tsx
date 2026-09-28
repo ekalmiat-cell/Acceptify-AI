@@ -24,6 +24,30 @@ import { updateAcademicProfile } from "@/lib/profile-client";
 import { groupUniversitiesByCountry } from "@/lib/universities";
 import type { AcademicProfile, University } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
+import { countryName } from "@/lib/countries";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    updated: "Dream university updated",
+    failed: "Could not update your dream university.",
+    title: "Dream university",
+    subtitle: "Pinned to the top of your dashboard and used as the default target for analysis.",
+    country: "1. Choose a country",
+    university: "2. Choose a university",
+    save: "Save",
+  },
+  ru: {
+    updated: "Университет мечты обновлён",
+    failed: "Не удалось обновить университет мечты.",
+    title: "Университет мечты",
+    subtitle: "Закрепляется вверху обзора и выбирается по умолчанию в анализе.",
+    country: "1. Выбери страну",
+    university: "2. Выбери университет",
+    save: "Сохранить",
+  },
+});
 
 export function DreamUniversitySelect({
   profile,
@@ -32,6 +56,8 @@ export function DreamUniversitySelect({
   profile: AcademicProfile;
   universities: University[];
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const router = useRouter();
   const byCountry = useMemo(() => groupUniversitiesByCountry(universities), [universities]);
 
@@ -56,14 +82,14 @@ export function DreamUniversitySelect({
         dreamUniversityId: selected || null,
         dreamProgramId: selected ? profile.dreamProgramId : null,
       });
-      toast.success("Dream university updated");
+      toast.success(t.updated);
       if (selected) {
         router.push(`/dashboard/field-of-study?universityId=${selected}`);
       } else {
         router.refresh();
       }
     } catch (error) {
-      toast.error(describeApiError(error, "Could not update your dream university."));
+      toast.error(describeApiError(error, t.failed));
     } finally {
       setIsSaving(false);
     }
@@ -74,21 +100,21 @@ export function DreamUniversitySelect({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <GraduationCap className="size-4 text-brand" />
-          Dream university
+          {t.title}
         </CardTitle>
-        <CardDescription>
-          Pinned to the top of your dashboard and used as the default target for analysis.
-        </CardDescription>
+        <CardDescription>{t.subtitle}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Select value={country} onValueChange={(v) => handleCountryChange(v as string)}>
           <SelectTrigger className="w-full sm:max-w-52">
-            <SelectValue placeholder="1. Choose a country" />
+            <SelectValue placeholder={t.country}>
+              {(value: string) => (value ? countryName(value, locale) : t.country)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {byCountry.map((g) => (
               <SelectItem key={g.country} value={g.country}>
-                {g.country}
+                {countryName(g.country, locale)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -100,8 +126,8 @@ export function DreamUniversitySelect({
           disabled={!country}
         >
           <SelectTrigger className="w-full sm:max-w-sm">
-            <SelectValue placeholder="2. Choose a university">
-              {(value: string) => universities.find((u) => u.id === value)?.name ?? "2. Choose a university"}
+            <SelectValue placeholder={t.university}>
+              {(value: string) => universities.find((u) => u.id === value)?.name ?? t.university}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -115,7 +141,7 @@ export function DreamUniversitySelect({
 
         <Button onClick={handleSave} disabled={!dirty || isSaving}>
           {isSaving ? <Loader2 className="animate-spin" /> : null}
-          Save
+          {t.save}
         </Button>
       </CardContent>
     </Card>

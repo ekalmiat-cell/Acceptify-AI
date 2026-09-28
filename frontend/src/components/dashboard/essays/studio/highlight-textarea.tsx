@@ -26,6 +26,7 @@ export function HighlightTextarea({
   className,
   minHeight = 320,
   id,
+  ariaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -35,6 +36,7 @@ export function HighlightTextarea({
   className?: string;
   minHeight?: number;
   id?: string;
+  ariaLabel?: string;
 }) {
   const textarea = useRef<HTMLTextAreaElement>(null);
 
@@ -71,6 +73,9 @@ export function HighlightTextarea({
         onKeyUp={reportCaret}
         onClick={reportCaret}
         placeholder={placeholder}
+        aria-label={ariaLabel}
+        // Essays are written in English, whatever the interface language.
+        lang="en"
         spellCheck
         style={{ minHeight }}
         className={cn(

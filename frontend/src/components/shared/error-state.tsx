@@ -3,6 +3,29 @@
 import { RefreshCw, ServerCrash, WifiOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    offlineTitle: "Can't reach the server",
+    errorTitle: "Something went wrong",
+    offlineBody: "Your data is safe — the Acceptify API just isn't answering right now. It may still be starting up.",
+    errorBody: "This page hit an unexpected error. Trying again usually clears it.",
+    digest: "Error digest",
+    unknown: "unknown",
+    retry: "Try again",
+  },
+  ru: {
+    offlineTitle: "Сервер недоступен",
+    errorTitle: "Что-то пошло не так",
+    offlineBody: "Твои данные в безопасности — просто сервер Acceptify сейчас не отвечает. Возможно, он ещё запускается.",
+    errorBody: "На странице произошла непредвиденная ошибка. Обычно помогает попробовать ещё раз.",
+    digest: "Код ошибки",
+    unknown: "неизвестен",
+    retry: "Попробовать снова",
+  },
+});
 
 /**
  * Shared body for the route-level error boundaries. A backend that is down or
@@ -16,11 +39,14 @@ export function ErrorState({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useCopy(copy);
   // `ApiError` loses its prototype when Next serializes a server-component
   // error, so match on the message the transport sets.
   const isOffline =
-    error.message.includes("Can't reach the Acceptify API") ||
-    error.message.includes("took too long to respond");
+    error.message.includes("Can't reach") ||
+    error.message.includes("took too long to respond") ||
+    error.message.includes("Не удаётся связаться") ||
+    error.message.includes("слишком долго не отвечает");
 
   const Icon = isOffline ? WifiOff : ServerCrash;
 
@@ -31,22 +57,20 @@ export function ErrorState({
       </div>
 
       <h1 className="mt-5 font-heading text-xl font-semibold text-foreground">
-        {isOffline ? "Can't reach the server" : "Something went wrong"}
+        {isOffline ? t.offlineTitle : t.errorTitle}
       </h1>
 
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        {isOffline
-          ? "Your data is safe — the Acceptify API just isn't answering right now. It may still be starting up."
-          : "This page hit an unexpected error. Trying again usually clears it."}
+        {isOffline ? t.offlineBody : t.errorBody}
       </p>
 
       <p className="mt-3 max-w-md break-words rounded-md bg-muted px-3 py-2 text-left font-mono text-xs text-muted-foreground">
-        {error.message || `Error digest: ${error.digest ?? "unknown"}`}
+        {error.message || `${t.digest}: ${error.digest ?? t.unknown}`}
       </p>
 
       <Button className="mt-6 h-10" onClick={reset}>
         <RefreshCw />
-        Try again
+        {t.retry}
       </Button>
     </div>
   );

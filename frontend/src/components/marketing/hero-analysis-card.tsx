@@ -14,7 +14,35 @@ import { Sparkles } from "lucide-react";
 
 import { MatchBadge } from "@/components/shared/match-badge";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { fieldName } from "@/lib/catalog-copy";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 import type { MatchCategory } from "@/types/domain";
+
+const copy = defineCopy({
+  en: {
+    rows: ["Academic strength", "Activities", "Leadership", "Achievements"],
+    actions: [
+      "Next best action: you are a strong fit — spend the time on scholarship essays.",
+      "Next best action: strengthen leadership — the weakest part of this profile.",
+      "Next best action: raise IELTS to 7.0 — it moves this score the most.",
+    ],
+    example: "Example analysis",
+    analysing: "Analysing profile…",
+    fit: "Programme fit score",
+  },
+  ru: {
+    rows: ["Учёба", "Активности", "Лидерство", "Достижения"],
+    actions: [
+      "Следующий шаг: ты сильный кандидат — потрать время на эссе для стипендии.",
+      "Следующий шаг: прокачай лидерство — это самая слабая часть профиля.",
+      "Следующий шаг: подними IELTS до 7.0 — это сильнее всего двигает оценку.",
+    ],
+    example: "Пример анализа",
+    analysing: "Анализ профиля…",
+    fit: "Соответствие программе",
+  },
+});
 
 /**
  * Illustrations of the analysis screen, not real users' results — the card is
@@ -84,6 +112,8 @@ const HOLD_MS = 5200;
 const SCAN_MS = 1100;
 
 export function HeroAnalysisCard() {
+  const locale = useLocale();
+  const t = copy[locale];
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(1);
   const [phase, setPhase] = useState<"scanning" | "result">("scanning");
@@ -149,7 +179,7 @@ export function HeroAnalysisCard() {
 
         <div className="flex items-center justify-between">
           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-white/50 uppercase">
-            Example analysis
+            {t.example}
           </span>
           <AnimatePresence mode="wait">
             {showResult ? (
@@ -171,7 +201,7 @@ export function HeroAnalysisCard() {
                 className="inline-flex items-center gap-1.5 text-xs text-white/50"
               >
                 <Sparkles className="size-3.5 animate-pulse text-[#4a8bff]" />
-                Analysing profile…
+                {t.analysing}
               </motion.span>
             )}
           </AnimatePresence>
@@ -200,14 +230,14 @@ export function HeroAnalysisCard() {
               />
               <div>
                 <p className="text-sm font-medium text-white">{example.university}</p>
-                <p className="text-xs text-white/45">{example.programme}</p>
+                <p className="text-xs text-white/45">{fieldName(example.programme, locale)}</p>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
         <div className="mt-5 rounded-xl bg-white/5 p-4">
-          <p className="text-xs text-white/45">Programme fit score</p>
+          <p className="text-xs text-white/45">{t.fit}</p>
           <p className="font-heading text-4xl font-semibold text-white tabular-nums">
             <CountUp key={`${index}-${phase}`} to={showResult ? example.score : 0} instant={!!reduceMotion} />
             <span className="text-lg text-white/40">/100</span>
@@ -217,7 +247,7 @@ export function HeroAnalysisCard() {
         <ul className="mt-5 flex flex-col gap-3">
           {example.rows.map((row, i) => (
             <li key={row.label} className="flex items-center gap-3 text-sm">
-              <span className="w-32 shrink-0 text-white/60">{row.label}</span>
+              <span className="w-32 shrink-0 text-white/60">{t.rows[i]}</span>
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
                 <motion.span
                   className="block h-full rounded-full bg-brand"
@@ -248,7 +278,7 @@ export function HeroAnalysisCard() {
                 transition={{ duration: 0.4, delay: 0.9 }}
                 className="text-xs leading-relaxed text-white/55"
               >
-                {example.action}
+                {t.actions[index]}
               </motion.p>
             ) : null}
           </AnimatePresence>

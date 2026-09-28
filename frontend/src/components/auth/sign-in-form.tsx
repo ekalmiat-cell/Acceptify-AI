@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -23,21 +23,63 @@ import {
 } from "@/components/ui/form";
 import { authClient } from "@/lib/auth-client";
 import { formatAuthError } from "@/lib/auth-config";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 
-const schema = z.object({
-  email: z.email("Enter a valid email address."),
-  password: z.string().min(1, "Enter your password."),
-  rememberMe: z.boolean(),
+const copy = defineCopy({
+  en: {
+    validEmail: "Enter a valid email address.",
+    enterPassword: "Enter your password.",
+    invalid: "Invalid email or password.",
+    welcome: "Welcome back!",
+    failed: "We couldn't sign you in. Either the password is wrong, or this email has no account yet.",
+    reset: "Reset your password",
+    or: "or",
+    create: "create an account",
+    throttled: "Too many attempts in a row — your password may well be right. Wait about a minute and try again.",
+    email: "Email",
+    password: "Password",
+    forgot: "Forgot password?",
+    keepSignedIn: "Keep me signed in",
+    signIn: "Sign in",
+  },
+  ru: {
+    validEmail: "Введи корректную почту.",
+    enterPassword: "Введи пароль.",
+    invalid: "Неверная почта или пароль.",
+    welcome: "С возвращением!",
+    failed: "Не получилось войти. Либо пароль неверный, либо на эту почту ещё нет аккаунта.",
+    reset: "Сбросить пароль",
+    or: "или",
+    create: "создать аккаунт",
+    throttled: "Слишком много попыток подряд — возможно, пароль верный. Подожди около минуты и попробуй снова.",
+    email: "Почта",
+    password: "Пароль",
+    forgot: "Не помнишь пароль?",
+    keepSignedIn: "Запомнить меня",
+    signIn: "Войти",
+  },
 });
 
-type SignInValues = z.infer<typeof schema>;
-
 export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: string }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [failure, setFailure] = useState<"credentials" | "throttled" | null>(
     null,
   );
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.email(t.validEmail),
+        password: z.string().min(1, t.enterPassword),
+        rememberMe: z.boolean(),
+      }),
+    [t],
+  );
+  type SignInValues = z.infer<typeof schema>;
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(schema),
@@ -61,13 +103,13 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
       // saying "invalid password" there sends people off resetting a password
       // that was probably right.
       setFailure(error.status === 429 ? "throttled" : "credentials");
-      toast.error(formatAuthError(error.message, "Invalid email or password."));
+      toast.error(formatAuthError(error.message, t.invalid, locale));
       setIsSubmitting(false);
       return;
     }
 
     setFailure(null);
-    toast.success("Welcome back!");
+    toast.success(t.welcome);
     router.push(callbackURL);
   }
 
@@ -85,17 +127,14 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
           <Alert variant="destructive">
             <TriangleAlert />
             <AlertDescription>
-              <span>
-                We couldn&apos;t sign you in. Either the password is wrong, or
-                this email has no account yet.
-              </span>
+              <span>{t.failed}</span>
               <span className="mt-1 block">
                 <Link href="/forgot-password" className="font-medium underline">
-                  Reset your password
+                  {t.reset}
                 </Link>{" "}
-                or{" "}
+                {t.or}{" "}
                 <Link href="/sign-up" className="font-medium underline">
-                  create an account
+                  {t.create}
                 </Link>
                 .
               </span>
@@ -106,10 +145,7 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
         {failure === "throttled" ? (
           <Alert>
             <TriangleAlert />
-            <AlertDescription>
-              Too many attempts in a row — your password may well be right.
-              Wait about a minute and try again.
-            </AlertDescription>
+            <AlertDescription>{t.throttled}</AlertDescription>
           </Alert>
         ) : null}
 
@@ -118,7 +154,7 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t.email}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -139,12 +175,12 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t.password}</FormLabel>
                 <Link
                   href="/forgot-password"
                   className="text-xs font-medium text-primary hover:underline"
                 >
-                  Forgot password?
+                  {t.forgot}
                 </Link>
               </div>
               <FormControl>
@@ -173,7 +209,7 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
                 />
               </FormControl>
               <FormLabel className="text-sm font-normal text-muted-foreground">
-                Keep me signed in
+                {t.keepSignedIn}
               </FormLabel>
             </FormItem>
           )}
@@ -181,7 +217,7 @@ export function SignInForm({ callbackURL = "/dashboard" }: { callbackURL?: strin
 
         <Button type="submit" className="mt-2 h-10" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="animate-spin" /> : <LogIn />}
-          Sign in
+          {t.signIn}
         </Button>
       </form>
     </Form>

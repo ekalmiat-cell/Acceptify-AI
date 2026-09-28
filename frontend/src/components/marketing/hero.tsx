@@ -9,7 +9,32 @@ import { Container } from "@/components/shared/container";
 import { HeroAnalysisCard } from "@/components/marketing/hero-analysis-card";
 import { HeroBackdrop } from "@/components/marketing/hero-backdrop";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import type { University } from "@/types/domain";
+
+const copy = defineCopy({
+  en: {
+    badge: "Admission analysis for real applicants",
+    line1: "Know your chances.",
+    line2: "Build your path.",
+    lead: "Acceptify scores your profile against a specific university and programme, explains what drove the number, and turns the gaps into a plan you can act on before you apply.",
+    cta: "Check my chances",
+    explore: "Explore universities",
+    counts: (universities: number, countries: number) =>
+      `${universities} universities across ${countries} countries — free while in beta`,
+  },
+  ru: {
+    badge: "Анализ поступления для настоящих абитуриентов",
+    line1: "Узнай свои шансы.",
+    line2: "Построй свой путь.",
+    lead: "Acceptify сравнивает твой профиль с конкретным университетом и программой, объясняет, из чего сложилась оценка, и превращает пробелы в план, который можно выполнить до подачи.",
+    cta: "Проверить шансы",
+    explore: "Смотреть университеты",
+    counts: (universities: number, countries: number) =>
+      `${universities} университетов в ${countries} странах — бесплатно, пока идёт бета`,
+  },
+});
 
 type MarqueeUniversity = Pick<
   University,
@@ -28,6 +53,7 @@ export function Hero({
   /** Catalog universities for the scrolling logo strip under the hero. */
   marqueeUniversities: MarqueeUniversity[];
 }) {
+  const t = useCopy(copy);
   const reduceMotion = useReducedMotion();
 
   return (
@@ -47,15 +73,15 @@ export function Hero({
               className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70"
             >
               <Sparkles className="size-3.5 text-brand" />
-              Admission analysis for real applicants
+              {t.badge}
             </motion.span>
 
             <h1 className="text-balance font-heading text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">
-              <RevealWords text="Know your chances." delay={0.5} instant={!!reduceMotion} />{" "}
+              <RevealWords text={t.line1} delay={0.5} instant={!!reduceMotion} />{" "}
               {/* The gradient goes on each word: background-clip:text on a
                   parent does not reach children animated on their own layer. */}
               <RevealWords
-                text="Build your path."
+                text={t.line2}
                 delay={1.1}
                 instant={!!reduceMotion}
                 className="text-gradient-brand"
@@ -68,9 +94,7 @@ export function Hero({
               transition={{ duration: 0.9, delay: 1.8, ease: EASE }}
               className="max-w-lg text-balance text-lg leading-relaxed text-white/60"
             >
-              Acceptify scores your profile against a specific university and
-              programme, explains what drove the number, and turns the gaps
-              into a plan you can act on before you apply.
+              {t.lead}
             </motion.p>
 
             <motion.div
@@ -84,7 +108,7 @@ export function Hero({
                 size="lg"
                 className="btn-shine group h-11 bg-gradient-brand px-6 text-white shadow-glow-brand hover:opacity-95"
               >
-                Check My Chances
+                {t.cta}
                 <ArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
               <Button
@@ -93,7 +117,7 @@ export function Hero({
                 variant="outline"
                 className="h-11 border-white/15 bg-white/5 px-6 text-white hover:bg-white/10"
               >
-                Explore Universities
+                {t.explore}
               </Button>
             </motion.div>
 
@@ -107,7 +131,7 @@ export function Hero({
                 transition={{ duration: 0.8, delay: 2.6 }}
                 className="text-xs font-medium text-white/50"
               >
-                {universityCount} universities across {countryCount} countries — free while in beta
+                {t.counts(universityCount, countryCount)}
               </motion.p>
             ) : null}
           </div>

@@ -7,6 +7,40 @@ import { siteConfig } from "@/config/site";
 import { deleteUserData } from "@/lib/data/account";
 import { isMailDeliverable, rememberDevLink, sendEmail } from "@/lib/email";
 import { offerResetLink } from "@/lib/reset-link-capture";
+import { defineCopy, DEFAULT_LOCALE } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
+
+/** Account emails in the language the visitor was using when they asked. */
+const mail = defineCopy({
+  en: {
+    resetSubject: `Reset your ${siteConfig.name} password`,
+    resetText: (url: string) =>
+      `Someone asked to reset the password for your ${siteConfig.name} account.\n\nOpen this link within the next hour to choose a new one:\n${url}\n\nIf this wasn't you, ignore this email — your password stays unchanged.`,
+    resetHtml: (url: string) =>
+      `<p>Someone asked to reset the password for your ${siteConfig.name} account.</p><p><a href="${url}">Choose a new password</a> — the link works for one hour.</p><p>If this wasn't you, ignore this email; your password stays unchanged.</p>`,
+    verifySubject: `Confirm your email for ${siteConfig.name}`,
+    verifyText: (url: string) =>
+      `Welcome to ${siteConfig.name}!\n\nConfirm your email address by opening this link:\n${url}\n\nIf you didn't create an account, ignore this email.`,
+    verifyHtml: (url: string) =>
+      `<p>Welcome to ${siteConfig.name}!</p><p><a href="${url}">Confirm your email address</a></p><p>If you didn't create an account, ignore this email.</p>`,
+  },
+  ru: {
+    resetSubject: `Сброс пароля ${siteConfig.name}`,
+    resetText: (url: string) =>
+      `Кто-то запросил сброс пароля для твоего аккаунта ${siteConfig.name}.\n\nОткрой эту ссылку в течение часа, чтобы задать новый пароль:\n${url}\n\nЕсли запрос сделан не тобой, просто проигнорируй письмо — пароль не изменится.`,
+    resetHtml: (url: string) =>
+      `<p>Кто-то запросил сброс пароля для твоего аккаунта ${siteConfig.name}.</p><p><a href="${url}">Задать новый пароль</a> — ссылка действует час.</p><p>Если запрос сделан не тобой, просто проигнорируй письмо — пароль не изменится.</p>`,
+    verifySubject: `Подтверди почту для ${siteConfig.name}`,
+    verifyText: (url: string) =>
+      `Добро пожаловать в ${siteConfig.name}!\n\nПодтверди адрес почты по этой ссылке:\n${url}\n\nЕсли аккаунт создан не тобой, просто проигнорируй письмо.`,
+    verifyHtml: (url: string) =>
+      `<p>Добро пожаловать в ${siteConfig.name}!</p><p><a href="${url}">Подтвердить почту</a></p><p>Если аккаунт создан не тобой, просто проигнорируй письмо.</p>`,
+  },
+});
+
+async function mailCopy() {
+  return mail[await getLocale().catch(() => DEFAULT_LOCALE)];
+}
 
 /**
  * Better Auth is the system of record for identity: it owns the user,
@@ -92,11 +126,12 @@ export const auth = betterAuth({
       // An admin generating a link to pass on by hand (Telegram support).
       if (offerResetLink(url)) return;
       rememberDevLink(user.email, url);
+      const t = await mailCopy();
       await sendEmail({
         to: user.email,
-        subject: `Reset your ${siteConfig.name} password`,
-        text: `Someone asked to reset the password for your ${siteConfig.name} account.\n\nOpen this link within the next hour to choose a new one:\n${url}\n\nIf this wasn't you, ignore this email — your password stays unchanged.`,
-        html: `<p>Someone asked to reset the password for your ${siteConfig.name} account.</p><p><a href="${url}">Choose a new password</a> — the link works for one hour.</p><p>If this wasn't you, ignore this email; your password stays unchanged.</p>`,
+        subject: t.resetSubject,
+        text: t.resetText(url),
+        html: t.resetHtml(url),
       });
     },
   },
@@ -104,11 +139,12 @@ export const auth = betterAuth({
     sendOnSignUp: isMailDeliverable(),
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
+      const t = await mailCopy();
       await sendEmail({
         to: user.email,
-        subject: `Confirm your email for ${siteConfig.name}`,
-        text: `Welcome to ${siteConfig.name}!\n\nConfirm your email address by opening this link:\n${url}\n\nIf you didn't create an account, ignore this email.`,
-        html: `<p>Welcome to ${siteConfig.name}!</p><p><a href="${url}">Confirm your email address</a></p><p>If you didn't create an account, ignore this email.</p>`,
+        subject: t.verifySubject,
+        text: t.verifyText(url),
+        html: t.verifyHtml(url),
       });
     },
   },

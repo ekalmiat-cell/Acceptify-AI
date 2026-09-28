@@ -3,13 +3,35 @@
 import { AlertTriangle, CheckCircle, Lightbulb, Quote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import type { ClicheItem } from "@/types/essay";
+
+const copy = defineCopy({
+  en: {
+    none: "No clichés found",
+    noneNote: "Your essay keeps a distinct, authentic voice without overused college-essay tropes.",
+    title: (n: number) => `Clichés and generic phrases (${n})`,
+    badge: "Worth revising",
+    issue: "The issue: ",
+    better: "Better direction: ",
+  },
+  ru: {
+    none: "Клише не найдено",
+    noneNote: "У эссе свой, искренний голос — без заезженных приёмов.",
+    title: (n: number) => `Клише и общие фразы (${n})`,
+    badge: "Стоит доработать",
+    issue: "В чём проблема: ",
+    better: "Куда лучше двигаться: ",
+  },
+});
 
 interface EssayClicheDetectorProps {
   cliches: ClicheItem[];
 }
 
 export function EssayClicheDetector({ cliches }: EssayClicheDetectorProps) {
+  const t = useCopy(copy);
   if (cliches.length === 0) {
     return (
       <Card className="border border-emerald-200/50 bg-emerald-50/15 shadow-sm dark:border-emerald-900/30 dark:bg-emerald-950/10">
@@ -18,10 +40,8 @@ export function EssayClicheDetector({ cliches }: EssayClicheDetectorProps) {
             <CheckCircle className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="text-sm font-semibold text-foreground">Zero Clichés Detected</h4>
-            <p className="text-xs text-muted-foreground">
-              Your essay maintains a distinct, authentic voice without resorting to overused college essay tropes.
-            </p>
+            <h4 className="text-sm font-semibold text-foreground">{t.none}</h4>
+            <p className="text-xs text-muted-foreground">{t.noneNote}</p>
           </div>
         </CardContent>
       </Card>
@@ -37,11 +57,11 @@ export function EssayClicheDetector({ cliches }: EssayClicheDetectorProps) {
               <AlertTriangle className="h-4 w-4" />
             </div>
             <CardTitle className="text-base font-semibold text-rose-950 dark:text-rose-200">
-              Cliché & Generic Phrase Detection ({cliches.length})
+              {t.title(cliches.length)}
             </CardTitle>
           </div>
           <Badge variant="outline" className="border-rose-300 text-rose-700 dark:border-rose-800 dark:text-rose-300">
-            Revision Recommended
+            {t.badge}
           </Badge>
         </div>
       </CardHeader>
@@ -55,14 +75,14 @@ export function EssayClicheDetector({ cliches }: EssayClicheDetectorProps) {
             {/* The Quote */}
             <div className="mb-2 flex items-start gap-2 text-rose-900 dark:text-rose-300">
               <Quote className="h-4 w-4 shrink-0 text-rose-500 mt-0.5" />
-              <blockquote className="font-medium italic leading-relaxed">
+              <blockquote lang="en" className="font-medium italic leading-relaxed">
                 &ldquo;{item.quote}&rdquo;
               </blockquote>
             </div>
 
             {/* Why it's a cliché */}
             <div className="mb-2 text-muted-foreground text-xs leading-relaxed pl-6">
-              <span className="font-semibold text-foreground">The Issue: </span>
+              <span className="font-semibold text-foreground">{t.issue}</span>
               {item.issue}
             </div>
 
@@ -70,7 +90,7 @@ export function EssayClicheDetector({ cliches }: EssayClicheDetectorProps) {
             <div className="flex items-start gap-2 rounded-md bg-muted/60 p-2.5 text-xs text-foreground/90 pl-3">
               <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
               <div>
-                <span className="font-semibold text-primary">Better Direction: </span>
+                <span className="font-semibold text-primary">{t.better}</span>
                 {item.replacement_idea}
               </div>
             </div>

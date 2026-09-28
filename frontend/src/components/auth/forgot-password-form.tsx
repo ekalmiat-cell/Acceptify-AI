@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,12 +22,57 @@ import {
 import { siteConfig } from "@/config/site";
 import { authClient } from "@/lib/auth-client";
 import { formatAuthError } from "@/lib/auth-config";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy, useLocale } from "@/lib/i18n/client";
 
-const schema = z.object({
-  email: z.email("Enter a valid email address."),
+const copy = defineCopy({
+  en: {
+    validEmail: "Enter a valid email address.",
+    failed: "Could not send the reset link.",
+    sentBefore: "If an account exists for ",
+    sentAfter:
+      ", a reset link is on its way. It works for one hour — check your spam folder too. Nothing after a few minutes? Write to ",
+    onTelegram: " on Telegram.",
+    noMail:
+      "Email delivery isn't set up on this site yet, so no message can be sent. The reset link was recorded in the server log — ask whoever runs Acceptify to pass it to you.",
+    devMode: "Development mode:",
+    devNote: " email delivery isn't configured, so here is the link directly — ",
+    setNew: "set a new password",
+    back: "Back to sign in",
+    warn: "Email delivery isn't configured yet, so a reset link cannot be emailed to you. Ask the site owner to set it up, or sign in with a different method.",
+    email: "Email",
+    send: "Send reset link",
+    telegramBefore: "During the beta, password resets are handled by hand. Message ",
+    telegramAfter:
+      " on Telegram with the email you signed up with, and you'll get a link to choose a new password — usually within minutes. The link works for one hour.",
+    writeTelegram: "Write on Telegram",
+    noTelegram: "No Telegram? Email ",
+    social: ". If you signed up with Google or Apple, just use that button to sign in — there is no password to reset.",
+  },
+  ru: {
+    validEmail: "Введи корректную почту.",
+    failed: "Не удалось отправить ссылку для сброса.",
+    sentBefore: "Если аккаунт с почтой ",
+    sentAfter:
+      " существует, ссылка для сброса уже в пути. Она действует час — проверь и папку «Спам». Через несколько минут ничего нет? Напиши ",
+    onTelegram: " в Telegram.",
+    noMail:
+      "Отправка писем на сайте пока не настроена, поэтому письмо не придёт. Ссылка для сброса записана в журнал сервера — попроси владельца Acceptify передать её тебе.",
+    devMode: "Режим разработки:",
+    devNote: " почта не настроена, поэтому вот ссылка напрямую — ",
+    setNew: "задать новый пароль",
+    back: "Назад ко входу",
+    warn: "Отправка писем пока не настроена, поэтому ссылку для сброса нельзя прислать на почту. Попроси владельца сайта настроить её или войди другим способом.",
+    email: "Почта",
+    send: "Отправить ссылку",
+    telegramBefore: "Во время беты пароли сбрасываются вручную. Напиши ",
+    telegramAfter:
+      " в Telegram и укажи почту своего аккаунта — получишь ссылку для нового пароля, обычно за несколько минут. Ссылка действует час.",
+    writeTelegram: "Написать в Telegram",
+    noTelegram: "Нет Telegram? Напиши на ",
+    social: ". Если аккаунт создан через Google или Apple, просто войди этой кнопкой — пароля для сброса нет.",
+  },
 });
-
-type ForgotPasswordValues = z.infer<typeof schema>;
 
 export function ForgotPasswordForm({
   /** Whether mail reaches any student — see isMailDeliverable in lib/email.ts. */
@@ -35,9 +80,14 @@ export function ForgotPasswordForm({
 }: {
   mailConfigured: boolean;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [devLink, setDevLink] = useState<string | null>(null);
+
+  const schema = useMemo(() => z.object({ email: z.email(t.validEmail) }), [t]);
+  type ForgotPasswordValues = z.infer<typeof schema>;
 
   const form = useForm<ForgotPasswordValues>({
     resolver: zodResolver(schema),
@@ -46,16 +96,13 @@ export function ForgotPasswordForm({
 
   async function onSubmit(values: ForgotPasswordValues) {
     setIsSubmitting(true);
-
     const { error } = await authClient.requestPasswordReset({
       email: values.email,
       redirectTo: "/reset-password",
     });
 
     if (error) {
-      toast.error(
-        formatAuthError(error.message, "Could not send the reset link."),
-      );
+      toast.error(formatAuthError(error.message, t.failed, locale));
       setIsSubmitting(false);
       return;
     }
@@ -87,9 +134,9 @@ export function ForgotPasswordForm({
           <AlertDescription>
             {mailConfigured ? (
               <>
-                If an account exists for <strong>{sentTo}</strong>, a reset
-                link is on its way. It works for one hour — check your spam
-                folder too. Nothing after a few minutes? Write to{" "}
+                {t.sentBefore}
+                <strong>{sentTo}</strong>
+                {t.sentAfter}
                 <a
                   href={siteConfig.contact.telegramUrl}
                   target="_blank"
@@ -97,17 +144,13 @@ export function ForgotPasswordForm({
                   className="underline"
                 >
                   {siteConfig.contact.telegram}
-                </a>{" "}
-                on Telegram.
+                </a>
+                {t.onTelegram}
               </>
             ) : (
               // Saying "check your email" when no mail provider is configured
               // just makes people wait for something that will never arrive.
-              <>
-                Email delivery isn&apos;t set up on this site yet, so no
-                message can be sent. The reset link was recorded in the server
-                log — ask whoever runs Acceptify to pass it to you.
-              </>
+              <>{t.noMail}</>
             )}
           </AlertDescription>
         </Alert>
@@ -115,20 +158,17 @@ export function ForgotPasswordForm({
         {devLink ? (
           <Alert>
             <AlertDescription className="break-all">
-              <span className="font-medium">Development mode:</span> email
-              delivery isn&apos;t configured, so here is the link directly —{" "}
+              <span className="font-medium">{t.devMode}</span>
+              {t.devNote}
               <a href={devLink} className="text-primary underline">
-                set a new password
+                {t.setNew}
               </a>
             </AlertDescription>
           </Alert>
         ) : null}
 
-        <Link
-          href="/sign-in"
-          className={buttonVariants({ variant: "outline", className: "h-10" })}
-        >
-          Back to sign in
+        <Link href="/sign-in" className={buttonVariants({ variant: "outline", className: "h-10" })}>
+          {t.back}
         </Link>
       </div>
     );
@@ -136,20 +176,13 @@ export function ForgotPasswordForm({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
         {/* Warn before the click, not after — nobody should wait on an inbox
             for a message the server cannot send. */}
         {!mailConfigured ? (
           <Alert variant="destructive">
             <TriangleAlert />
-            <AlertDescription>
-              Email delivery isn&apos;t configured yet, so a reset link cannot
-              be emailed to you. Ask the site owner to set it up, or sign in
-              with a different method.
-            </AlertDescription>
+            <AlertDescription>{t.warn}</AlertDescription>
           </Alert>
         ) : null}
 
@@ -158,7 +191,7 @@ export function ForgotPasswordForm({
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t.email}</FormLabel>
               <FormControl>
                 <Input
                   type="email"
@@ -175,7 +208,7 @@ export function ForgotPasswordForm({
 
         <Button type="submit" className="mt-2 h-10" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="animate-spin" /> : <Mail />}
-          Send reset link
+          {t.send}
         </Button>
       </form>
     </Form>
@@ -183,18 +216,17 @@ export function ForgotPasswordForm({
 }
 
 function TelegramResetHelp() {
+  const t = useCopy(copy);
   return (
     <div className="flex flex-col gap-4">
       <Alert>
         <Send />
         <AlertDescription>
-          During the beta, password resets are handled by hand. Message{" "}
-          <strong>{siteConfig.contact.telegram}</strong> on Telegram with the
-          email you signed up with, and you&apos;ll get a link to choose a new
-          password — usually within minutes. The link works for one hour.
+          {t.telegramBefore}
+          <strong>{siteConfig.contact.telegram}</strong>
+          {t.telegramAfter}
         </AlertDescription>
       </Alert>
-
       <a
         href={siteConfig.contact.telegramUrl}
         target="_blank"
@@ -202,23 +234,17 @@ function TelegramResetHelp() {
         className={buttonVariants({ className: "h-10" })}
       >
         <Send />
-        Write on Telegram
+        {t.writeTelegram}
       </a>
-
       <p className="text-center text-xs text-muted-foreground">
-        No Telegram? Email{" "}
+        {t.noTelegram}
         <a href={`mailto:${siteConfig.contact.email}`} className="underline">
           {siteConfig.contact.email}
         </a>
-        . If you signed up with Google or Apple, just use that button to sign
-        in — there is no password to reset.
+        {t.social}
       </p>
-
-      <Link
-        href="/sign-in"
-        className={buttonVariants({ variant: "outline", className: "h-10" })}
-      >
-        Back to sign in
+      <Link href="/sign-in" className={buttonVariants({ variant: "outline", className: "h-10" })}>
+        {t.back}
       </Link>
     </div>
   );

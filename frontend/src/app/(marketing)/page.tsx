@@ -11,12 +11,25 @@ import { FinalCtaSection } from "@/components/marketing/final-cta-section";
 import logoIds from "@/data/university-logos.json";
 import { getUniversities } from "@/lib/universities-server";
 
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
+
 const universitiesWithLogo = new Set<string>(logoIds);
 
-export const metadata: Metadata = {
-  description:
-    "Know your chances. Build your path. Acceptify estimates your admission chance for a specific university and programme, explains the score, and turns the gaps into an action plan.",
-};
+const copy = defineCopy({
+  en: {
+    description:
+      "Know your chances. Build your path. Acceptify estimates your admission chance for a specific university and programme, explains the score, and turns the gaps into an action plan.",
+  },
+  ru: {
+    description:
+      "Узнай свои шансы. Построй свой путь. Acceptify оценивает шансы на поступление в конкретный университет и программу, объясняет оценку и превращает пробелы в план действий.",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { description: copy[await getLocale()].description };
+}
 
 // Rendered once and refreshed in the background every five minutes, like the
 // catalog it shows — so the first page a visitor sees is served from the CDN.

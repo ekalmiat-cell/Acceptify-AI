@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import { isAdminUser } from "@/lib/admin";
 import { HttpError } from "@/lib/http-error";
+import { getLocale } from "@/lib/i18n/server";
+import { localizeIssue, localizeMessage } from "@/lib/i18n/server-messages";
 import { getSession } from "@/lib/session";
 
 /**
@@ -28,8 +30,11 @@ export function route<Ctx = unknown>(handler: Handler<Ctx>): Handler<Ctx> {
     try {
       return await handler(request, context);
     } catch (error) {
+      // Errors are written in English and translated here, on the way out.
+      const locale = await getLocale().catch(() => "en" as const);
+
       if (error instanceof HttpError) {
-        return NextResponse.json({ detail: error.message }, { status: error.status });
+        return NextResponse.json({ detail: localizeMessage(error.message, locale) }, { status: error.status });
       }
 
       if (error instanceof z.ZodError) {
@@ -37,7 +42,7 @@ export function route<Ctx = unknown>(handler: Handler<Ctx>): Handler<Ctx> {
           {
             detail: error.issues.map((issue) => ({
               loc: issue.path.map(String),
-              msg: issue.message,
+              msg: localizeIssue(issue, locale),
             })),
           },
           { status: 422 },
@@ -46,7 +51,7 @@ export function route<Ctx = unknown>(handler: Handler<Ctx>): Handler<Ctx> {
 
       console.error(`[api] ${request.method} ${new URL(request.url).pathname} failed`, error);
       return NextResponse.json(
-        { detail: "Something went wrong on our side. Please try again." },
+        { detail: localizeMessage("Something went wrong on our side. Please try again.", locale) },
         { status: 500 },
       );
     }

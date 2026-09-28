@@ -140,5 +140,4 @@ export const trainingCompleteSchema = z.object({
 export const drillFeedbackSchema = z.object({
   drill_id: drillId,
   answer: z.string().trim().min(3, "Write your attempt first.").max(2000),
-  language: z.enum(["en", "ru"]).default("en"),
 });

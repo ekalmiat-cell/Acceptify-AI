@@ -4,25 +4,33 @@ import { Container } from "@/components/shared/container";
 import { AnimatedCounter } from "@/components/shared/animated-counter";
 import { FadeIn, FadeInStagger, FadeInStaggerItem } from "@/components/shared/fade-in";
 import { buildPlatformStats } from "@/data/stats";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 import type { University } from "@/types/domain";
+
+const copy = defineCopy({
+  en: { heading: "What the platform actually holds today" },
+  ru: { heading: "Что на платформе есть уже сегодня" },
+});
 
 const icons = [Landmark, Globe2, SlidersHorizontal, GraduationCap];
 
-export function StatsSection({ universities }: { universities: University[] }) {
+export async function StatsSection({ universities }: { universities: University[] }) {
+  const locale = await getLocale();
   // Two of these four figures are counted off the catalog. If it failed to
   // load there is nothing truthful to put in them, and a wall of zeroes under
   // the heading "what the platform actually holds" would be worse than an
   // absent section.
   if (universities.length === 0) return null;
 
-  const stats = buildPlatformStats(universities);
+  const stats = buildPlatformStats(universities, locale);
 
   return (
     <section className="relative border-y border-white/10 bg-[#050e1c] py-16 sm:py-20">
       <Container className="max-w-7xl">
         <FadeIn className="mb-10 flex flex-col items-center gap-2 text-center">
           <p className="text-sm font-medium text-white/50">
-            What the platform actually holds today
+            {copy[locale].heading}
           </p>
         </FadeIn>
 

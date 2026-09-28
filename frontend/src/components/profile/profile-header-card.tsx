@@ -3,8 +3,15 @@ import { CalendarDays, Mail } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress, ProgressIndicator, ProgressTrack } from "@/components/ui/progress";
+import { defineCopy, formatDate } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export function ProfileHeaderCard({
+const copy = defineCopy({
+  en: { since: (date: string) => `Member since ${date}`, completeness: "Profile completeness" },
+  ru: { since: (date: string) => `С нами с ${date}`, completeness: "Заполненность профиля" },
+});
+
+export async function ProfileHeaderCard({
   name,
   email,
   createdAt,
@@ -15,6 +22,8 @@ export function ProfileHeaderCard({
   createdAt?: Date;
   profileCompleteness: number;
 }) {
+  const locale = await getLocale();
+  const t = copy[locale];
   const initials = getInitials(name || email);
 
   return (
@@ -36,11 +45,7 @@ export function ProfileHeaderCard({
               {createdAt ? (
                 <span className="flex items-center gap-1.5">
                   <CalendarDays className="size-3.5" />
-                  Member since{" "}
-                  {createdAt.toLocaleDateString("en-US", {
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {t.since(formatDate(locale, createdAt, { month: "long", year: "numeric" }))}
                 </span>
               ) : null}
             </div>
@@ -49,7 +54,7 @@ export function ProfileHeaderCard({
 
         <div className="w-full sm:w-56">
           <div className="mb-1.5 flex items-center justify-between text-xs">
-            <span className="font-medium text-foreground">Profile completeness</span>
+            <span className="font-medium text-foreground">{t.completeness}</span>
             <span className="font-mono text-muted-foreground">{profileCompleteness}%</span>
           </div>
           <Progress value={profileCompleteness}>

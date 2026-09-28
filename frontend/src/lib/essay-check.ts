@@ -5,14 +5,31 @@
  * the UI says. Pure; shared by the editor and its tests.
  */
 
+import type { Locale } from "@/lib/i18n/core";
+
 export type CheckKind = "cliche" | "passive" | "filler" | "specific";
+
+type Message = Record<Locale, string>;
 
 export interface CheckIssue {
   start: number;
   end: number;
   kind: CheckKind;
-  message: string;
+  message: Message;
 }
+
+const OPENER: Message = {
+  en: "Overused opener. Start with the moment itself instead.",
+  ru: "Заезженное начало. Лучше начни сразу с самого момента.",
+};
+const DICTIONARY: Message = {
+  en: "Dictionary-definition openings are a classic cliché.",
+  ru: "Начало со словарного определения — классическое клише.",
+};
+const REPORT_ENDING: Message = {
+  en: "Essays aren't school reports — end on an image or insight instead.",
+  ru: "Эссе — не школьный доклад. Лучше закончи образом или мыслью.",
+};
 
 export interface EssayCheck {
   words: number;
@@ -35,22 +52,28 @@ export interface EssayCheck {
 }
 
 /** Phrases admissions readers see in thousands of essays. */
-const CLICHES: { phrase: string; message?: string }[] = [
-  { phrase: "ever since i was a child", message: "Overused opener. Start with the moment itself instead." },
-  { phrase: "ever since i was young", message: "Overused opener. Start with the moment itself instead." },
-  { phrase: "ever since i was little", message: "Overused opener. Start with the moment itself instead." },
-  { phrase: "since i was a little", message: "Overused opener. Start with the moment itself instead." },
+const CLICHES: { phrase: string; message?: Message }[] = [
+  { phrase: "ever since i was a child", message: OPENER },
+  { phrase: "ever since i was young", message: OPENER },
+  { phrase: "ever since i was little", message: OPENER },
+  { phrase: "since i was a little", message: OPENER },
   { phrase: "from a young age" },
   { phrase: "i have always been passionate" },
   { phrase: "i've always been passionate" },
-  { phrase: "i am passionate about", message: "Show the passion through what you did — don't announce it." },
+  {
+    phrase: "i am passionate about",
+    message: {
+      en: "Show the passion through what you did — don't announce it.",
+      ru: "Покажи увлечённость через свои поступки, а не объявляй о ней.",
+    },
+  },
   { phrase: "i have always wanted" },
   { phrase: "in today's society" },
   { phrase: "in today's world" },
   { phrase: "since the dawn of time" },
   { phrase: "throughout history" },
-  { phrase: "defines as", message: "Dictionary-definition openings are a classic cliché." },
-  { phrase: "according to the dictionary", message: "Dictionary-definition openings are a classic cliché." },
+  { phrase: "defines as", message: DICTIONARY },
+  { phrase: "according to the dictionary", message: DICTIONARY },
   { phrase: "made me who i am today" },
   { phrase: "who i am today" },
   { phrase: "comfort zone" },
@@ -70,8 +93,8 @@ const CLICHES: { phrase: string; message?: string }[] = [
   { phrase: "the rest is history" },
   { phrase: "more alike than different" },
   { phrase: "a whole new world" },
-  { phrase: "in conclusion", message: "Essays aren't school reports — end on an image or insight instead." },
-  { phrase: "to sum up", message: "Essays aren't school reports — end on an image or insight instead." },
+  { phrase: "in conclusion", message: REPORT_ENDING },
+  { phrase: "to sum up", message: REPORT_ENDING },
   { phrase: "last but not least" },
   { phrase: "the best version of myself" },
   { phrase: "step out of my" },
@@ -79,8 +102,10 @@ const CLICHES: { phrase: string; message?: string }[] = [
   { phrase: "taught me the importance of" },
 ];
 
-const CLICHE_MESSAGE =
-  "Overused phrase — readers see it constantly. Replace it with your own words or a specific detail.";
+const CLICHE_MESSAGE: Message = {
+  en: "Overused phrase — readers see it constantly. Replace it with your own words or a specific detail.",
+  ru: "Заезженная фраза — её читают постоянно. Замени своими словами или конкретной деталью.",
+};
 
 const FILLER = /\b(very|really|extremely|basically|literally|incredibly|a lot of|stuff)\b/gi;
 
@@ -132,7 +157,10 @@ export function checkEssay(text: string): EssayCheck {
       start,
       end,
       kind: "passive",
-      message: "Possible passive voice. Say who did it: “my family decided”, not “it was decided”.",
+      message: {
+        en: "Possible passive voice. Say who did it: “my family decided”, not “it was decided”.",
+        ru: "Возможно, пассивный залог. Скажи, кто это сделал: «my family decided», а не «it was decided».",
+      },
     });
     passive++;
   }
@@ -146,7 +174,10 @@ export function checkEssay(text: string): EssayCheck {
       start,
       end,
       kind: "filler",
-      message: "Filler word. Cut it, or replace it with something precise.",
+      message: {
+        en: "Filler word. Cut it, or replace it with something precise.",
+        ru: "Слово-паразит. Убери его или замени чем-то точным.",
+      },
     });
     fillers++;
   }
@@ -164,7 +195,10 @@ export function checkEssay(text: string): EssayCheck {
           start: sentence.start,
           end: sentence.end,
           kind: "specific",
-          message: "Concrete detail — this is the kind of sentence readers remember.",
+          message: {
+            en: "Concrete detail — this is the kind of sentence readers remember.",
+            ru: "Конкретная деталь — такие предложения читатели запоминают.",
+          },
         });
       }
     }

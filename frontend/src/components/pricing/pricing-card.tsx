@@ -3,9 +3,16 @@ import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { defineCopy, type Locale } from "@/lib/i18n/core";
 import type { PricingTier } from "@/types/domain";
 
-export function PricingCard({ tier }: { tier: PricingTier }) {
+const copy = defineCopy({
+  en: { available: "Available now", soon: "Coming soon", month: "month", oneTime: "one-time" },
+  ru: { available: "Доступно сейчас", soon: "Скоро", month: "месяц", oneTime: "разово" },
+});
+
+export function PricingCard({ tier, locale }: { tier: PricingTier; locale: Locale }) {
+  const t = copy[locale];
   return (
     <div
       className={cn(
@@ -17,12 +24,12 @@ export function PricingCard({ tier }: { tier: PricingTier }) {
     >
       {tier.highlighted ? (
         <span className="absolute -top-3 left-8 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#0b1f3a]">
-          Available now
+          {t.available}
         </span>
       ) : null}
       {!tier.available ? (
         <span className="absolute -top-3 left-8 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
-          Coming soon
+          {t.soon}
         </span>
       ) : null}
 
@@ -38,7 +45,7 @@ export function PricingCard({ tier }: { tier: PricingTier }) {
           ${tier.price}
         </span>
         <span className={cn("text-sm", tier.highlighted ? "text-white/75" : "text-white/45")}>
-          / {tier.billingPeriod === "month" ? "month" : "one-time"}
+          / {tier.billingPeriod === "month" ? t.month : t.oneTime}
         </span>
       </div>
 

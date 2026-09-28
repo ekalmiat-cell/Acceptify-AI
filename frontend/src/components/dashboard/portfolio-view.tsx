@@ -22,8 +22,67 @@ import { MatchBadge } from "@/components/shared/match-badge";
 import { formatProbability } from "@/lib/probability";
 import type { Portfolio } from "@/lib/portfolio";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { defineCopy, plural } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export function PortfolioView({
+const copy = defineCopy({
+  en: {
+    title: "Application portfolio",
+    suggested: "A balanced starting list, built from your profile. Save reports from the analysis page to make this your own.",
+    own: "Every university you've saved a report for, and what they add up to.",
+    atLeastOne: "Chance of at least one admission",
+    across: (n: number) => `Across all ${n} application${n === 1 ? "" : "s"} on this list`,
+    rangeNote:
+      "The high end assumes each decision is independent; the low end assumes they move together, in which case your best single chance is the whole story. Reality sits between the two — committees read overlapping signals, so a weak application is weak in several places at once.",
+    balance: "Balance",
+    balanceNote: "How the list is spread",
+    safe: "Safe",
+    target: "Target",
+    reach: "Reach",
+    worthFixing: "Worth fixing about this list",
+    applications: "Applications",
+    applicationsNote:
+      "Fit score is how closely you match what each programme asks for. The estimate beside it combines that fit with the university's acceptance rate.",
+    university: "University",
+    fit: "Fit score",
+    category: "Category",
+    chance: "Estimated chance",
+    acceptance: (rate: number) => `${rate}% acceptance rate`,
+    disclaimer:
+      "These probabilities are model estimates, not measured rates — the model has not yet been fitted against real admission outcomes.",
+    how: "How this is calculated",
+    add: "Add another university",
+  },
+  ru: {
+    title: "Портфель заявок",
+    suggested: "Сбалансированный стартовый список по твоему профилю. Сохраняй отчёты на странице анализа, чтобы собрать свой.",
+    own: "Все университеты с сохранёнными отчётами и то, что они дают вместе.",
+    atLeastOne: "Шанс поступить хотя бы в один",
+    across: (n: number) => `По всем ${n} ${plural("ru", n, { one: "заявке", few: "заявкам", many: "заявкам" })} в этом списке`,
+    rangeNote:
+      "Верхняя граница считает решения независимыми; нижняя — что они принимаются «вместе», и тогда всё решает твой лучший отдельный шанс. Реальность где-то между: комиссии видят похожие сигналы, поэтому слабая заявка слаба сразу в нескольких местах.",
+    balance: "Баланс",
+    balanceNote: "Как распределён список",
+    safe: "Надёжные",
+    target: "Целевые",
+    reach: "Амбициозные",
+    worthFixing: "Что стоит поправить в списке",
+    applications: "Заявки",
+    applicationsNote:
+      "Балл соответствия показывает, насколько ты подходишь под требования программы. Оценка рядом объединяет его с долей принятых в университет.",
+    university: "Университет",
+    fit: "Соответствие",
+    category: "Категория",
+    chance: "Оценка шанса",
+    acceptance: (rate: number) => `принимают ${rate}%`,
+    disclaimer:
+      "Эти вероятности — оценки модели, а не измеренные доли: модель ещё не сверена с реальными результатами поступления.",
+    how: "Как это считается",
+    add: "Добавить университет",
+  },
+});
+
+export async function PortfolioView({
   portfolio,
   isSuggested,
 }: {
@@ -34,29 +93,23 @@ export function PortfolioView({
    * rest of the page then does arithmetic on. */
   isSuggested: boolean;
 }) {
+  const t = copy[await getLocale()];
   const { entries, balance, odds, warnings } = portfolio;
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          Application portfolio
+          {t.title}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {isSuggested
-            ? "A balanced starting list, built from your profile. Save reports from the analysis page to make this your own."
-            : "Every university you've saved a report for, and what they add up to."}
-        </p>
+        <p className="text-sm text-muted-foreground">{isSuggested ? t.suggested : t.own}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader>
-            <CardTitle>Chance of at least one admission</CardTitle>
-            <CardDescription>
-              Across all {entries.length} application{entries.length === 1 ? "" : "s"} on this
-              list
-            </CardDescription>
+            <CardTitle>{t.atLeastOne}</CardTitle>
+            <CardDescription>{t.across(entries.length)}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-baseline gap-3">
@@ -73,25 +126,20 @@ export function PortfolioView({
             */}
             <p className="flex gap-2 text-xs text-muted-foreground">
               <Info className="mt-0.5 size-3.5 shrink-0" />
-              <span>
-                The high end assumes each decision is independent; the low end assumes they
-                move together, in which case your best single chance is the whole story.
-                Reality sits between the two — committees read overlapping signals, so a
-                weak application is weak in several places at once.
-              </span>
+              <span>{t.rangeNote}</span>
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Balance</CardTitle>
-            <CardDescription>How the list is spread</CardDescription>
+            <CardTitle>{t.balance}</CardTitle>
+            <CardDescription>{t.balanceNote}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <BalanceRow icon={ShieldCheck} label="Safe" count={balance.safe} accent="emerald" />
-            <BalanceRow icon={Target} label="Target" count={balance.target} accent="amber" />
-            <BalanceRow icon={Flame} label="Reach" count={balance.reach} accent="rose" />
+            <BalanceRow icon={ShieldCheck} label={t.safe} count={balance.safe} accent="emerald" />
+            <BalanceRow icon={Target} label={t.target} count={balance.target} accent="amber" />
+            <BalanceRow icon={Flame} label={t.reach} count={balance.reach} accent="rose" />
           </CardContent>
         </Card>
       </div>
@@ -103,7 +151,7 @@ export function PortfolioView({
               <span className="flex size-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 <TriangleAlert className="size-4" />
               </span>
-              Worth fixing about this list
+              {t.worthFixing}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -121,20 +169,17 @@ export function PortfolioView({
 
       <Card>
         <CardHeader>
-          <CardTitle>Applications</CardTitle>
-          <CardDescription>
-            Fit score is how closely you match what each programme asks for. The estimate
-            beside it combines that fit with the university&apos;s acceptance rate.
-          </CardDescription>
+          <CardTitle>{t.applications}</CardTitle>
+          <CardDescription>{t.applicationsNote}</CardDescription>
         </CardHeader>
         <CardContent className="px-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">University</TableHead>
-                <TableHead>Fit score</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="pr-4 text-right">Estimated chance</TableHead>
+                <TableHead className="pl-4">{t.university}</TableHead>
+                <TableHead>{t.fit}</TableHead>
+                <TableHead>{t.category}</TableHead>
+                <TableHead className="pr-4 text-right">{t.chance}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,7 +194,7 @@ export function PortfolioView({
                       <span className="flex flex-col">
                         {university.shortName}
                         <span className="text-xs font-normal text-muted-foreground">
-                          {university.acceptanceRate}% acceptance rate
+                          {t.acceptance(university.acceptanceRate)}
                         </span>
                       </span>
                     </Link>
@@ -175,15 +220,14 @@ export function PortfolioView({
 
       <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted-foreground">
-          These probabilities are model estimates, not measured rates — the model has not yet
-          been fitted against real admission outcomes.{" "}
+          {t.disclaimer}{" "}
           <Link href="/dashboard/methodology" className="underline hover:text-foreground">
-            How this is calculated
+            {t.how}
           </Link>
           .
         </p>
         <Button render={<Link href="/dashboard/analysis" />} size="sm" variant="outline">
-          Add another university
+          {t.add}
         </Button>
       </div>
     </div>

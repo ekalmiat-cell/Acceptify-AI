@@ -12,7 +12,34 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { defineCopy, formatDate, plural } from "@/lib/i18n/core";
+import { useCopy, useLocale } from "@/lib/i18n/client";
 import type { EssayReviewSummaryRead } from "@/types/essay";
+
+const copy = defineCopy({
+  en: {
+    trigger: (n: number) => `Review history (${n})`,
+    title: "Previous essay reviews",
+    description: "Revisit past AI reviews and track your draft revisions.",
+    empty: "No previous reviews yet",
+    emptyNote: "Your reviewed essays will appear here automatically.",
+    untitled: "Untitled essay",
+    words: (n: number) => `${n} words`,
+    view: "View",
+    delete: "Delete review",
+  },
+  ru: {
+    trigger: (n: number) => `История разборов (${n})`,
+    title: "Прошлые разборы эссе",
+    description: "Возвращайся к прошлым разборам ИИ и следи за тем, как меняются черновики.",
+    empty: "Разборов пока нет",
+    emptyNote: "Разобранные эссе появятся здесь автоматически.",
+    untitled: "Эссе без названия",
+    words: (n: number) => `${n} ${plural("ru", n, { one: "слово", few: "слова", many: "слов" })}`,
+    view: "Открыть",
+    delete: "Удалить разбор",
+  },
+});
 
 interface EssayHistoryDrawerProps {
   history: EssayReviewSummaryRead[];
@@ -27,32 +54,32 @@ export function EssayHistoryDrawer({
   onDeleteReview,
   isDeletingId,
 }: EssayHistoryDrawerProps) {
+  const t = useCopy(copy);
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<Button variant="outline" size="sm" className="gap-1.5" />}>
         <Clock className="h-4 w-4 text-muted-foreground" />
-        <span>Review History ({history.length})</span>
+        <span>{t.trigger(history.length)}</span>
       </SheetTrigger>
 
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-6">
         <SheetHeader className="pb-4 border-b">
           <SheetTitle className="flex items-center gap-2 text-lg">
             <FileText className="h-5 w-5 text-primary" />
-            Previous Essay Reviews
+            {t.title}
           </SheetTitle>
-          <SheetDescription className="text-xs">
-            Revisit past AI evaluations and track your draft revisions.
-          </SheetDescription>
+          <SheetDescription className="text-xs">{t.description}</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto py-4 space-y-3">
           {history.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground space-y-2">
               <Sparkles className="h-8 w-8 mx-auto text-muted-foreground/50" />
-              <p className="text-sm font-medium">No previous reviews yet</p>
-              <p className="text-xs">Your analyzed essays will appear here automatically.</p>
+              <p className="text-sm font-medium">{t.empty}</p>
+              <p className="text-xs">{t.emptyNote}</p>
             </div>
           ) : (
             history.map((item) => (
@@ -69,9 +96,9 @@ export function EssayHistoryDrawer({
                     className="cursor-pointer flex-1 space-y-1"
                   >
                     <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                      {item.title || "Untitled Essay"}
+                      {item.title || t.untitled}
                     </h4>
-                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    <p lang="en" className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                       {item.essay_snippet}
                     </p>
                   </div>
@@ -94,9 +121,9 @@ export function EssayHistoryDrawer({
 
                 <div className="flex items-center justify-between pt-2 border-t text-[11px] text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <span>{item.word_count} words</span>
+                    <span>{t.words(item.word_count)}</span>
                     <span>•</span>
-                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                    <span>{formatDate(locale, item.created_at)}</span>
                   </div>
 
                   <div className="flex items-center gap-1">
@@ -105,6 +132,7 @@ export function EssayHistoryDrawer({
                       size="sm"
                       onClick={() => onDeleteReview(item.id)}
                       disabled={isDeletingId === item.id}
+                      aria-label={t.delete}
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -118,7 +146,7 @@ export function EssayHistoryDrawer({
                       }}
                       className="h-7 px-2 text-xs gap-1 font-medium text-primary hover:text-primary"
                     >
-                      <span>View</span>
+                      <span>{t.view}</span>
                       <ChevronRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>

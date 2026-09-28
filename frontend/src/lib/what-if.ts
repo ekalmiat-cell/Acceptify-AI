@@ -17,11 +17,11 @@
  *   at 0 will never suggest an olympiad, however impressive it is in general.
  */
 
-import { achievementCatalog } from "@/data/achievement-catalog";
 import { ACADEMIC_SCALE_MAX, academicBenchmark } from "@/lib/benchmarks";
+import { achievementLabel, criterionName } from "@/lib/catalog-copy";
+import type { Locale } from "@/lib/i18n/core";
 import {
   ACADEMIC_CRITERIA,
-  ACADEMIC_CRITERION_LABELS,
   ACHIEVEMENT_CRITERIA,
   type AcademicCriterionKey,
   type AchievementCriterionKey,
@@ -134,9 +134,6 @@ const ACHIEVEMENT_EFFORT_WEEKS: Record<AchievementCriterionKey, number> = {
   personalEssay: 3,
 };
 
-const ACHIEVEMENT_LABELS: Partial<Record<AchievementCriterionKey, string>> =
-  Object.fromEntries(achievementCatalog.map((item) => [item.id, item.label]));
-
 /** Test scores are reported on their own scales — a GPA of 3.7000000000004
  * is an artefact of adding 0.2 to 3.5, not a grade. */
 function roundToScale(criterion: AcademicCriterionKey, value: number): number {
@@ -157,11 +154,32 @@ function weightOf(weights: CriterionWeights, criterion: CriterionKey): number {
 }
 
 /** Every action worth offering, before any of them are scored. */
+const LEVER_COPY = {
+  en: {
+    sit: (exam: string, score: string) => `Sit ${exam} and score ${score}`,
+    notYet: (bar: string, weeks: number) => `Not on your profile yet · ${bar} · ~${weeks} weeks`,
+    raise: (exam: string, score: string) => `Raise ${exam} to ${score}`,
+    from: (current: string, bar: string, weeks: number) => `From ${current} · ${bar} · ~${weeks} weeks`,
+    add: (name: string) => `Add ${name}`,
+    weighted: (weight: number, weeks: number) => `Weighted ${weight} by this programme · ~${weeks} weeks`,
+  },
+  ru: {
+    sit: (exam: string, score: string) => `Сдать ${exam} на ${score}`,
+    notYet: (bar: string, weeks: number) => `Пока нет в профиле · ${bar} · ~${weeks} нед.`,
+    raise: (exam: string, score: string) => `Поднять ${exam} до ${score}`,
+    from: (current: string, bar: string, weeks: number) => `Сейчас ${current} · ${bar} · ~${weeks} нед.`,
+    add: (name: string) => `Добавить: ${name}`,
+    weighted: (weight: number, weeks: number) => `Вес ${weight} в этой программе · ~${weeks} нед.`,
+  },
+} satisfies Record<Locale, unknown>;
+
 function candidateProfiles(
   university: University,
   profile: StudentProfileInput,
-  weights: CriterionWeights
+  weights: CriterionWeights,
+  locale: Locale
 ): Omit<Lever, "delta" | "scoreAfter">[] {
+  const t = LEVER_COPY[locale];
   const candidates: Omit<Lever, "delta" | "scoreAfter">[] = [];
 
   for (const criterion of ACADEMIC_CRITERIA) {
@@ -169,7 +187,7 @@ function candidateProfiles(
     // criterion with no bar to clear isn't scored at all — offering either
     // would be advice to do work that provably changes nothing.
     if (weightOf(weights, criterion) === 0) continue;
-    const benchmark = academicBenchmark(criterion, university);
+    const benchmark = academicBenchmark(criterion, university, locale);
     if (!benchmark) continue;
 
     const current = academicValue(criterion, profile);
@@ -186,8 +204,8 @@ function candidateProfiles(
         id: `sit-${criterion}`,
         kind: "academic",
         criterion,
-        label: `Sit ${ACADEMIC_CRITERION_LABELS[criterion]} and score ${formatValue(criterion, target)}`,
-        detail: `Not on your profile yet · ${benchmark.label} · ~${effortWeeks} weeks`,
+        label: t.sit(criterionName(criterion, locale), formatValue(criterion, target)),
+        detail: t.notYet(benchmark.label, effortWeeks),
         effortWeeks,
         profile: withAcademicValue(criterion, target, profile),
       });
@@ -204,8 +222,8 @@ function candidateProfiles(
         id: `raise-${criterion}-${step.amount}`,
         kind: "academic",
         criterion,
-        label: `Raise ${ACADEMIC_CRITERION_LABELS[criterion]} to ${formatValue(criterion, target)}`,
-        detail: `From ${formatValue(criterion, current)} · ${benchmark.label} · ~${step.effortWeeks} weeks`,
+        label: t.raise(criterionName(criterion, locale), formatValue(criterion, target)),
+        detail: t.from(formatValue(criterion, current), benchmark.label, step.effortWeeks),
         effortWeeks: step.effortWeeks,
         profile: withAcademicValue(criterion, target, profile),
       });
@@ -221,8 +239,8 @@ function candidateProfiles(
       id: `earn-${criterion}`,
       kind: "achievement",
       criterion,
-      label: `Add ${ACHIEVEMENT_LABELS[criterion] ?? criterion}`,
-      detail: `Weighted ${weightOf(weights, criterion)} by this programme · ~${effortWeeks} weeks`,
+      label: t.add(achievementLabel(criterion, locale)),
+      detail: t.weighted(weightOf(weights, criterion), effortWeeks),
       effortWeeks,
       profile: {
         ...profile,
@@ -242,11 +260,11 @@ export function simulateLevers(
   university: University,
   profile: StudentProfileInput,
   weights: CriterionWeights,
-  { limit }: { limit?: number } = {}
+  { limit, locale = "en" }: { limit?: number; locale?: Locale } = {}
 ): Lever[] {
   const baseline = predictMatch(university, profile, weights).score;
 
-  const levers = candidateProfiles(university, profile, weights)
+  const levers = candidateProfiles(university, profile, weights, locale)
     .map((candidate) => {
       const scoreAfter = predictMatch(university, candidate.profile, weights).score;
       return { ...candidate, scoreAfter, delta: scoreAfter - baseline };
@@ -287,7 +305,7 @@ export function planToTarget(
   profile: StudentProfileInput,
   weights: CriterionWeights,
   target: number,
-  { maxSteps = 6 }: { maxSteps?: number } = {}
+  { maxSteps = 6, locale = "en" }: { maxSteps?: number; locale?: Locale } = {}
 ): ImprovementPlan {
   const from = predictMatch(university, profile, weights).score;
 
@@ -296,7 +314,7 @@ export function planToTarget(
   const steps: Lever[] = [];
 
   while (score < target && steps.length < maxSteps) {
-    const levers = simulateLevers(university, current, weights);
+    const levers = simulateLevers(university, current, weights, { locale });
     if (levers.length === 0) break;
 
     // Best value for the time it costs, not simply the biggest jump: a

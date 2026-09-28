@@ -9,12 +9,19 @@ import {
   getTrainingProgress,
   resolveDrill,
 } from "@/lib/data/training";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 import { getCurrentUserId } from "@/lib/session";
 import { DRILLS, drillsInUnit, findUnit, nextDrill } from "@/lib/training/drills";
 
-export const metadata: Metadata = {
-  title: "Training drill",
-};
+const copy = defineCopy({
+  en: { title: "Training drill" },
+  ru: { title: "Упражнение" },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].title };
+}
 
 export default async function DrillPage({ params }: { params: Promise<{ drillId: string }> }) {
   const { drillId } = await params;

@@ -3,6 +3,7 @@ import { assertAiAvailable } from "@/lib/ai/gemini";
 import { withAiErrorLog } from "@/lib/data/ai-errors";
 import { aiAllowanceLeft, consumeAiAllowance } from "@/lib/data/ai-usage";
 import { resolveDrill } from "@/lib/data/training";
+import { getLocale } from "@/lib/i18n/server";
 import { HttpError, json, readJson, requireUser, route } from "@/lib/route";
 import { findUnit } from "@/lib/training/drills";
 import { drillFeedbackSchema } from "@/lib/validation";
@@ -27,9 +28,10 @@ export const POST = route(async (request) =>
     const unit = findUnit(drill.unit);
     const feedback = await coachDrill({
       drill,
-      skill: `${unit.title}: ${unit.lesson}`,
+      skill: `${unit.title.en}: ${unit.lesson.en}`,
       answer: input.answer,
-      language: input.language,
+      // Explanations in the interface language; the essay phrase stays English.
+      language: await getLocale(),
     });
 
     const response: DrillFeedbackResponse = {

@@ -1,4 +1,17 @@
 import { ApiError, NETWORK_ERROR_STATUS } from "@/lib/api-error";
+import { currentLocale } from "@/lib/i18n/browser";
+import { defineCopy } from "@/lib/i18n/core";
+
+const copy = defineCopy({
+  en: {
+    timedOut: "Acceptify took too long to respond. Please try again.",
+    offline: "Can't reach Acceptify. Check your internet connection and try again.",
+  },
+  ru: {
+    timedOut: "Acceptify слишком долго не отвечает. Попробуй ещё раз.",
+    offline: "Не удаётся связаться с Acceptify. Проверь интернет и попробуй ещё раз.",
+  },
+});
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
@@ -41,9 +54,7 @@ export async function requestJson<T>(
 
     throw new ApiError(
       NETWORK_ERROR_STATUS,
-      timedOut
-        ? "Acceptify took too long to respond. Please try again."
-        : "Can't reach Acceptify. Check your internet connection and try again.",
+      timedOut ? copy[currentLocale()].timedOut : copy[currentLocale()].offline,
       error,
     );
   }

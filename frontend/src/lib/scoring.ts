@@ -6,6 +6,7 @@ import {
   type StudentProfileInput,
 } from "@/lib/predict";
 import { DEFAULT_WEIGHTS } from "@/lib/criteria";
+import type { Locale } from "@/lib/i18n/core";
 import type { AdmissionAnalysis, University } from "@/types/domain";
 
 const STRONG = 70;
@@ -24,12 +25,67 @@ const WEAK = 45;
  * confidence score, so "how sure are we" and "how complete is your profile"
  * always agree with each other across the app.
  */
+const ANALYSIS_COPY = {
+  en: {
+    buckets: ["Academic strength", "Activities", "Leadership", "Achievements"],
+    academic: [
+      "Strong academic profile relative to this university's typical admit.",
+      "Academic scores fall below this university's typical range.",
+      "Focus on raising your GPA, SAT, or IELTS score to close the academic gap.",
+    ],
+    activities: [
+      "Well-rounded extracurricular activities and competition history.",
+      "Limited extracurricular activity on record.",
+      "Join olympiads, hackathons, or clubs to build a broader activity profile.",
+    ],
+    leadership: [
+      "Demonstrated leadership experience.",
+      "Little leadership experience recorded.",
+      "Seek leadership roles in clubs, student government, or Model UN.",
+    ],
+    achievements: [
+      "Strong record of research, publications, or community impact.",
+      "Few research, publication, or volunteering credentials on record.",
+      "Pursue a research project, publish your work, or take on volunteer work.",
+    ],
+    baseline: "A baseline profile is in place — every category has room to grow.",
+    keepUpdated: "Keep your profile up to date as you gain new achievements.",
+  },
+  ru: {
+    buckets: ["Учёба", "Активности", "Лидерство", "Достижения"],
+    academic: [
+      "Сильный академический профиль по сравнению с типичным поступившим сюда.",
+      "Академические баллы ниже типичного диапазона этого университета.",
+      "Сосредоточься на повышении GPA, SAT или IELTS, чтобы закрыть академический разрыв.",
+    ],
+    activities: [
+      "Разносторонние внеучебные активности и опыт соревнований.",
+      "Внеучебных активностей в профиле мало.",
+      "Участвуй в олимпиадах, хакатонах или клубах, чтобы расширить профиль.",
+    ],
+    leadership: [
+      "Есть подтверждённый лидерский опыт.",
+      "Лидерского опыта в профиле почти нет.",
+      "Ищи лидерские роли в клубах, школьном самоуправлении или Model UN.",
+    ],
+    achievements: [
+      "Сильные исследования, публикации или общественный вклад.",
+      "Мало исследований, публикаций или волонтёрства в профиле.",
+      "Займись исследовательским проектом, опубликуй работу или возьмись за волонтёрство.",
+    ],
+    baseline: "Базовый профиль есть — в каждой категории есть куда расти.",
+    keepUpdated: "Обновляй профиль, когда появляются новые достижения.",
+  },
+} satisfies Record<Locale, unknown>;
+
 export function computeAdmissionAnalysis(
   university: University,
   profile: StudentProfileInput,
   profileCompleteness: number,
-  weights: CriterionWeights = DEFAULT_WEIGHTS
+  weights: CriterionWeights = DEFAULT_WEIGHTS,
+  locale: Locale = "en"
 ): AdmissionAnalysis {
+  const t = ANALYSIS_COPY[locale];
   const { score, category } = predictMatch(university, profile, weights);
   const raw = computeScoreBreakdown(university, profile, weights);
   const bucketWeights = computeBreakdownWeights(weights);
@@ -39,10 +95,10 @@ export function computeAdmissionAnalysis(
   const round = (value: number | null) => (value == null ? null : Math.round(value));
 
   const breakdown = [
-    { label: "Academic strength", weight: bucketWeights.academicStrength, score: round(raw.academicStrength) },
-    { label: "Activities", weight: bucketWeights.activities, score: round(raw.activities) },
-    { label: "Leadership", weight: bucketWeights.leadership, score: round(raw.leadership) },
-    { label: "Achievements", weight: bucketWeights.achievements, score: round(raw.achievements) },
+    { label: t.buckets[0], weight: bucketWeights.academicStrength, score: round(raw.academicStrength) },
+    { label: t.buckets[1], weight: bucketWeights.activities, score: round(raw.activities) },
+    { label: t.buckets[2], weight: bucketWeights.leadership, score: round(raw.leadership) },
+    { label: t.buckets[3], weight: bucketWeights.achievements, score: round(raw.achievements) },
   ];
 
   const confidence = Math.round(Math.min(98, Math.max(35, profileCompleteness)));
@@ -73,40 +129,13 @@ export function computeAdmissionAnalysis(
     }
   };
 
-  appraise(
-    raw.academicStrength,
-    "Strong academic profile relative to this university's typical admit.",
-    "Academic scores fall below this university's typical range.",
-    "Focus on raising your GPA, SAT, or IELTS score to close the academic gap."
-  );
+  appraise(raw.academicStrength, ...(t.academic as [string, string, string]));
+  appraise(raw.activities, ...(t.activities as [string, string, string]));
+  appraise(raw.leadership, ...(t.leadership as [string, string, string]));
+  appraise(raw.achievements, ...(t.achievements as [string, string, string]));
 
-  appraise(
-    raw.activities,
-    "Well-rounded extracurricular activities and competition history.",
-    "Limited extracurricular activity on record.",
-    "Join olympiads, hackathons, or clubs to build a broader activity profile."
-  );
-
-  appraise(
-    raw.leadership,
-    "Demonstrated leadership experience.",
-    "Little leadership experience recorded.",
-    "Seek leadership roles in clubs, student government, or Model UN."
-  );
-
-  appraise(
-    raw.achievements,
-    "Strong record of research, publications, or community impact.",
-    "Few research, publication, or volunteering credentials on record.",
-    "Pursue a research project, publish your work, or take on volunteer work."
-  );
-
-  if (strengths.length === 0) {
-    strengths.push("A baseline profile is in place — every category has room to grow.");
-  }
-  if (recommendations.length === 0) {
-    recommendations.push("Keep your profile up to date as you gain new achievements.");
-  }
+  if (strengths.length === 0) strengths.push(t.baseline);
+  if (recommendations.length === 0) recommendations.push(t.keepUpdated);
 
   return { score, category, confidence, breakdown, strengths, weaknesses, recommendations };
 }

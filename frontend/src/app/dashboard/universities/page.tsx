@@ -5,10 +5,14 @@ import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server"
 import { getUniversities } from "@/lib/universities-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
 import { getDeclaredField, resolveWeightsByUniversity } from "@/lib/weights-server";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Universities",
-};
+const copy = defineCopy({ en: { title: "Universities" }, ru: { title: "Университеты" } });
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].title };
+}
 
 export default async function UniversitiesPage() {
   const [academic, records, universities] = await Promise.all([

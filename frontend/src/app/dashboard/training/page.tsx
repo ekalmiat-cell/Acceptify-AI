@@ -9,13 +9,20 @@ import {
   weakestCriterion,
 } from "@/lib/data/training";
 import { CRITERION_KEYS, type CriterionKey } from "@/lib/essay-rubric";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 import { getCurrentUserId } from "@/lib/session";
 import { orderedUnits } from "@/lib/training/drills";
 
-export const metadata: Metadata = {
-  title: "Training",
-  description: "Short essay-writing drills, one skill at a time, checked instantly.",
-};
+const copy = defineCopy({
+  en: { title: "Training", description: "Short essay-writing drills, one skill at a time, checked instantly." },
+  ru: { title: "Тренировка", description: "Короткие упражнения по эссе, по одному навыку, с мгновенной проверкой." },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = copy[await getLocale()];
+  return { title: t.title, description: t.description };
+}
 
 export default async function TrainingPage({
   searchParams,
@@ -25,10 +32,11 @@ export default async function TrainingPage({
   const userId = await getCurrentUserId();
   if (!userId) redirect("/sign-in?redirect=/dashboard/training");
 
-  const [{ focus: focusParam }, progress, latest] = await Promise.all([
+  const [{ focus: focusParam }, progress, latest, locale] = await Promise.all([
     searchParams,
     getTrainingProgress(userId),
     getLatestReview(userId),
+    getLocale(),
   ]);
 
   // "Train this" from a review names the criterion; otherwise start with the
@@ -43,6 +51,7 @@ export default async function TrainingPage({
 
   return (
     <TrainingHome
+      locale={locale}
       units={orderedUnits(focus?.criterion ?? null)}
       progress={progress}
       personal={drillsFromReview(latest)}

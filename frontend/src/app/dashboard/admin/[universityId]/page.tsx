@@ -5,6 +5,7 @@ import { AdminProgramList } from "@/components/admin/admin-program-list";
 import { getUniversities } from "@/lib/universities-server";
 import { getUniversityById } from "@/lib/universities";
 import { getProgramsByUniversity } from "@/lib/programs-server";
+import { getLocale } from "@/lib/i18n/server";
 
 export async function generateMetadata({
   params,
@@ -14,7 +15,8 @@ export async function generateMetadata({
   const { universityId } = await params;
   const universities = await getUniversities();
   const university = getUniversityById(universities, universityId);
-  return { title: university ? `Admin — ${university.shortName}` : "Admin" };
+  const admin = (await getLocale()) === "ru" ? "Админка" : "Admin";
+  return { title: university ? `${admin} — ${university.shortName}` : admin };
 }
 
 export default async function AdminUniversityPage({

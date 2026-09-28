@@ -5,10 +5,11 @@ import { AdminWeightEditor } from "@/components/admin/admin-weight-editor";
 import { getUniversities } from "@/lib/universities-server";
 import { getUniversityById } from "@/lib/universities";
 import { getProgramsByUniversity, getEvaluationProfile } from "@/lib/programs-server";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Edit evaluation profile",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getLocale()) === "ru" ? "Веса оценки" : "Edit evaluation profile" };
+}
 
 export default async function AdminProgramPage({
   params,

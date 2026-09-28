@@ -25,12 +25,52 @@ import { achievementIconMap } from "@/components/profile/achievement-icon-map";
 import { upsertAchievement } from "@/lib/profile-client";
 import type { ResolvedAchievement } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
+import { achievementDescription, achievementLabel } from "@/lib/catalog-copy";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    updated: (name: string) => `${name} updated`,
+    failed: "Could not update this achievement.",
+    more: (n: number) => `+${n} more`,
+    notStarted: "Not started",
+    entries: "Entries",
+    remove: "Remove entry",
+    nothing: "Nothing added yet.",
+    placeholder: "e.g. Republican medal, Math olympiad",
+    add: "Add",
+    level: "Level (optional)",
+    levelPlaceholder: "e.g. National",
+    cancel: "Cancel",
+    save: "Save",
+  },
+  ru: {
+    updated: (name: string) => `«${name}» обновлено`,
+    failed: "Не удалось обновить достижение.",
+    more: (n: number) => `ещё ${n}`,
+    notStarted: "Пока пусто",
+    entries: "Записи",
+    remove: "Удалить запись",
+    nothing: "Пока ничего не добавлено.",
+    placeholder: "например, республиканская медаль, олимпиада по математике",
+    add: "Добавить",
+    level: "Уровень (необязательно)",
+    levelPlaceholder: "например, республиканский",
+    cancel: "Отмена",
+    save: "Сохранить",
+  },
+});
 
 function parseEntries(value: string | null): string[] {
   return (value ?? "").split("\n").map((line) => line.trim()).filter(Boolean);
 }
 
 export function AchievementCard({ achievement }: { achievement: ResolvedAchievement }) {
+  const locale = useLocale();
+  const t = copy[locale];
+  const label = achievementLabel(achievement.id, locale);
+  const description = achievementDescription(achievement.id, locale) || achievement.description;
   const router = useRouter();
   const Icon = achievementIconMap[achievement.icon];
   const [open, setOpen] = useState(false);
@@ -60,11 +100,11 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
         value: entries.length > 0 ? entries.join("\n") : null,
         level: level.trim() || null,
       });
-      toast.success(`${achievement.label} updated`);
+      toast.success(t.updated(label));
       setOpen(false);
       router.refresh();
     } catch (error) {
-      toast.error(describeApiError(error, "Could not update this achievement."));
+      toast.error(describeApiError(error, t.failed));
     } finally {
       setIsSaving(false);
     }
@@ -112,7 +152,7 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
         </div>
 
         <div>
-          <p className="text-sm font-medium text-foreground">{achievement.label}</p>
+          <p className="text-sm font-medium text-foreground">{label}</p>
           {cardEntries.length > 0 ? (
             <ul className="mt-0.5 flex flex-col gap-0.5 text-sm text-muted-foreground">
               {cardEntries.slice(0, 2).map((entry, i) => (
@@ -122,12 +162,12 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
               ))}
               {cardEntries.length > 2 ? (
                 <li className="text-xs text-muted-foreground/70">
-                  +{cardEntries.length - 2} more
+                  {t.more(cardEntries.length - 2)}
                 </li>
               ) : null}
             </ul>
           ) : (
-            <p className="mt-0.5 text-sm text-muted-foreground/70 italic">Not started</p>
+            <p className="mt-0.5 text-sm text-muted-foreground/70 italic">{t.notStarted}</p>
           )}
         </div>
 
@@ -137,20 +177,18 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
           </ProgressTrack>
         </Progress>
 
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          {achievement.description}
-        </p>
+        <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
       </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{achievement.label}</DialogTitle>
-          <DialogDescription>{achievement.description}</DialogDescription>
+          <DialogTitle>{label}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-2">
           <div className="grid gap-2">
-            <Label>Entries</Label>
+            <Label>{t.entries}</Label>
             {entries.length > 0 ? (
               <ul className="flex flex-col gap-1.5">
                 {entries.map((entry, i) => (
@@ -165,7 +203,7 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
                       type="button"
                       onClick={() => removeEntry(i)}
                       className="shrink-0 text-muted-foreground hover:text-destructive"
-                      aria-label="Remove entry"
+                      aria-label={t.remove}
                     >
                       <X className="size-3.5" />
                     </button>
@@ -173,12 +211,12 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-muted-foreground">Nothing added yet.</p>
+              <p className="text-xs text-muted-foreground">{t.nothing}</p>
             )}
 
             <div className="flex gap-2">
               <Input
-                placeholder="e.g. Republican medal, Math olympiad"
+                placeholder={t.placeholder}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => {
@@ -190,16 +228,16 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
               />
               <Button type="button" variant="outline" onClick={addEntry} disabled={!draft.trim()}>
                 <Plus />
-                Add
+                {t.add}
               </Button>
             </div>
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor={`${achievement.id}-level`}>Level (optional)</Label>
+            <Label htmlFor={`${achievement.id}-level`}>{t.level}</Label>
             <Input
               id={`${achievement.id}-level`}
-              placeholder="e.g. National"
+              placeholder={t.levelPlaceholder}
               value={level}
               onChange={(e) => setLevel(e.target.value)}
             />
@@ -207,10 +245,10 @@ export function AchievementCard({ achievement }: { achievement: ResolvedAchievem
         </div>
 
         <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+          <DialogClose render={<Button variant="outline" />}>{t.cancel}</DialogClose>
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="animate-spin" /> : null}
-            Save
+            {t.save}
           </Button>
         </DialogFooter>
       </DialogContent>

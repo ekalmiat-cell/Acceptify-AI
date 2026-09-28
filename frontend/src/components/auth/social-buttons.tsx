@@ -7,12 +7,30 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { GoogleIcon, AppleIcon } from "@/components/auth/brand-icons";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 import {
   formatAuthError,
   socialProviderLabels,
   type SocialProvider,
   type SocialProvidersConfig,
 } from "@/lib/auth-config";
+
+const copy = defineCopy({
+  en: {
+    notConnected: (label: string) =>
+      `${label} sign-in isn't connected yet — you can still create an account with your email below.`,
+    failed: (label: string) => `Could not continue with ${label}.`,
+    unavailable: "Social sign-in is unavailable right now.",
+    continueWith: (label: string) => `Continue with ${label}`,
+  },
+  ru: {
+    notConnected: (label: string) => `Вход через ${label} пока не подключён — можно создать аккаунт с почтой ниже.`,
+    failed: (label: string) => `Не удалось продолжить через ${label}.`,
+    unavailable: "Вход через соцсети сейчас недоступен.",
+    continueWith: (label: string) => `Продолжить через ${label}`,
+  },
+});
 
 const providerIcons: Record<
   SocialProvider,
@@ -40,6 +58,8 @@ export function SocialButtons({
   callbackURL = "/dashboard",
   errorCallbackURL = "/sign-in",
 }: SocialButtonsProps) {
+  const locale = useLocale();
+  const t = copy[locale];
   const [loadingProvider, setLoadingProvider] = useState<SocialProvider | null>(
     null,
   );
@@ -53,9 +73,7 @@ export function SocialButtons({
     const label = socialProviderLabels[provider];
 
     if (!providers[provider]) {
-      toast.message(
-        `${label} sign-in isn't connected yet — you can still create an account with your email below.`,
-      );
+      toast.message(t.notConnected(label));
       return;
     }
 
@@ -71,7 +89,7 @@ export function SocialButtons({
 
       if (error) {
         toast.error(
-          formatAuthError(error.message, `Could not continue with ${label}.`),
+          formatAuthError(error.message, t.failed(label), locale),
         );
         setLoadingProvider(null);
         return;
@@ -87,7 +105,7 @@ export function SocialButtons({
       setLoadingProvider(null);
     } catch (err) {
       console.error("Social sign in failed", err);
-      toast.error("Social sign-in is unavailable right now.");
+      toast.error(t.unavailable);
       setLoadingProvider(null);
     }
   }
@@ -105,7 +123,7 @@ export function SocialButtons({
             variant="outline"
             className="h-10"
             disabled={loadingProvider !== null}
-            aria-label={`Continue with ${label}`}
+            aria-label={t.continueWith(label)}
             onClick={() => handleSocial(provider)}
           >
             {loadingProvider === provider ? (

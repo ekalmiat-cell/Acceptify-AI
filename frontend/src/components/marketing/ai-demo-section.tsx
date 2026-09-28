@@ -13,6 +13,29 @@ import { predictMatch } from "@/lib/predict";
 import type { AchievementCriterionKey } from "@/lib/criteria";
 import type { University } from "@/types/domain";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    eyebrow: "Live demo",
+    title: "Try the prediction engine yourself",
+    description:
+      "Drag the sliders to match your profile and watch match scores update in real time — this is the same engine behind your dashboard.",
+    sat: "SAT score",
+    ielts: "IELTS band",
+    note: "Scores update instantly using the same weighting as your full dashboard: academics, test scores, and achievement breadth.",
+  },
+  ru: {
+    eyebrow: "Демо",
+    title: "Попробуй движок прогнозов сам",
+    description:
+      "Двигай ползунки под свой профиль и смотри, как оценки меняются в реальном времени, — это тот же движок, что и в личном кабинете.",
+    sat: "Балл SAT",
+    ielts: "Балл IELTS",
+    note: "Оценки пересчитываются сразу, с теми же весами, что и в кабинете: учёба, баллы тестов и широта достижений.",
+  },
+});
 
 const demoUniversityIds = ["uni-mit", "uni-toronto", "uni-nu", "uni-eth"];
 
@@ -30,6 +53,7 @@ const DEMO_ACHIEVEMENTS: Partial<Record<AchievementCriterionKey, boolean>> = {
 };
 
 export function AiDemoSection({ universities }: { universities: University[] }) {
+  const t = useCopy(copy);
   const [gpa, setGpa] = useState(3.6);
   const [sat, setSat] = useState(1380);
   const [ielts, setIelts] = useState(7.0);
@@ -58,9 +82,9 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
       <div className="bg-grid-glow pointer-events-none absolute inset-0 opacity-60" />
       <Container className="relative max-w-7xl">
         <SectionHeading
-          eyebrow="Live demo"
-          title="Try the prediction engine yourself"
-          description="Drag the sliders to match your profile and watch match scores update in real time — this is the same engine behind your dashboard."
+          eyebrow={t.eyebrow}
+          title={t.title}
+          description={t.description}
           dark
           className="mb-16"
         />
@@ -77,7 +101,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
               format={(v) => v.toFixed(2)}
             />
             <DemoSlider
-              label="SAT score"
+              label={t.sat}
               value={sat}
               onChange={setSat}
               min={900}
@@ -86,7 +110,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
               format={(v) => Math.round(v).toString()}
             />
             <DemoSlider
-              label="IELTS band"
+              label={t.ielts}
               value={ielts}
               onChange={setIelts}
               min={5.0}
@@ -97,8 +121,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
 
             <div className="flex items-start gap-3 rounded-2xl bg-white/5 p-4 text-sm text-white/60">
               <Sparkles className="mt-0.5 size-4 shrink-0 text-brand" />
-              Scores update instantly using the same weighting as your full
-              dashboard: academics, test scores, and achievement breadth.
+              {t.note}
             </div>
           </FadeIn>
 

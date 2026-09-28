@@ -20,6 +20,7 @@ import {
   ENT_COMPETITIVE_BASELINE,
   type AcademicCriterionKey,
 } from "@/lib/criteria";
+import type { Locale } from "@/lib/i18n/core";
 import type { University } from "@/types/domain";
 
 export type BenchmarkSource =
@@ -64,15 +65,22 @@ function rangeMidpoint(low: number | null, high: number | null): number | null {
  */
 export function academicBenchmark(
   criterion: AcademicCriterionKey,
-  university: University
+  university: University,
+  locale: Locale = "en"
 ): AcademicBenchmark | null {
+  const ru = locale === "ru";
+  const minimum = (value: string) => (ru ? `минимум ${value}` : `${value} minimum`);
+  const range = (low: number, high: number) => (ru ? `диапазон ${low}–${high}` : `${low}-${high} range`);
+  const statedValue = (value: number) => (ru ? `заявлено ${value}` : `${value} stated`);
+  const baseline = (value: number) => (ru ? `~${value} — конкурентный уровень` : `~${value} competitive baseline`);
+
   switch (criterion) {
     case "gpa":
       return stated(university.minGpa)
         ? {
             value: university.minGpa,
             source: "university",
-            label: `${university.minGpa.toFixed(2)} minimum`,
+            label: minimum(university.minGpa.toFixed(2)),
           }
         : null;
 
@@ -81,8 +89,8 @@ export function academicBenchmark(
       if (midpoint == null) return null;
       const label =
         stated(university.satLow) && stated(university.satHigh)
-          ? `${university.satLow}-${university.satHigh} range`
-          : `${Math.round(midpoint)} stated`;
+          ? range(university.satLow, university.satHigh)
+          : statedValue(Math.round(midpoint));
       return { value: midpoint, source: "university", label };
     }
 
@@ -93,14 +101,14 @@ export function academicBenchmark(
       if (midpoint != null) {
         const label =
           stated(university.actMin) && stated(university.actMax)
-            ? `${university.actMin}-${university.actMax} range`
-            : `${Math.round(midpoint)} stated`;
+            ? range(university.actMin, university.actMax)
+            : statedValue(Math.round(midpoint));
         return { value: midpoint, source: "university", label };
       }
       return {
         value: ACT_COMPETITIVE_BASELINE,
         source: "national",
-        label: `~${ACT_COMPETITIVE_BASELINE} competitive baseline`,
+        label: baseline(ACT_COMPETITIVE_BASELINE),
       };
     }
 
@@ -109,7 +117,7 @@ export function academicBenchmark(
         ? {
             value: university.ieltsMin,
             source: "university",
-            label: `${university.ieltsMin.toFixed(1)} minimum`,
+            label: minimum(university.ieltsMin.toFixed(1)),
           }
         : null;
 
@@ -118,7 +126,7 @@ export function academicBenchmark(
         ? {
             value: university.toeflMin,
             source: "university",
-            label: `${university.toeflMin} minimum`,
+            label: minimum(String(university.toeflMin)),
           }
         : null;
 
@@ -130,7 +138,7 @@ export function academicBenchmark(
       return {
         value: ENT_COMPETITIVE_BASELINE,
         source: "national",
-        label: `~${ENT_COMPETITIVE_BASELINE} competitive baseline`,
+        label: baseline(ENT_COMPETITIVE_BASELINE),
       };
 
     default:

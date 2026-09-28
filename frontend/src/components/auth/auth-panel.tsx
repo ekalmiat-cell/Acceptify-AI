@@ -3,6 +3,8 @@ import { Logo } from "@/components/shared/logo";
 import { achievementCatalog } from "@/data/achievement-catalog";
 import { ACADEMIC_CRITERIA } from "@/lib/criteria";
 import { FIELDS_OF_STUDY } from "@/lib/fields-of-study";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
 /**
  * Deliberately static: the sign-in screen must render even when the API is
@@ -10,19 +12,36 @@ import { FIELDS_OF_STUDY } from "@/lib/fields-of-study";
  * rather than a catalog fetch. Nothing on this panel is a usage or outcome
  * claim — see data/stats.ts for the same rule on the landing page.
  */
-const points = [
-  "A fit score for a specific university and programme",
-  "A score breakdown that shows what helped and what held you back",
-  "An action plan built from the gaps in your own profile",
-];
+const copy = defineCopy({
+  en: {
+    headline: "Know your chances. Build your path.",
+    points: [
+      "A fit score for a specific university and programme",
+      "A score breakdown that shows what helped and what held you back",
+      "An action plan built from the gaps in your own profile",
+    ],
+    facts: { academics: "academic inputs", achievements: "achievement categories", fields: "fields of study" },
+  },
+  ru: {
+    headline: "Узнай свои шансы. Построй свой путь.",
+    points: [
+      "Оценка соответствия конкретному университету и программе",
+      "Разбор оценки: что помогло и что тянет вниз",
+      "План действий по пробелам именно в твоём профиле",
+    ],
+    facts: { academics: "академических показателей", achievements: "категорий достижений", fields: "направлений обучения" },
+  },
+});
 
-const facts = [
-  { id: "academics", value: String(ACADEMIC_CRITERIA.length), label: "academic inputs" },
-  { id: "achievements", value: String(achievementCatalog.length), label: "achievement categories" },
-  { id: "fields", value: String(FIELDS_OF_STUDY.length), label: "fields of study" },
-];
+export async function AuthPanel() {
+  const t = copy[await getLocale()];
+  const points = t.points;
+  const facts = [
+    { id: "academics", value: String(ACADEMIC_CRITERIA.length), label: t.facts.academics },
+    { id: "achievements", value: String(achievementCatalog.length), label: t.facts.achievements },
+    { id: "fields", value: String(FIELDS_OF_STUDY.length), label: t.facts.fields },
+  ];
 
-export function AuthPanel() {
   return (
     <div className="relative hidden h-full flex-col justify-between overflow-hidden bg-[#071326] p-12 lg:flex">
       <div className="bg-grid-glow pointer-events-none absolute inset-0 opacity-70" />
@@ -33,7 +52,7 @@ export function AuthPanel() {
 
       <div className="relative flex flex-col gap-8">
         <p className="max-w-md text-balance font-heading text-2xl leading-snug text-white">
-          Know your chances. Build your path.
+          {t.headline}
         </p>
         <div className="flex flex-col gap-3">
           {points.map((point) => (

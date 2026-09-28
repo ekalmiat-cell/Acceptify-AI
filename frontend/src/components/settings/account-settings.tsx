@@ -28,8 +28,70 @@ import {
 } from "@/components/ui/dialog";
 import { siteConfig } from "@/config/site";
 import { authClient, useSession } from "@/lib/auth-client";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    updateFailed: "Could not update your profile.",
+    updated: "Profile updated",
+    details: "Account details",
+    detailsDescription: "Update your personal information.",
+    fullName: "Full name",
+    email: "Email",
+    changeEmailBefore: "To change your email, write to us on",
+    changeEmailOr: "or at",
+    save: "Save changes",
+    confirmWord: "DELETE",
+    reauth: "For your safety, sign out and sign in again, then delete the account.",
+    wrongPassword: "That password is not correct.",
+    deleteFailed: "Could not delete your account.",
+    deleted: "Your account and all its data have been deleted.",
+    danger: "Danger zone",
+    dangerDescription: "Irreversible account actions.",
+    deleteAccount: "Delete account",
+    deleteWarning:
+      "Permanently deletes your account, academic profile, achievements, predictions, essay reviews and training progress. This cannot be undone.",
+    dialogTitle: "Delete your account?",
+    dialogDescription: "All your data will be erased right away. There is no way to restore it.",
+    yourPassword: "Your password",
+    typeBefore: "Type",
+    typeAfter: "to confirm",
+    cancel: "Cancel",
+    deleteForever: "Delete forever",
+  },
+  ru: {
+    updateFailed: "Не удалось обновить профиль.",
+    updated: "Профиль обновлён",
+    details: "Данные аккаунта",
+    detailsDescription: "Измени свои личные данные.",
+    fullName: "Имя и фамилия",
+    email: "Почта",
+    changeEmailBefore: "Чтобы сменить почту, напиши нам в",
+    changeEmailOr: "или на",
+    save: "Сохранить",
+    confirmWord: "УДАЛИТЬ",
+    reauth: "Для безопасности выйди и войди снова, а затем удали аккаунт.",
+    wrongPassword: "Неверный пароль.",
+    deleteFailed: "Не удалось удалить аккаунт.",
+    deleted: "Аккаунт и все его данные удалены.",
+    danger: "Опасная зона",
+    dangerDescription: "Действия, которые нельзя отменить.",
+    deleteAccount: "Удалить аккаунт",
+    deleteWarning:
+      "Навсегда удаляет аккаунт, академический профиль, достижения, прогнозы, разборы эссе и прогресс тренировок. Отменить это нельзя.",
+    dialogTitle: "Удалить аккаунт?",
+    dialogDescription: "Все данные будут стёрты сразу. Восстановить их будет невозможно.",
+    yourPassword: "Твой пароль",
+    typeBefore: "Введи",
+    typeAfter: "для подтверждения",
+    cancel: "Отмена",
+    deleteForever: "Удалить навсегда",
+  },
+});
 
 export function AccountSettings() {
+  const t = useCopy(copy);
   const { data: session, refetch } = useSession();
   const [name, setName] = useState(session?.user?.name ?? "");
   const [isSaving, setIsSaving] = useState(false);
@@ -41,9 +103,9 @@ export function AccountSettings() {
     setIsSaving(true);
     const { error } = await authClient.updateUser({ name: name.trim() });
     if (error) {
-      toast.error(error.message ?? "Could not update your profile.");
+      toast.error(error.message ?? t.updateFailed);
     } else {
-      toast.success("Profile updated");
+      toast.success(t.updated);
       await refetch();
     }
     setIsSaving(false);
@@ -53,12 +115,12 @@ export function AccountSettings() {
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Account details</CardTitle>
-          <CardDescription>Update your personal information.</CardDescription>
+          <CardTitle>{t.details}</CardTitle>
+          <CardDescription>{t.detailsDescription}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Full name</Label>
+            <Label htmlFor="name">{t.fullName}</Label>
             <Input
               id="name"
               value={name}
@@ -67,10 +129,10 @@ export function AccountSettings() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t.email}</Label>
             <Input id="email" value={email} disabled className="h-9 max-w-sm" />
             <p className="text-xs text-muted-foreground">
-              To change your email, write to us on{" "}
+              {t.changeEmailBefore}{" "}
               <a
                 href={siteConfig.contact.telegramUrl}
                 target="_blank"
@@ -79,13 +141,13 @@ export function AccountSettings() {
               >
                 Telegram {siteConfig.contact.telegram}
               </a>{" "}
-              or at {siteConfig.contact.email}.
+              {t.changeEmailOr} {siteConfig.contact.email}.
             </p>
           </div>
           <div>
             <Button onClick={handleSave} disabled={!dirty || isSaving}>
               {isSaving ? <Loader2 className="animate-spin" /> : null}
-              Save changes
+              {t.save}
             </Button>
           </div>
         </CardContent>
@@ -96,8 +158,6 @@ export function AccountSettings() {
   );
 }
 
-const CONFIRM_WORD = "DELETE";
-
 /**
  * Permanently deletes the account and everything stored for it (see
  * lib/data/account.ts). Email accounts confirm with their password; Google
@@ -105,6 +165,8 @@ const CONFIRM_WORD = "DELETE";
  * signed in within the last day.
  */
 function DeleteAccountCard() {
+  const t = useCopy(copy);
+  const CONFIRM_WORD = t.confirmWord;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [hasPassword, setHasPassword] = useState<boolean | null>(null);
@@ -131,15 +193,15 @@ function DeleteAccountCard() {
     if (error) {
       setIsDeleting(false);
       if (error.code === "SESSION_EXPIRED") {
-        toast.error("For your safety, sign out and sign in again, then delete the account.");
+        toast.error(t.reauth);
       } else if (error.code === "INVALID_PASSWORD") {
-        toast.error("That password is not correct.");
+        toast.error(t.wrongPassword);
       } else {
-        toast.error(error.message ?? "Could not delete your account.");
+        toast.error(error.message ?? t.deleteFailed);
       }
       return;
     }
-    toast.success("Your account and all its data have been deleted.");
+    toast.success(t.deleted);
     router.replace("/");
     router.refresh();
   }
@@ -147,17 +209,14 @@ function DeleteAccountCard() {
   return (
     <Card className="border-destructive/30">
       <CardHeader>
-        <CardTitle className="text-destructive">Danger zone</CardTitle>
-        <CardDescription>Irreversible account actions.</CardDescription>
+        <CardTitle className="text-destructive">{t.danger}</CardTitle>
+        <CardDescription>{t.dangerDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <Alert variant="destructive">
           <TriangleAlert />
-          <AlertTitle>Delete account</AlertTitle>
-          <AlertDescription>
-            Permanently deletes your account, academic profile, achievements,
-            predictions and essay reviews. This cannot be undone.
-          </AlertDescription>
+          <AlertTitle>{t.deleteAccount}</AlertTitle>
+          <AlertDescription>{t.deleteWarning}</AlertDescription>
         </Alert>
 
         <Dialog
@@ -171,21 +230,18 @@ function DeleteAccountCard() {
           }}
         >
           <DialogTrigger render={<Button variant="destructive" className="mt-4" />}>
-            Delete account
+            {t.deleteAccount}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete your account?</DialogTitle>
-              <DialogDescription>
-                All your data will be erased right away. There is no way to
-                restore it.
-              </DialogDescription>
+              <DialogTitle>{t.dialogTitle}</DialogTitle>
+              <DialogDescription>{t.dialogDescription}</DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-col gap-4">
               {hasPassword ? (
                 <div className="grid gap-2">
-                  <Label htmlFor="delete-password">Your password</Label>
+                  <Label htmlFor="delete-password">{t.yourPassword}</Label>
                   <Input
                     id="delete-password"
                     type="password"
@@ -197,7 +253,7 @@ function DeleteAccountCard() {
               ) : null}
               <div className="grid gap-2">
                 <Label htmlFor="delete-confirm">
-                  Type <span className="font-mono font-semibold">{CONFIRM_WORD}</span> to confirm
+                  {t.typeBefore} <span className="font-mono font-semibold">{CONFIRM_WORD}</span> {t.typeAfter}
                 </Label>
                 <Input
                   id="delete-confirm"
@@ -209,10 +265,10 @@ function DeleteAccountCard() {
             </div>
 
             <DialogFooter>
-              <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+              <DialogClose render={<Button variant="outline" />}>{t.cancel}</DialogClose>
               <Button variant="destructive" onClick={handleDelete} disabled={!canDelete}>
                 {isDeleting ? <Loader2 className="animate-spin" /> : null}
-                Delete forever
+                {t.deleteForever}
               </Button>
             </DialogFooter>
           </DialogContent>

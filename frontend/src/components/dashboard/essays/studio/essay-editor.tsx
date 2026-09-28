@@ -8,6 +8,8 @@ import { HighlightTextarea, type Highlight } from "@/components/dashboard/essays
 import { PromptPicker, UniversityPicker } from "@/components/dashboard/essays/studio/studio-pickers";
 import { CUSTOM_PROMPT_ID, findPrompt } from "@/data/essay-prompts";
 import type { CheckIssue, CheckKind, EssayCheck } from "@/lib/essay-check";
+import { defineCopy, plural, type Locale } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import type { University } from "@/types/domain";
 
@@ -26,12 +28,61 @@ export const HIGHLIGHT_CLASS: Record<CheckKind, string> = {
   specific: "bg-emerald-400/10 shadow-[inset_0_-2px_0_0_rgb(52_211_153_/_0.8)]",
 };
 
-const KIND_LABEL: Record<CheckKind, string> = {
-  cliche: "Overused phrase",
-  passive: "Passive voice",
-  filler: "Filler word",
-  specific: "Strong detail",
-};
+const words = (locale: Locale, n: number) =>
+  `${n} ${plural(locale, n, locale === "ru" ? { one: "слово", few: "слова", many: "слов" } : { one: "word", other: "words" })}`;
+
+const copy = defineCopy({
+  en: {
+    kinds: { cliche: "Overused phrase", passive: "Passive voice", filler: "Filler word", specific: "Strong detail" },
+    tooBig: "That file is over 2 MB. Paste the text instead.",
+    wrongType: "Upload a .docx or .txt file — or copy the text from your PDF and paste it here.",
+    emptyFile: "That file has no text in it.",
+    loaded: (name: string) => `Loaded ${name}`,
+    unreadable: "Couldn't read that file. Copy the text and paste it here instead.",
+    untitled: "Untitled essay",
+    titleLabel: "Essay title",
+    yourQuestion: "Your question",
+    wordsMax: (n: number) => `${n} words max`,
+    customPlaceholder: "Paste the essay question your university asks…",
+    liveCheck: "Live check",
+    focusMode: "Focus mode",
+    upload: "Upload .docx",
+    emptyTitle: "Paste your essay or start writing",
+    emptyNote:
+      "Ctrl+V pastes a finished draft. The live check marks overused phrases, passive voice and strong details as you go.",
+    textLabel: "Essay text (in English)",
+    length: "Length",
+    minRead: (words: number) => `~${Math.max(1, Math.round(words / 220))} min read`,
+    over: (n: string) => `${n} over the limit — cut before you submit`,
+    ofLimit: (n: number, limit: number) => `${n} / ${limit} words`,
+    sweetSpot: (from: number, to: number) => `sweet spot ${from}–${to}`,
+  },
+  ru: {
+    kinds: { cliche: "Заезженная фраза", passive: "Пассивный залог", filler: "Слово-паразит", specific: "Сильная деталь" },
+    tooBig: "Файл больше 2 МБ. Вставь текст вручную.",
+    wrongType: "Загрузи файл .docx или .txt — или скопируй текст из PDF и вставь сюда.",
+    emptyFile: "В этом файле нет текста.",
+    loaded: (name: string) => `Загружено: ${name}`,
+    unreadable: "Не удалось прочитать файл. Скопируй текст и вставь его сюда.",
+    untitled: "Эссе без названия",
+    titleLabel: "Название эссе",
+    yourQuestion: "Твой вопрос",
+    wordsMax: (n: number) => `не больше ${n} слов`,
+    customPlaceholder: "Вставь вопрос эссе, который задаёт твой университет…",
+    liveCheck: "Живая проверка",
+    focusMode: "Режим фокуса",
+    upload: "Загрузить .docx",
+    emptyTitle: "Вставь эссе или начни писать",
+    emptyNote:
+      "Ctrl+V вставит готовый черновик. Живая проверка сразу отмечает заезженные фразы, пассивный залог и сильные детали.",
+    textLabel: "Текст эссе (на английском)",
+    length: "Объём",
+    minRead: (words: number) => `~${Math.max(1, Math.round(words / 220))} мин чтения`,
+    over: (n: string) => `На ${n} больше лимита — сократи перед подачей`,
+    ofLimit: (n: number, limit: number) => `${n} / ${limit} ${plural("ru", limit, { one: "слово", few: "слова", many: "слов" })}`,
+    sweetSpot: (from: number, to: number) => `оптимально ${from}–${to}`,
+  },
+});
 
 export const KIND_DOT: Record<CheckKind, string> = {
   cliche: "bg-amber-400",
@@ -63,6 +114,8 @@ export function EssayEditor({
   onToggleFocus: () => void;
   savedLabel: string | null;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const fileInput = useRef<HTMLInputElement>(null);
   const [caret, setCaret] = useState<number | null>(null);
   const prompt = findPrompt(draft.promptId);
@@ -87,7 +140,7 @@ export function EssayEditor({
 
   async function handleFile(file: File) {
     if (file.size > MAX_UPLOAD_BYTES) {
-      toast.error("That file is over 2 MB. Paste the text instead.");
+      toast.error(t.tooBig);
       return;
     }
     const name = file.name.toLowerCase();
@@ -100,21 +153,21 @@ export function EssayEditor({
       } else if (name.endsWith(".txt") || name.endsWith(".md")) {
         text = await file.text();
       } else {
-        toast.error("Upload a .docx or .txt file — or copy the text from your PDF and paste it here.");
+        toast.error(t.wrongType);
         return;
       }
       text = text.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
       if (!text) {
-        toast.error("That file has no text in it.");
+        toast.error(t.emptyFile);
         return;
       }
       onChange({
         text,
         title: draft.title.trim() ? draft.title : file.name.replace(/\.[^/.]+$/, ""),
       });
-      toast.success(`Loaded ${file.name}`);
+      toast.success(t.loaded(file.name));
     } catch {
-      toast.error("Couldn't read that file. Copy the text and paste it here instead.");
+      toast.error(t.unreadable);
     }
   }
 
@@ -133,8 +186,8 @@ export function EssayEditor({
         <input
           value={draft.title}
           onChange={(event) => onChange({ title: event.target.value })}
-          placeholder="Untitled essay"
-          aria-label="Essay title"
+          placeholder={t.untitled}
+          aria-label={t.titleLabel}
           maxLength={200}
           className="mt-4 w-full bg-transparent font-heading text-xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground/60 sm:text-2xl"
         />
@@ -142,9 +195,10 @@ export function EssayEditor({
         {prompt ? (
           <blockquote className="mt-3 border-l-[3px] border-brand pl-3.5">
             <p className="text-[11px] font-semibold tracking-wide text-brand uppercase">
-              Your question{prompt.wordLimit ? ` · ${prompt.wordLimit} words max` : ""}
+              {t.yourQuestion}
+              {prompt.wordLimit ? ` · ${t.wordsMax(prompt.wordLimit)}` : ""}
             </p>
-            <p className="mt-0.5 font-serif text-[15px] leading-relaxed text-muted-foreground italic">
+            <p lang="en" className="mt-0.5 font-serif text-[15px] leading-relaxed text-muted-foreground italic">
               {prompt.text}
             </p>
           </blockquote>
@@ -152,7 +206,7 @@ export function EssayEditor({
           <textarea
             value={draft.customPrompt}
             onChange={(event) => onChange({ customPrompt: event.target.value })}
-            placeholder="Paste the essay question your university asks…"
+            placeholder={t.customPlaceholder}
             rows={2}
             maxLength={2000}
             className="mt-3 w-full resize-none rounded-lg border-l-[3px] border-brand bg-muted/30 px-3.5 py-2 font-serif text-[15px] italic outline-none placeholder:text-muted-foreground/70"
@@ -163,15 +217,15 @@ export function EssayEditor({
       <div className="flex flex-wrap items-center gap-2 border-b bg-muted/20 px-5 py-2 sm:px-6">
         <ToolbarChip active={liveCheck} onClick={onToggleLiveCheck}>
           {liveCheck ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-          Live check
+          {t.liveCheck}
         </ToolbarChip>
         <ToolbarChip active={focusMode} onClick={onToggleFocus} className="hidden lg:inline-flex">
           {focusMode ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
-          Focus mode
+          {t.focusMode}
         </ToolbarChip>
         <ToolbarChip onClick={() => fileInput.current?.click()}>
           <Upload className="size-3.5" />
-          Upload .docx
+          {t.upload}
         </ToolbarChip>
         <input
           ref={fileInput}
@@ -195,15 +249,13 @@ export function EssayEditor({
             <span className="flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand">
               <ClipboardPaste className="size-5" />
             </span>
-            <p className="font-heading text-base font-semibold">Paste your essay or start writing</p>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              Ctrl+V pastes a finished draft. The live check marks overused phrases,
-              passive voice and strong details as you go.
-            </p>
+            <p className="font-heading text-base font-semibold">{t.emptyTitle}</p>
+            <p className="max-w-sm text-sm text-muted-foreground">{t.emptyNote}</p>
           </div>
         ) : null}
         <HighlightTextarea
           id="essay-text"
+          ariaLabel={t.textLabel}
           value={draft.text}
           onChange={(text) => onChange({ text })}
           highlights={highlights}
@@ -214,14 +266,14 @@ export function EssayEditor({
           <div className="mx-5 mb-3 flex items-start gap-2.5 rounded-lg border bg-muted/40 px-3 py-2 text-sm sm:mx-6">
             <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", KIND_DOT[issueAtCaret.kind])} />
             <p>
-              <span className="font-semibold">{KIND_LABEL[issueAtCaret.kind]}.</span>{" "}
-              <span className="text-muted-foreground">{issueAtCaret.message}</span>
+              <span className="font-semibold">{t.kinds[issueAtCaret.kind]}.</span>{" "}
+              <span className="text-muted-foreground">{issueAtCaret.message[locale]}</span>
             </p>
           </div>
         ) : null}
       </div>
 
-      <LengthMeter words={check.words} limit={prompt?.wordLimit ?? null} />
+      <LengthMeter locale={locale} words={check.words} limit={prompt?.wordLimit ?? null} />
     </section>
   );
 }
@@ -253,28 +305,29 @@ function ToolbarChip({
   );
 }
 
-function LengthMeter({ words, limit }: { words: number; limit: number | null }) {
+function LengthMeter({ locale, words: count, limit }: { locale: Locale; words: number; limit: number | null }) {
+  const t = copy[locale];
   if (!limit) {
     return (
       <div className="flex justify-between border-t px-5 py-3 text-xs text-muted-foreground sm:px-6">
-        <span>Length</span>
+        <span>{t.length}</span>
         <span className="font-mono">
-          {words} words · ~{Math.max(1, Math.round(words / 220))} min read
+          {words(locale, count)} · {t.minRead(count)}
         </span>
       </div>
     );
   }
 
-  const over = words > limit;
+  const over = count > limit;
   const sweetFrom = Math.round(limit * 0.75);
-  const fill = Math.min(100, (words / limit) * 100);
+  const fill = Math.min(100, (count / limit) * 100);
 
   return (
     <div className="border-t px-5 pt-3 pb-4 sm:px-6">
       <div className="mb-2 flex justify-between text-xs text-muted-foreground">
-        <span>{over ? `${words - limit} words over the limit — cut before you submit` : "Length"}</span>
+        <span>{over ? t.over(words(locale, count - limit)) : t.length}</span>
         <span className={cn("font-mono font-semibold", over ? "text-rose-400" : "text-foreground")}>
-          {words} / {limit} words
+          {t.ofLimit(count, limit)}
         </span>
       </div>
       <div className="relative h-2 rounded-full bg-muted">
@@ -293,7 +346,7 @@ function LengthMeter({ words, limit }: { words: number; limit: number | null }) 
       <div className="mt-1.5 flex justify-between font-mono text-[11px] text-muted-foreground">
         <span>0</span>
         <span className="text-emerald-400/80">
-          sweet spot {sweetFrom}–{limit}
+          {t.sweetSpot(sweetFrom, limit)}
         </span>
         <span>{limit}</span>
       </div>

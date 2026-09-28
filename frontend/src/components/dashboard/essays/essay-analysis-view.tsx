@@ -18,7 +18,62 @@ import { EssayStrengthsWeaknesses } from "@/components/dashboard/essays/essay-st
 import { EssayClicheDetector } from "@/components/dashboard/essays/essay-cliche-detector";
 import { EssayAlignmentCard } from "@/components/dashboard/essays/essay-alignment-card";
 import { EssayRecommendationsList } from "@/components/dashboard/essays/essay-recommendations-list";
+import { defineCopy, formatDate, plural } from "@/lib/i18n/core";
+import { useCopy, useLocale } from "@/lib/i18n/client";
 import type { EssayAnalysisResult, EssayReviewRead } from "@/types/essay";
+
+const copy = defineCopy({
+  en: {
+    copyTitle: "=== Acceptify AI Essay Review ===",
+    title: "Title",
+    overall: "Overall score",
+    verdict: "Verdict",
+    categories: "Category breakdown",
+    voice: "Voice & authenticity",
+    storytelling: "Storytelling",
+    structure: "Structure",
+    clarity: "Clarity & tone",
+    grammar: "Grammar & mechanics",
+    strengths: "Key strengths",
+    growth: "Areas for growth",
+    nextSteps: "Next steps",
+    copied: "Review summary copied",
+    fallbackTitle: "Admissions essay review",
+    words: (n: number) => `${n} words`,
+    reviewed: (date: string) => `Reviewed ${date}`,
+    copiedShort: "Copied",
+    copyFeedback: "Copy feedback",
+    another: "Review another draft",
+    submitted: (words: string) => `Submitted draft (${words})`,
+    hide: "Hide text",
+    show: "Show full text",
+  },
+  ru: {
+    copyTitle: "=== Разбор эссе Acceptify AI ===",
+    title: "Название",
+    overall: "Общая оценка",
+    verdict: "Вердикт",
+    categories: "Оценки по категориям",
+    voice: "Голос и искренность",
+    storytelling: "История",
+    structure: "Структура",
+    clarity: "Ясность и тон",
+    grammar: "Грамматика",
+    strengths: "Сильные стороны",
+    growth: "Что улучшить",
+    nextSteps: "Следующие шаги",
+    copied: "Краткий разбор скопирован",
+    fallbackTitle: "Разбор эссе для поступления",
+    words: (n: number) => `${n} ${plural("ru", n, { one: "слово", few: "слова", many: "слов" })}`,
+    reviewed: (date: string) => `Разобрано ${date}`,
+    copiedShort: "Скопировано",
+    copyFeedback: "Скопировать отзыв",
+    another: "Разобрать другой черновик",
+    submitted: (words: string) => `Отправленный черновик (${words})`,
+    hide: "Скрыть текст",
+    show: "Показать полностью",
+  },
+});
 
 interface EssayAnalysisViewProps {
   review: EssayReviewRead;
@@ -31,6 +86,8 @@ export function EssayAnalysisView({
   onReset,
   universityName,
 }: EssayAnalysisViewProps) {
+  const t = useCopy(copy);
+  const locale = useLocale();
   const [showFullText, setShowFullText] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -39,31 +96,31 @@ export function EssayAnalysisView({
   const result = review.analysis_result as EssayAnalysisResult;
 
   const handleCopyFeedback = () => {
-    const textToCopy = `=== Acceptify AI Essay Review ===
-Title: ${review.title}
-Overall Score: ${result.overall_score}/100
-Verdict: ${result.headline_verdict}
+    const textToCopy = `${t.copyTitle}
+${t.title}: ${review.title}
+${t.overall}: ${result.overall_score}/100
+${t.verdict}: ${result.headline_verdict}
 
-Category Breakdown:
-- Voice & Authenticity: ${result.category_scores.voice_and_authenticity}%
-- Storytelling: ${result.category_scores.storytelling}%
-- Structure: ${result.category_scores.structure}%
-- Clarity & Tone: ${result.category_scores.clarity_and_flow}%
-- Grammar & Mechanics: ${result.category_scores.grammar_and_mechanics}%
+${t.categories}:
+- ${t.voice}: ${result.category_scores.voice_and_authenticity}%
+- ${t.storytelling}: ${result.category_scores.storytelling}%
+- ${t.structure}: ${result.category_scores.structure}%
+- ${t.clarity}: ${result.category_scores.clarity_and_flow}%
+- ${t.grammar}: ${result.category_scores.grammar_and_mechanics}%
 
-Key Strengths:
+${t.strengths}:
 ${result.strengths.map((s, i) => `${i + 1}. ${s}`).join("\n")}
 
-Areas for Growth:
+${t.growth}:
 ${result.weaknesses.map((w, i) => `${i + 1}. ${w}`).join("\n")}
 
-Next Steps:
+${t.nextSteps}:
 ${result.suggested_next_steps.map((step, i) => `${i + 1}. ${step}`).join("\n")}
 `;
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
-    toast.success("Essay evaluation summary copied to clipboard!");
+    toast.success(t.copied);
     setTimeout(() => setCopied(false), 2500);
   };
 
@@ -74,7 +131,7 @@ ${result.suggested_next_steps.map((step, i) => `${i + 1}. ${step}`).join("\n")}
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              {review.title || "Admissions Essay Review"}
+              {review.title || t.fallbackTitle}
             </h2>
             {universityName && (
               <Badge variant="secondary" className="gap-1 font-normal text-xs">
@@ -84,21 +141,21 @@ ${result.suggested_next_steps.map((step, i) => `${i + 1}. ${step}`).join("\n")}
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span>{review.word_count} words</span>
+            <span>{t.words(review.word_count)}</span>
             <span>•</span>
-            <span>Reviewed {new Date(review.created_at).toLocaleDateString()}</span>
+            <span>{t.reviewed(formatDate(locale, review.created_at))}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
           <Button variant="outline" size="sm" onClick={handleCopyFeedback} className="gap-1.5 text-xs">
             {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-            <span>{copied ? "Copied" : "Copy Feedback"}</span>
+            <span>{copied ? t.copiedShort : t.copyFeedback}</span>
           </Button>
 
           <Button size="sm" onClick={onReset} className="gap-1.5 text-xs">
             <RotateCcw className="h-3.5 w-3.5" />
-            <span>Review Another Draft</span>
+            <span>{t.another}</span>
           </Button>
         </div>
       </div>
@@ -112,20 +169,20 @@ ${result.suggested_next_steps.map((step, i) => `${i + 1}. ${step}`).join("\n")}
         >
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
-            <span>Submitted Essay Draft ({review.word_count} words)</span>
+            <span>{t.submitted(t.words(review.word_count))}</span>
           </div>
           <div className="flex items-center gap-1 text-muted-foreground text-xs">
-            <span>{showFullText ? "Hide text" : "Show full text"}</span>
+            <span>{showFullText ? t.hide : t.show}</span>
             {showFullText ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </div>
         </button>
 
         {showFullText ? (
-          <div className="mt-4 pt-4 border-t text-xs sm:text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed font-serif bg-background p-4 rounded-lg border">
+          <div lang="en" className="mt-4 pt-4 border-t text-xs sm:text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed font-serif bg-background p-4 rounded-lg border">
             {review.essay_text}
           </div>
         ) : (
-          <p className="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+          <p lang="en" className="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {review.essay_snippet}
           </p>
         )}

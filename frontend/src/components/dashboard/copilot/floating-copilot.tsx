@@ -18,18 +18,60 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { describeApiError } from "@/lib/api-error";
 import { sendCopilotMessage } from "@/lib/copilot-client";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import type { ChatMessage } from "@/types/copilot";
 
 type Corner = "bottom-right" | "bottom-left" | "top-right" | "top-left";
 
-const INITIAL_SUGGESTIONS = [
-  "Как оценить мои шансы на поступление?",
-  "Какие требования у топовых вузов по SAT/IELTS?",
-  "Как составить сбалансированный список вузов?",
-  "Что самое важное в мотивационном эссе?",
-];
+const copy = defineCopy({
+  en: {
+    suggestions: [
+      "How do I estimate my chances of getting in?",
+      "What SAT/IELTS scores do top universities ask for?",
+      "How do I build a balanced university list?",
+      "What matters most in a personal essay?",
+    ],
+    greeting:
+      "👋 Hi! I'm **Acceptify AI Copilot**.\n\nI know your academic profile and can help with your admissions strategy, choosing universities, exam prep and deadlines. What can I help with?",
+    error: "The AI connection had a temporary problem. Please try again.",
+    mentor: "AI admissions mentor",
+    collapse: "Collapse",
+    expand: "Expand",
+    cleared: "History cleared. How can I help with your applications?",
+    clear: "Clear the conversation",
+    close: "Close",
+    thinking: "Looking at your profile...",
+    placeholder: "Ask about your chances, essays or deadlines...",
+    send: "Send",
+    open: "Acceptify AI mentor (drag it to any corner)",
+  },
+  ru: {
+    suggestions: [
+      "Как оценить мои шансы на поступление?",
+      "Какие баллы SAT/IELTS нужны в топовые вузы?",
+      "Как составить сбалансированный список вузов?",
+      "Что самое важное в мотивационном эссе?",
+    ],
+    greeting:
+      "👋 Привет! Я **Acceptify AI Copilot**.\n\nЯ знаю твой академический профиль и могу помочь со стратегией поступления, выбором вузов, подготовкой к экзаменам и дедлайнами. Чем помочь?",
+    error: "Временная ошибка связи с ИИ. Попробуй ещё раз.",
+    mentor: "ИИ-наставник по поступлению",
+    collapse: "Свернуть",
+    expand: "Развернуть",
+    cleared: "История очищена. Чем помочь с поступлением?",
+    clear: "Очистить диалог",
+    close: "Закрыть",
+    thinking: "Смотрю твой профиль...",
+    placeholder: "Спроси о шансах, эссе или дедлайнах...",
+    send: "Отправить",
+    open: "ИИ-наставник Acceptify (можно перетащить в любой угол)",
+  },
+});
 
 export function FloatingCopilot() {
+  const t = useCopy(copy);
+  const INITIAL_SUGGESTIONS = t.suggestions;
   const [mounted, setMounted] = useState(false);
   const [corner, setCorner] = useState<Corner>("bottom-right");
   const [isOpen, setIsOpen] = useState(false);
@@ -38,13 +80,7 @@ export function FloatingCopilot() {
   useEffect(() => {
     setMounted(true);
   }, []);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      content:
-        "👋 Привет! Я ваш **Acceptify AI Copilot** на базе **Gemini 3.7 Flash**.\n\nЯ знаю ваш академический профиль и могу помочь со стратегией поступления, выбором вузов, подготовкой к экзаменам и дедлайнам. Чем могу помочь?",
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([{ role: "assistant", content: t.greeting }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [followups, setFollowups] = useState<string[]>(INITIAL_SUGGESTIONS);
@@ -119,10 +155,7 @@ export function FloatingCopilot() {
         ...prev,
         {
           role: "assistant",
-          content: `⚠️ ${describeApiError(
-            err,
-            "Произошла временная ошибка соединения с AI. Пожалуйста, попробуйте еще раз.",
-          )}`,
+          content: `⚠️ ${describeApiError(err, t.error)}`,
         },
       ]);
     } finally {
@@ -184,10 +217,10 @@ export function FloatingCopilot() {
                     <div className="flex items-center gap-1.5">
                       <h3 className="font-heading text-sm font-semibold leading-none">Acceptify Copilot</h3>
                       <Badge variant="secondary" className="h-4 text-[10px] px-1 font-mono font-normal">
-                        Gemini 3.7
+                        Gemini
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">AI Admissions Mentor</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{t.mentor}</p>
                   </div>
                 </div>
 
@@ -197,7 +230,8 @@ export function FloatingCopilot() {
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-foreground"
                     onClick={() => setIsExpanded(!isExpanded)}
-                    title={isExpanded ? "Свернуть" : "Развернуть"}
+                    title={isExpanded ? t.collapse : t.expand}
+                    aria-label={isExpanded ? t.collapse : t.expand}
                   >
                     {isExpanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
                   </Button>
@@ -209,12 +243,13 @@ export function FloatingCopilot() {
                       setMessages([
                         {
                           role: "assistant",
-                          content: "История очищена. Чем могу помочь по вашему поступлению?",
+                          content: t.cleared,
                         },
                       ]);
                       setFollowups(INITIAL_SUGGESTIONS);
                     }}
-                    title="Очистить диалог"
+                    title={t.clear}
+                    aria-label={t.clear}
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                   </Button>
@@ -223,7 +258,8 @@ export function FloatingCopilot() {
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-foreground"
                     onClick={() => setIsOpen(false)}
-                    title="Закрыть"
+                    title={t.close}
+                    aria-label={t.close}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -262,7 +298,7 @@ export function FloatingCopilot() {
                 {isLoading && (
                   <div className="flex gap-2.5 items-center text-muted-foreground text-xs pl-2">
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <span>Gemini 3.7 анализирует ваш профиль...</span>
+                    <span>{t.thinking}</span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -299,13 +335,14 @@ export function FloatingCopilot() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Спросите о шансах, эссе или дедлайнах..."
+                    placeholder={t.placeholder}
                     className="flex-1 resize-none bg-muted/60 border border-input rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary min-h-[36px] max-h-[90px]"
                   />
                   <Button
                     type="submit"
                     size="icon"
                     disabled={!input.trim() || isLoading}
+                    aria-label={t.send}
                     className="h-9 w-9 shrink-0 rounded-xl"
                   >
                     <Send className="h-4 w-4" />
@@ -338,7 +375,8 @@ export function FloatingCopilot() {
             onClick={() => {
               if (!isDragging) setIsOpen(!isOpen);
             }}
-            title="Acceptify AI Mentor (Перемещайте в любой угол)"
+            title={t.open}
+            aria-label={t.open}
             className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary via-violet-600 to-indigo-700 text-white shadow-xl ring-2 ring-background cursor-grab active:cursor-grabbing"
           >
             <motion.div

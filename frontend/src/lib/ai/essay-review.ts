@@ -302,7 +302,8 @@ export function formatEssayPrompt(input: EssayReviewInput): string {
 
   sections.push(
     `Write every comment, suggestion, assessment and verdict in ${LANGUAGE_NAME[language]}. ` +
-      "Keep every \"quote\" exactly as it appears in the essay, in the essay's own language.",
+      "Keep every \"quote\" exactly as it appears in the essay, in the essay's own language. " +
+      "Every \"example\" is a rewritten essay sentence, so write it in the essay's own language (English), never translated.",
   );
 
   return sections.join("\n\n");

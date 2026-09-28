@@ -12,10 +12,14 @@ import {
 } from "@/lib/profile";
 import { getUniversities } from "@/lib/universities-server";
 import { getDeclaredField } from "@/lib/weights-server";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Analysis",
-};
+const copy = defineCopy({ en: { title: "Analysis" }, ru: { title: "Анализ" } });
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].title };
+}
 
 export default async function AnalysisPage({
   searchParams,

@@ -15,22 +15,45 @@ import {
 } from "@/lib/profile";
 import { getUniversities } from "@/lib/universities-server";
 import { resolveWeightsByUniversity } from "@/lib/weights-server";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Portfolio",
-};
+const copy = defineCopy({
+  en: {
+    meta: "Portfolio",
+    title: "Application portfolio",
+    subtitle: "What your applications add up to, taken together.",
+    first: "Complete your profile first",
+    firstNote: "Add at least one academic score and we can build your portfolio.",
+    complete: "Complete your profile",
+  },
+  ru: {
+    meta: "Портфолио",
+    title: "Портфель заявок",
+    subtitle: "Что дают все твои заявки вместе.",
+    first: "Сначала заполни профиль",
+    firstNote: "Добавь хотя бы один академический балл — и мы соберём твой портфель.",
+    complete: "Заполнить профиль",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].meta };
+}
 
 /** Below this, a saved list is too thin to be a strategy, so the page offers
  * a balanced starting one instead — and says that it is doing so. */
 const MIN_SAVED_FOR_OWN_LIST = 3;
 
 export default async function PortfolioPage() {
-  const [academic, records, universities, history] = await Promise.all([
+  const [academic, records, universities, history, locale] = await Promise.all([
     getAcademicProfile(),
     getAchievementRecords(),
     getUniversities(),
     getPredictionHistory(),
+    getLocale(),
   ]);
+  const t = copy[locale];
 
   const achievements = resolveAchievements(records);
   const completeness = computeProfileCompleteness(academic, achievements);
@@ -40,24 +63,20 @@ export default async function PortfolioPage() {
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            Application portfolio
+            {t.title}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            What your applications add up to, taken together.
-          </p>
+          <p className="text-sm text-muted-foreground">{t.subtitle}</p>
         </div>
         <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
           <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Sparkles className="size-5" />
           </span>
           <div>
-            <p className="text-sm font-medium text-foreground">Complete your profile first</p>
-            <p className="text-xs text-muted-foreground">
-              Add at least one academic score and we can build your portfolio.
-            </p>
+            <p className="text-sm font-medium text-foreground">{t.first}</p>
+            <p className="text-xs text-muted-foreground">{t.firstNote}</p>
           </div>
           <Button render={<Link href="/dashboard/profile" />} size="sm" className="mt-1">
-            Complete your profile
+            {t.complete}
           </Button>
         </div>
       </div>
@@ -84,7 +103,7 @@ export default async function PortfolioPage() {
     ? suggestShortlist(universities, profile, weightsByUniversity, completeness)
     : saved;
 
-  const portfolio = buildPortfolio(shortlist, profile, weightsByUniversity, completeness);
+  const portfolio = buildPortfolio(shortlist, profile, weightsByUniversity, completeness, locale);
 
   return <PortfolioView portfolio={portfolio} isSuggested={isSuggested} />;
 }

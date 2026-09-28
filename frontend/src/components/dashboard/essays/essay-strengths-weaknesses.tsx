@@ -2,6 +2,13 @@
 
 import { CheckCircle2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: { strengths: (n: number) => `Key strengths (${n})`, weaknesses: (n: number) => `What to revise first (${n})` },
+  ru: { strengths: (n: number) => `Сильные стороны (${n})`, weaknesses: (n: number) => `Что доработать в первую очередь (${n})` },
+});
 
 interface EssayStrengthsWeaknessesProps {
   strengths: string[];
@@ -12,6 +19,7 @@ export function EssayStrengthsWeaknesses({
   strengths,
   weaknesses,
 }: EssayStrengthsWeaknessesProps) {
+  const t = useCopy(copy);
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       {/* Key Strengths */}
@@ -22,7 +30,7 @@ export function EssayStrengthsWeaknesses({
               <CheckCircle2 className="h-4 w-4" />
             </div>
             <CardTitle className="text-base font-semibold text-emerald-950 dark:text-emerald-200">
-              Key Strengths ({strengths.length})
+              {t.strengths(strengths.length)}
             </CardTitle>
           </div>
         </CardHeader>
@@ -46,7 +54,7 @@ export function EssayStrengthsWeaknesses({
               <AlertCircle className="h-4 w-4" />
             </div>
             <CardTitle className="text-base font-semibold text-amber-950 dark:text-amber-200">
-              Core Revision Areas ({weaknesses.length})
+              {t.weaknesses(weaknesses.length)}
             </CardTitle>
           </div>
         </CardHeader>

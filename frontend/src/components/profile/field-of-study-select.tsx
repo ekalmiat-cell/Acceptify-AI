@@ -12,6 +12,32 @@ import { resolveProgram } from "@/lib/programs-client";
 import { updateAcademicProfile } from "@/lib/profile-client";
 import type { AcademicProfile, University } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
+import { fieldName } from "@/lib/catalog-copy";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    tuned: (field: string, university: string) => `Evaluation model tuned for ${field} at ${university}`,
+    failed: "Could not save your intended field of study.",
+    title: "Choose your intended field of study",
+    subtitle: (university: string) =>
+      `Select the academic field you plan to apply for at ${university}. Acceptify AI will adjust its evaluation model specifically for your chosen program.`,
+    fields: "Fields of study",
+    fieldsNote: "Pick the one field that best matches your intended program.",
+    continue: "Continue",
+  },
+  ru: {
+    tuned: (field: string, university: string) => `Модель оценки настроена: ${field}, ${university}`,
+    failed: "Не удалось сохранить направление обучения.",
+    title: "Выбери направление обучения",
+    subtitle: (university: string) =>
+      `Выбери направление, на которое планируешь подавать в ${university}. Acceptify AI настроит модель оценки именно под эту программу.`,
+    fields: "Направления",
+    fieldsNote: "Выбери одно направление, которое лучше всего подходит под твою программу.",
+    continue: "Продолжить",
+  },
+});
 
 export function FieldOfStudySelect({
   university,
@@ -20,6 +46,8 @@ export function FieldOfStudySelect({
   university: University;
   profile: AcademicProfile;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const router = useRouter();
   const [field, setField] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -30,11 +58,11 @@ export function FieldOfStudySelect({
     try {
       const program = await resolveProgram(university.id, field);
       await updateAcademicProfile({ ...profile, dreamProgramId: program.id });
-      toast.success(`Evaluation model tuned for ${field} at ${university.shortName}`);
+      toast.success(t.tuned(fieldName(field, locale), university.shortName));
       router.push("/dashboard/analysis");
       router.refresh();
     } catch (error) {
-      toast.error(describeApiError(error, "Could not save your intended field of study."));
+      toast.error(describeApiError(error, t.failed));
     } finally {
       setIsSaving(false);
     }
@@ -48,19 +76,16 @@ export function FieldOfStudySelect({
         </span>
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight">
-            Choose Your Intended Field of Study
+            {t.title}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Select the academic field you plan to apply for at {university.name}. Acceptify AI will
-            adjust its evaluation model specifically for your chosen program.
-          </p>
+          <p className="text-sm text-muted-foreground">{t.subtitle(university.name)}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Fields of study</CardTitle>
-          <CardDescription>Pick the one field that best matches your intended program.</CardDescription>
+          <CardTitle>{t.fields}</CardTitle>
+          <CardDescription>{t.fieldsNote}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
@@ -82,7 +107,7 @@ export function FieldOfStudySelect({
                   ) : (
                     <span className="size-4 shrink-0 rounded-full border border-border" />
                   )}
-                  <span className="truncate">{option}</span>
+                  <span className="truncate">{fieldName(option, locale)}</span>
                 </button>
               );
             })}
@@ -91,7 +116,7 @@ export function FieldOfStudySelect({
           <div className="mt-6 flex justify-end">
             <Button onClick={handleContinue} disabled={!field || isSaving}>
               {isSaving ? <Loader2 className="animate-spin" /> : null}
-              Continue
+              {t.continue}
             </Button>
           </div>
         </CardContent>

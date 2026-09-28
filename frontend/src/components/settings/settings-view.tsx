@@ -3,6 +3,10 @@
 import { useSearchParams } from "next/navigation";
 import { Palette, Bell, UserRound, CreditCard } from "lucide-react";
 
+import { LanguageSettings } from "@/components/settings/language-settings";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSettings } from "@/components/settings/theme-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
@@ -10,13 +14,19 @@ import { AccountSettings } from "@/components/settings/account-settings";
 import { BillingSettings } from "@/components/settings/billing-settings";
 
 const tabs = [
-  { value: "theme", label: "Theme", icon: Palette },
-  { value: "notifications", label: "Notifications", icon: Bell },
-  { value: "account", label: "Account", icon: UserRound },
-  { value: "billing", label: "Billing", icon: CreditCard },
+  { value: "theme", icon: Palette },
+  { value: "notifications", icon: Bell },
+  { value: "account", icon: UserRound },
+  { value: "billing", icon: CreditCard },
 ] as const;
 
+const copy = defineCopy({
+  en: { theme: "Language and theme", notifications: "Notifications", account: "Account", billing: "Billing" },
+  ru: { theme: "Язык и тема", notifications: "Уведомления", account: "Аккаунт", billing: "Тариф" },
+});
+
 export function SettingsView({ predictionsUsed }: { predictionsUsed: number }) {
+  const t = useCopy(copy);
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const defaultTab = tabs.some((t) => t.value === requestedTab) ? requestedTab! : "theme";
@@ -34,13 +44,14 @@ export function SettingsView({ predictionsUsed }: { predictionsUsed: number }) {
             className="justify-start gap-2 px-3 py-2 data-active:bg-muted"
           >
             <tab.icon className="size-4" />
-            {tab.label}
+            {t[tab.value]}
           </TabsTrigger>
         ))}
       </TabsList>
 
       <div className="min-w-0 flex-1">
-        <TabsContent value="theme">
+        <TabsContent value="theme" className="flex flex-col gap-4">
+          <LanguageSettings />
           <ThemeSettings />
         </TabsContent>
         <TabsContent value="notifications">

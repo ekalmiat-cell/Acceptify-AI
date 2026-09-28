@@ -28,15 +28,60 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { siteConfig } from "@/config/site";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 
-const labelOverrides: Record<string, string> = {
-  dashboard: "Overview",
-  universities: "Universities",
-  profile: "Profile",
-  settings: "Settings",
-};
+const copy = defineCopy({
+  en: {
+    segments: {
+      dashboard: "Overview",
+      universities: "Universities",
+      analysis: "Analysis",
+      essays: "Essay Studio",
+      training: "Training",
+      portfolio: "Portfolio",
+      profile: "Profile",
+      methodology: "Methodology",
+      "field-of-study": "Field of study",
+      admin: "Admin",
+      settings: "Settings",
+    } as Record<string, string>,
+    drill: "Drill",
+    yourSentence: "Your sentence",
+    notifications: "Notifications",
+    noNotifications: "No notifications yet",
+    freePlan: "Free plan",
+    feedback: "Feedback",
+    feedbackTitle: "Found a bug or have an idea?",
+    feedbackNote: "Acceptify is in beta — every message is read by the founder and helps decide what to fix next.",
+  },
+  ru: {
+    segments: {
+      dashboard: "Обзор",
+      universities: "Университеты",
+      analysis: "Анализ",
+      essays: "Эссе-студия",
+      training: "Тренировка",
+      portfolio: "Портфолио",
+      profile: "Профиль",
+      methodology: "Методология",
+      "field-of-study": "Направление",
+      admin: "Админка",
+      settings: "Настройки",
+    },
+    drill: "Упражнение",
+    yourSentence: "Твоё предложение",
+    notifications: "Уведомления",
+    noNotifications: "Уведомлений пока нет",
+    freePlan: "Бесплатный план",
+    feedback: "Отзыв",
+    feedbackTitle: "Есть ошибка или идея?",
+    feedbackNote: "Acceptify в бете — каждое сообщение читает основатель, и оно помогает решить, что чинить дальше.",
+  },
+});
 
 export function DashboardHeader() {
+  const t = useCopy(copy);
   const pathname = usePathname() ?? "";
   const segments = pathname.split("/").filter(Boolean);
 
@@ -50,9 +95,9 @@ export function DashboardHeader() {
             const href = "/" + segments.slice(0, index + 1).join("/");
             const isLast = index === segments.length - 1;
             const label =
-              labelOverrides[segment] ??
+              t.segments[segment] ??
               // Training drills have ids, not names; one from the student's own essay says so.
-              (segments[index - 1] === "training" ? (segment.startsWith("own-") ? "Your sentence" : "Drill") : null) ??
+              (segments[index - 1] === "training" ? (segment.startsWith("own-") ? t.yourSentence : t.drill) : null) ??
               segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
             return (
@@ -84,16 +129,16 @@ export function DashboardHeader() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuGroup>
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuLabel>{t.notifications}</DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-              No notifications yet
+              {t.noNotifications}
             </div>
           </DropdownMenuContent>
         </DropdownMenu>
         <Badge variant="outline" className="hidden sm:inline-flex">
-          Free plan
+          {t.freePlan}
         </Badge>
       </div>
     </header>
@@ -105,19 +150,17 @@ export function DashboardHeader() {
  * Acceptify, reachable from every dashboard page.
  */
 function FeedbackMenu() {
+  const t = useCopy(copy);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" size="sm" className="gap-1.5" />}>
         <MessageSquareText />
-        <span className="hidden sm:inline">Feedback</span>
+        <span className="hidden sm:inline">{t.feedback}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Found a bug or have an idea?</DropdownMenuLabel>
-          <p className="px-1.5 pb-2 text-xs text-muted-foreground">
-            Acceptify is in beta — every message is read by the founder and
-            helps decide what to fix next.
-          </p>
+          <DropdownMenuLabel>{t.feedbackTitle}</DropdownMenuLabel>
+          <p className="px-1.5 pb-2 text-xs text-muted-foreground">{t.feedbackNote}</p>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

@@ -4,21 +4,44 @@ import { useEffect, useState } from "react";
 import { Check, Loader2, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 
-const STEPS = [
-  "Reading the whole essay like an admissions officer…",
-  "Scoring six criteria against the rubric…",
-  "Commenting on individual sentences…",
-  "Mapping what each paragraph does…",
-  "Working out your path to 90+…",
-];
+const copy = defineCopy({
+  en: {
+    steps: [
+      "Reading the whole essay like an admissions officer…",
+      "Scoring six criteria against the rubric…",
+      "Commenting on individual sentences…",
+      "Mapping what each paragraph does…",
+      "Working out your path to 90+…",
+    ],
+    title: "Reviewing your essay",
+    note: "A careful read takes about 30 seconds. Stay on this page — your draft is saved.",
+    evaluating: "Evaluating draft",
+  },
+  ru: {
+    steps: [
+      "Читаю эссе целиком, как сотрудник приёмной комиссии…",
+      "Оцениваю шесть критериев по рубрике…",
+      "Комментирую отдельные предложения…",
+      "Разбираю, что делает каждый абзац…",
+      "Составляю твой путь к 90+…",
+    ],
+    title: "Разбираю твоё эссе",
+    note: "Внимательное чтение занимает около 30 секунд. Не уходи со страницы — черновик сохранён.",
+    evaluating: "Оценка черновика",
+  },
+});
 
 export function EssayLoadingState() {
+  const t = useCopy(copy);
+  const STEPS = t.steps;
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveStep((prev) => (prev < STEPS.length - 1 ? prev + 1 : prev));
+      setActiveStep((prev) => (prev < copy.en.steps.length - 1 ? prev + 1 : prev));
     }, 5000);
 
     return () => clearInterval(timer);
@@ -35,17 +58,15 @@ export function EssayLoadingState() {
 
         <div className="space-y-2">
           <h3 className="text-xl font-bold tracking-tight text-foreground">
-            Reviewing your essay
+            {t.title}
           </h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            A careful read takes about 30 seconds. Stay on this page — your draft is saved.
-          </p>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">{t.note}</p>
         </div>
 
         <div className="space-y-2 max-w-md mx-auto">
           <Progress value={progressPercent} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Evaluating draft</span>
+            <span>{t.evaluating}</span>
             <span>{progressPercent}%</span>
           </div>
         </div>

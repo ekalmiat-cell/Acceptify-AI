@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin, GraduationCap, Sparkles } from "lucide-react";
 
@@ -5,6 +7,15 @@ import { Button } from "@/components/ui/button";
 import { MatchBadge } from "@/components/shared/match-badge";
 import type { MatchCategory, University } from "@/types/domain";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { countryName } from "@/lib/countries";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
+import { tagName } from "@/lib/university-copy";
+
+const copy = defineCopy({
+  en: { general: "General", rank: (n: number) => `Rank #${n}`, match: "Your match", details: "Details", analyze: "Analyze" },
+  ru: { general: "Без оценки", rank: (n: number) => `Место #${n}`, match: "Твоё соответствие", details: "Подробнее", analyze: "Анализ" },
+});
 
 export function UniversityCard({
   university,
@@ -15,6 +26,8 @@ export function UniversityCard({
   score: number | null;
   category: MatchCategory | null;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   return (
     <div className="hover-lift group flex flex-col justify-between rounded-2xl bg-card p-5">
       <div className="flex flex-col gap-4">
@@ -30,7 +43,7 @@ export function UniversityCard({
           ) : (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
               <span className="size-1.5 rounded-full bg-muted-foreground/50" />
-              General
+              {t.general}
             </span>
           )}
         </div>
@@ -46,7 +59,7 @@ export function UniversityCard({
           </h3>
           <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="size-3" />
-            {university.city}, {university.country}
+            {university.city}, {countryName(university.country, locale)}
           </p>
         </div>
 
@@ -56,7 +69,7 @@ export function UniversityCard({
               key={tag}
               className="rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground"
             >
-              {tag}
+              {tagName(tag, locale)}
             </span>
           ))}
         </div>
@@ -66,10 +79,10 @@ export function UniversityCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <GraduationCap className="size-3.5" />
-            Rank #{university.worldRanking}
+            {t.rank(university.worldRanking)}
           </div>
           <div className="text-right">
-            <p className="text-[0.65rem] text-muted-foreground">Your match</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t.match}</p>
             <p className="font-mono text-base font-semibold leading-none text-foreground">
               {score !== null && score !== undefined ? `${score}%` : "—"}
             </p>
@@ -83,7 +96,7 @@ export function UniversityCard({
             render={<Link href={`/dashboard/universities/${university.slug}`} />}
             className="h-7 w-full text-xs"
           >
-            Details
+            {t.details}
           </Button>
           <Button
             size="xs"
@@ -92,7 +105,7 @@ export function UniversityCard({
             className="h-7 w-full gap-1 bg-gradient-brand text-xs text-white hover:opacity-90"
           >
             <Sparkles className="size-3" />
-            Analyze
+            {t.analyze}
           </Button>
         </div>
       </div>

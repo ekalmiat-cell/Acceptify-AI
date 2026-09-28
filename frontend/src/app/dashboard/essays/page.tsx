@@ -5,13 +5,26 @@ import { EssayStudio } from "@/components/dashboard/essays/studio/essay-studio";
 import { aiAllowanceLeft } from "@/lib/data/ai-usage";
 import { listEssayReviewsServer } from "@/lib/essays-server";
 import { getAcademicProfile } from "@/lib/profile-server";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 import { getCurrentUserId } from "@/lib/session";
 import { getUniversities } from "@/lib/universities-server";
 
-export const metadata: Metadata = {
-  title: "Essay Studio",
-  description: "Write or paste your admissions essay, fix the quick things live, and get a rubric-based AI review.",
-};
+const copy = defineCopy({
+  en: {
+    title: "Essay Studio",
+    description: "Write or paste your admissions essay, fix the quick things live, and get a rubric-based AI review.",
+  },
+  ru: {
+    title: "Эссе-студия",
+    description: "Напиши или вставь эссе для поступления, исправь мелочи на лету и получи разбор ИИ по рубрике.",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = copy[await getLocale()];
+  return { title: t.title, description: t.description };
+}
 
 export default async function EssaysPage() {
   const userId = await getCurrentUserId();

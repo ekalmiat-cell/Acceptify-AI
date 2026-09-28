@@ -3,13 +3,31 @@ import Link from "next/link";
 
 import { ContactLine, LegalPage, LegalSection } from "@/components/marketing/legal-page";
 import { siteConfig } from "@/config/site";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "What Acceptify AI collects, why, who processes it, and how to delete it.",
-};
+const meta = defineCopy({
+  en: {
+    title: "Privacy Policy",
+    description: "What Acceptify AI collects, why, who processes it, and how to delete it.",
+  },
+  ru: {
+    title: "Политика конфиденциальности",
+    description: "Какие данные собирает Acceptify AI, зачем, кто их обрабатывает и как их удалить.",
+  },
+});
 
-export default function PrivacyPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const t = meta[await getLocale()];
+  return { title: t.title, description: t.description };
+}
+
+export default async function PrivacyPage() {
+  const locale = await getLocale();
+  return locale === "ru" ? <PrivacyRu /> : <PrivacyEn />;
+}
+
+function PrivacyEn() {
   const { contact } = siteConfig;
 
   return (
@@ -55,8 +73,9 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>What you do in the app:</strong> saved admission analyses,
-            the admission outcomes you choose to report, and essays you submit for
-            review together with the review results.
+            the admission outcomes you choose to report, essays you submit for
+            review together with the review results, and which essay-training
+            drills you have completed (not your answers to them).
           </li>
           <li>
             <strong>Technical data:</strong> for security, each sign-in session
@@ -67,8 +86,8 @@ export default function PrivacyPage() {
         </ul>
         <p>
           We do not collect your ID number, address, phone number or payment
-          details. Messages to the AI copilot are not stored after the answer is
-          shown.
+          details. Messages to the AI copilot and answers sent to the training
+          coach are not stored after the answer is shown.
         </p>
       </LegalSection>
 
@@ -76,7 +95,7 @@ export default function PrivacyPage() {
         <ul>
           <li>to create your account and keep you signed in;</li>
           <li>to calculate admission estimates and recommendations for you;</li>
-          <li>to review your essays and answer your questions with AI;</li>
+          <li>to review your essays, coach your training drills and answer your questions with AI;</li>
           <li>to send sign-in and password-reset emails;</li>
           <li>to keep the service secure and to fix errors;</li>
           <li>
@@ -84,17 +103,15 @@ export default function PrivacyPage() {
             that does not identify you.
           </li>
         </ul>
-        <p>
-          We never sell your data and never use it for advertising.
-        </p>
+        <p>We never sell your data and never use it for advertising.</p>
       </LegalSection>
 
       <LegalSection id="ai" title="4. AI features and Google Gemini">
         <p>
-          The essay reviewer and the copilot are powered by Google’s Gemini API.
-          When you use them, we send Google the text of your essay or question
-          and, if you allow it, a summary of your academic profile. We never send
-          your name, email or account id.
+          The essay reviewer, the training coach and the copilot are powered by
+          Google’s Gemini API. When you use them, we send Google the text of your
+          essay, drill answer or question and, if you allow it, a summary of your
+          academic profile. We never send your name, email or account id.
         </p>
         <p>
           <strong>
@@ -132,18 +149,19 @@ export default function PrivacyPage() {
 
       <LegalSection id="cookies" title="6. Cookies">
         <p>
-          We use only the cookies needed to keep you signed in. Your light/dark
-          theme choice is saved in your browser. Our page-view statistics do not
-          use cookies and do not track you across other websites.
+          We use only the cookies needed to keep you signed in and to remember the
+          interface language you chose. Your light/dark theme choice is saved in
+          your browser. Our page-view statistics do not use cookies and do not
+          track you across other websites.
         </p>
       </LegalSection>
 
       <LegalSection title="7. How long we keep it">
         <p>
           We keep your data while your account exists. When you delete your
-          account, your profile, achievements, analyses and essays are erased
-          from our database immediately; copies in the database provider’s
-          backups disappear within 30 days.
+          account, your profile, achievements, analyses, essays and training
+          progress are erased from our database immediately; copies in the
+          database provider’s backups disappear within 30 days.
         </p>
       </LegalSection>
 
@@ -183,6 +201,178 @@ export default function PrivacyPage() {
       <LegalSection title="11. Contact">
         <p>
           {contact.operator}, {contact.country}. <ContactLine />.
+        </p>
+      </LegalSection>
+    </LegalPage>
+  );
+}
+
+function PrivacyRu() {
+  return (
+    <LegalPage
+      title="Политика конфиденциальности"
+      intro={
+        <p>
+          Сервисом {siteConfig.name} («Acceptify», «мы») управляет {siteConfig.contact.operator} —
+          физическое лицо в Республике Казахстан, оператор твоих персональных данных.
+          Здесь простыми словами описано, что мы собираем, зачем, кто помогает нам это
+          обрабатывать и как увидеть или удалить свои данные. Политика составлена с учётом
+          Закона Республики Казахстан «О персональных данных и их защите».
+        </p>
+      }
+    >
+      <LegalSection title="1. Для кого этот сервис">
+        <p>
+          Acceptify помогает школьникам планировать поступление в университеты. Многим
+          нашим пользователям меньше 18 лет.{" "}
+          <strong>
+            Если тебе меньше 18, пользоваться Acceptify можно только с согласия родителя
+            или законного представителя.
+          </strong>{" "}
+          Создавая аккаунт, ты подтверждаешь согласие с этой политикой, а если тебе меньше
+          18 — что твой родитель или опекун прочитал её и тоже согласен.
+          Родитель или опекун в любой момент может попросить нас показать или удалить
+          данные ребёнка.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="2. Что мы собираем">
+        <ul>
+          <li>
+            <strong>Аккаунт:</strong> имя, адрес почты и надёжно захешированный пароль.
+            Если ты входишь через Google или Apple, мы получаем от них имя, почту и фото
+            профиля.
+          </li>
+          <li>
+            <strong>Академический профиль:</strong> оценки и баллы тестов, которые ты
+            вводишь (GPA, SAT, ACT, IELTS, TOEFL, ЕНТ), достижения, направление обучения и
+            университет мечты.
+          </li>
+          <li>
+            <strong>Что ты делаешь в приложении:</strong> сохранённые анализы поступления,
+            результаты поступления, которыми ты делишься, эссе, отправленные на разбор, вместе
+            с результатами разбора, и какие упражнения тренировки эссе пройдены (без самих
+            ответов).
+          </li>
+          <li>
+            <strong>Технические данные:</strong> для безопасности в каждой сессии входа
+            хранятся IP-адрес и тип браузера. Мы считаем, сколько запросов к ИИ ты делаешь,
+            чтобы соблюдать лимиты, и собираем анонимную статистику просмотров без cookie.
+          </li>
+        </ul>
+        <p>
+          Мы не собираем ИИН, адрес, номер телефона или платёжные данные. Сообщения
+          ИИ-помощнику и ответы, отправленные ИИ-тренеру, не хранятся после того, как
+          показан ответ.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="3. Зачем мы их используем">
+        <ul>
+          <li>чтобы создать аккаунт и держать тебя в системе;</li>
+          <li>чтобы рассчитывать для тебя оценки поступления и рекомендации;</li>
+          <li>чтобы разбирать эссе, давать отзывы на упражнения и отвечать на вопросы с помощью ИИ;</li>
+          <li>чтобы отправлять письма для входа и сброса пароля;</li>
+          <li>чтобы сервис был безопасным и чтобы исправлять ошибки;</li>
+          <li>
+            чтобы улучшать оценки, используя сообщённые результаты поступления в общем виде,
+            по которому тебя нельзя узнать.
+          </li>
+        </ul>
+        <p>Мы никогда не продаём твои данные и не используем их для рекламы.</p>
+      </LegalSection>
+
+      <LegalSection id="ai" title="4. ИИ-функции и Google Gemini">
+        <p>
+          Разбор эссе, ИИ-тренер и помощник работают на Google Gemini API. Когда ты ими
+          пользуешься, мы отправляем в Google текст эссе, ответа на упражнение или вопроса и,
+          если ты разрешаешь, сводку академического профиля. Мы никогда не отправляем твоё
+          имя, почту или идентификатор аккаунта.
+        </p>
+        <p>
+          <strong>
+            Во время бесплатной беты мы используем бесплатный тариф Google, при котором
+            Google может использовать отправленные тексты для улучшения своих продуктов и
+            их могут читать люди-проверяющие.
+          </strong>{" "}
+          Пожалуйста, не указывай в эссе и вопросах полное имя, контакты и другие сведения,
+          по которым можно узнать тебя или других людей.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5. Кто обрабатывает данные">
+        <p>
+          Для работы Acceptify мы пользуемся этими сервисами. Они обрабатывают данные по
+          нашему поручению и только для перечисленных целей:
+        </p>
+        <ul>
+          <li>Vercel Inc. — хостинг сайта и серверов;</li>
+          <li>Neon — база данных, где хранятся аккаунт и профиль;</li>
+          <li>Google LLC — ИИ Gemini и «Вход через Google», если ты им пользуешься;</li>
+          <li>Apple Inc. — «Вход через Apple», если ты им пользуешься;</li>
+          <li>Resend — отправка писем об аккаунте.</li>
+        </ul>
+        <p>
+          <strong>
+            Эти сервисы хранят и обрабатывают данные на серверах за пределами Казахстана, в
+            основном в Европейском союзе и США.
+          </strong>{" "}
+          Принимая эту политику, ты соглашаешься на такую трансграничную передачу. Если такого
+          согласия нет, пожалуйста, не создавай аккаунт.
+        </p>
+      </LegalSection>
+
+      <LegalSection id="cookies" title="6. Cookie">
+        <p>
+          Мы используем только cookie, которые нужны, чтобы сохранять вход в аккаунт и
+          помнить выбранный язык интерфейса. Выбор светлой или тёмной темы хранится в
+          браузере. Статистика просмотров не использует cookie и не отслеживает тебя на других
+          сайтах.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="7. Сколько мы храним данные">
+        <p>
+          Мы храним данные, пока существует аккаунт. Когда ты удаляешь аккаунт, профиль,
+          достижения, анализы, эссе и прогресс тренировок сразу стираются из нашей базы;
+          копии в резервных копиях провайдера базы данных исчезают в течение 30 дней.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="8. Твои права">
+        <p>Ты — или твой родитель либо опекун — в любой момент можешь:</p>
+        <ul>
+          <li>смотреть и исправлять свои данные в профиле и настройках;</li>
+          <li>попросить копию данных, которые мы о тебе храним;</li>
+          <li>отозвать согласие и удалить аккаунт;</li>
+          <li>задать любой вопрос о том, как обрабатываются данные.</li>
+        </ul>
+        <p>
+          Удалить аккаунт можно самостоятельно в разделе{" "}
+          <Link href="/dashboard/settings?tab=account">Настройки → Аккаунт</Link>. По всем
+          остальным вопросам пиши нам: <ContactLine />. Мы отвечаем как можно быстрее и в
+          сроки, установленные законом.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="9. Безопасность">
+        <p>
+          Пароли хранятся только в виде хешей, весь трафик зашифрован (HTTPS), а доступ к
+          базе данных есть только у оператора. Идеально защищённых систем не бывает; если
+          когда-нибудь случится утечка, затрагивающая твои данные, мы сообщим тебе.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="10. Изменения">
+        <p>
+          Acceptify в бете, и эта политика может меняться. Мы обновим дату вверху, а о
+          важных изменениях сообщим в приложении или по почте.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="11. Контакты">
+        <p>
+          {siteConfig.contact.operator}, Республика Казахстан. <ContactLine />.
         </p>
       </LegalSection>
     </LegalPage>

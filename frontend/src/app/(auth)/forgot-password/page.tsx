@@ -3,12 +3,28 @@ import type { Metadata } from "next";
 import { Logo } from "@/components/shared/logo";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { isMailDeliverable } from "@/lib/email";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Reset your password",
-};
+const copy = defineCopy({
+  en: {
+    title: "Reset your password",
+    withMail: "Enter the email you signed up with and we'll send you a link to choose a new password.",
+    withoutMail: "Forgot your password? We'll get you back in.",
+  },
+  ru: {
+    title: "Сброс пароля",
+    withMail: "Введи почту своего аккаунта — мы пришлём ссылку для нового пароля.",
+    withoutMail: "Не помнишь пароль? Поможем вернуться.",
+  },
+});
 
-export default function ForgotPasswordPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].title };
+}
+
+export default async function ForgotPasswordPage() {
+  const t = copy[await getLocale()];
   const mailDeliverable = isMailDeliverable();
 
   return (
@@ -18,13 +34,9 @@ export default function ForgotPasswordPage() {
       </div>
 
       <h1 className="font-heading text-2xl font-semibold text-foreground">
-        Reset your password
+        {t.title}
       </h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        {mailDeliverable
-          ? "Enter the email you signed up with and we'll send you a link to choose a new password."
-          : "Forgot your password? We'll get you back in."}
-      </p>
+      <p className="mt-1.5 text-sm text-muted-foreground">{mailDeliverable ? t.withMail : t.withoutMail}</p>
 
       <div className="mt-6">
         {/*

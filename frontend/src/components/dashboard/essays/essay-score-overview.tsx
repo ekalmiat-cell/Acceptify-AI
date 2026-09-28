@@ -4,6 +4,8 @@ import { Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import type { CategoryScores } from "@/types/essay";
 
 interface EssayScoreOverviewProps {
@@ -12,62 +14,61 @@ interface EssayScoreOverviewProps {
   categoryScores: CategoryScores;
 }
 
-const CATEGORY_META: {
-  key: keyof CategoryScores;
-  label: string;
-  description: string;
-}[] = [
-  {
-    key: "voice_and_authenticity",
-    label: "Voice & Authenticity",
-    description: "Distinct personal voice, originality, honesty",
-  },
-  {
-    key: "storytelling",
-    label: "Storytelling & Impact",
-    description: "Narrative arc, emotional resonance, show vs. tell",
-  },
-  {
-    key: "structure",
-    label: "Structure & Pacing",
-    description: "Logical organization, transitions, paragraph flow",
-  },
-  {
-    key: "clarity_and_flow",
-    label: "Clarity & Tone",
-    description: "Readability, vocabulary precision, cadence",
-  },
-  {
-    key: "grammar_and_mechanics",
-    label: "Grammar & Mechanics",
-    description: "Syntax, punctuation, sentence variety",
-  },
-];
+type Category = { key: keyof CategoryScores; label: string; description: string };
 
-function getScoreTier(score: number): { label: string; color: string; bg: string } {
+const copy = defineCopy({
+  en: {
+    categories: [
+      { key: "voice_and_authenticity", label: "Voice & authenticity", description: "Distinct personal voice, originality, honesty" },
+      { key: "storytelling", label: "Storytelling & impact", description: "Narrative arc, emotional resonance, show vs. tell" },
+      { key: "structure", label: "Structure & pacing", description: "Logical organization, transitions, paragraph flow" },
+      { key: "clarity_and_flow", label: "Clarity & tone", description: "Readability, vocabulary precision, cadence" },
+      { key: "grammar_and_mechanics", label: "Grammar & mechanics", description: "Syntax, punctuation, sentence variety" },
+    ] as Category[],
+    tiers: ["Highly competitive", "Solid foundation", "Promising — needs revision", "Early draft — major rework"],
+    overall: "Overall essay quality",
+    impression: "Admissions committee impression",
+    breakdown: "Criteria breakdown",
+  },
+  ru: {
+    categories: [
+      { key: "voice_and_authenticity", label: "Голос и искренность", description: "Свой голос, оригинальность, честность" },
+      { key: "storytelling", label: "История и впечатление", description: "Сюжетная линия, эмоции, показ вместо рассказа" },
+      { key: "structure", label: "Структура и темп", description: "Логика, переходы, связность абзацев" },
+      { key: "clarity_and_flow", label: "Ясность и тон", description: "Читаемость, точность слов, ритм" },
+      { key: "grammar_and_mechanics", label: "Грамматика", description: "Синтаксис, пунктуация, разнообразие предложений" },
+    ],
+    tiers: ["Очень конкурентно", "Крепкая основа", "Перспективно — нужна доработка", "Ранний черновик — нужна серьёзная переработка"],
+    overall: "Общее качество эссе",
+    impression: "Впечатление приёмной комиссии",
+    breakdown: "Оценки по критериям",
+  },
+});
+
+function getScoreTier(score: number, tiers: string[]): { label: string; color: string; bg: string } {
   if (score >= 85) {
     return {
-      label: "Highly Competitive",
+      label: tiers[0],
       color: "text-emerald-700 dark:text-emerald-400",
       bg: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300",
     };
   }
   if (score >= 70) {
     return {
-      label: "Solid Foundation",
+      label: tiers[1],
       color: "text-blue-700 dark:text-blue-400",
       bg: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300",
     };
   }
   if (score >= 50) {
     return {
-      label: "Promising / Needs Revision",
+      label: tiers[2],
       color: "text-amber-700 dark:text-amber-400",
       bg: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300",
     };
   }
   return {
-    label: "Early Draft / Major Rework",
+    label: tiers[3],
     color: "text-rose-700 dark:text-rose-400",
     bg: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-300",
   };
@@ -78,7 +79,9 @@ export function EssayScoreOverview({
   headlineVerdict,
   categoryScores,
 }: EssayScoreOverviewProps) {
-  const tier = getScoreTier(overallScore);
+  const t = useCopy(copy);
+  const CATEGORY_META = t.categories;
+  const tier = getScoreTier(overallScore, t.tiers);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -87,7 +90,7 @@ export function EssayScoreOverview({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Overall Essay Quality
+              {t.overall}
             </span>
             <Badge variant="outline" className={tier.bg}>
               {tier.label}
@@ -106,7 +109,7 @@ export function EssayScoreOverview({
           <div className="rounded-lg border bg-background/80 p-3.5 text-sm text-foreground/90 backdrop-blur-sm">
             <div className="mb-1.5 flex items-center gap-1.5 font-medium text-xs text-primary">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Admissions Committee Impression</span>
+              <span>{t.impression}</span>
             </div>
             <p className="leading-relaxed text-muted-foreground text-xs sm:text-sm">
               {headlineVerdict}
@@ -118,7 +121,7 @@ export function EssayScoreOverview({
       {/* Category Scores Breakdown */}
       <Card className="border shadow-sm lg:col-span-8">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Criteria Breakdown</CardTitle>
+          <CardTitle className="text-base font-semibold">{t.breakdown}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {CATEGORY_META.map((cat) => {

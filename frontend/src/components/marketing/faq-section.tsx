@@ -8,21 +8,30 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { faqItems } from "@/data/faq";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export function FaqSection() {
+const copy = defineCopy({
+  en: { eyebrow: "FAQ", title: "Questions, answered" },
+  ru: { eyebrow: "Вопросы", title: "Ответы на частые вопросы" },
+});
+
+export async function FaqSection() {
+  const locale = await getLocale();
+  const t = copy[locale];
   return (
     <section id="faq" className="relative bg-[#071326] py-24 sm:py-32">
       <Container className="max-w-3xl">
         <SectionHeading
-          eyebrow="FAQ"
-          title="Questions, answered"
+          eyebrow={t.eyebrow}
+          title={t.title}
           dark
           className="mb-14"
         />
 
         <FadeIn delay={0.1}>
           <Accordion className="glass-panel rounded-2xl px-6" multiple>
-            {faqItems.map((item) => (
+            {faqItems[locale].map((item) => (
               <AccordionItem
                 key={item.id}
                 value={item.id}

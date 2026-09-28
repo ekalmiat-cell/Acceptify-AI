@@ -4,6 +4,8 @@ import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
+import { a11yCopy } from "@/lib/i18n/a11y"
+import { useCopy } from "@/lib/i18n/client"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
@@ -46,6 +48,7 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  const a11y = useCopy(a11yCopy)
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -72,7 +75,7 @@ function SheetContent({
           >
             <XIcon
             />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{a11y.close}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

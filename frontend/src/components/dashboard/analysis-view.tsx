@@ -33,6 +33,73 @@ import { groupUniversitiesByCountry } from "@/lib/universities";
 import { fetchEvaluationProfile, fetchPrograms } from "@/lib/programs-client";
 import type { Program, University } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
+import { fieldName } from "@/lib/catalog-copy";
+import { countryName } from "@/lib/countries";
+import { defineCopy } from "@/lib/i18n/core";
+import { useLocale } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    loadFailed: "Could not load this university's programmes. Showing the default model.",
+    saved: "Report saved to your prediction history",
+    saveFailed: "Could not save this report.",
+    baseline: "Simulating baseline analysis",
+    baselineNote:
+      "Your profile has no saved academic scores yet. You can explore universities, program criteria, and use the What-If simulator below to test different GPA and test scores.",
+    fill: "Fill profile",
+    country: "1. Country",
+    university: "2. University",
+    field: "3. Field of study",
+    dream: " (Dream)",
+    download: "Download report (PDF)",
+    save: "Save report",
+    model: (name: string) => `${name} evaluation model`,
+    confidence: "Confidence",
+    breakdown: "Score breakdown",
+    breakdownNote: "How your fit score is calculated",
+    weight: (n: number) => `${n}% weight`,
+    notAssessed: "Not assessed",
+    notWeighted: "This programme does not weight this component.",
+    strengths: "Strengths",
+    weaknesses: "Weaknesses",
+    noWeaknesses: "No significant weaknesses detected.",
+    recommendations: "Recommendations",
+    title: "Admission analysis",
+    subtitle: "A rule-based breakdown of how well your profile fits any university on the platform.",
+    fitScore: "fit score / 100",
+  },
+  ru: {
+    loadFailed: "Не удалось загрузить программы университета. Показываем модель по умолчанию.",
+    saved: "Отчёт сохранён в историю прогнозов",
+    saveFailed: "Не удалось сохранить отчёт.",
+    baseline: "Базовый анализ без профиля",
+    baselineNote:
+      "В профиле пока нет академических баллов. Можно смотреть университеты и критерии программ, а симулятор «что если» ниже поможет проверить разные GPA и результаты тестов.",
+    fill: "Заполнить профиль",
+    country: "1. Страна",
+    university: "2. Университет",
+    field: "3. Направление",
+    dream: " (мечта)",
+    download: "Скачать отчёт (PDF, на английском)",
+    save: "Сохранить отчёт",
+    model: (name: string) => `Модель оценки: ${name}`,
+    confidence: "Уверенность",
+    breakdown: "Из чего складывается оценка",
+    breakdownNote: "Как считается твой балл соответствия",
+    weight: (n: number) => `вес ${n}%`,
+    notAssessed: "Не оценивается",
+    notWeighted: "Эта программа не учитывает этот компонент.",
+    strengths: "Сильные стороны",
+    weaknesses: "Слабые места",
+    noWeaknesses: "Серьёзных слабых мест не найдено.",
+    recommendations: "Рекомендации",
+    title: "Анализ поступления",
+    subtitle: "Разбор по правилам: насколько твой профиль подходит любому университету на платформе.",
+    fitScore: "соответствие / 100",
+  },
+});
+
+type Copy = (typeof copy)["en"];
 
 export function AnalysisView({
   studentName,
@@ -58,6 +125,8 @@ export function AnalysisView({
   declaredField: string | null;
   initialUniversityId?: string | null;
 }) {
+  const locale = useLocale();
+  const t = copy[locale];
   const byCountry = useMemo(() => groupUniversitiesByCountry(universities), [universities]);
 
   const targetUniv = initialUniversityId
@@ -115,7 +184,7 @@ export function AnalysisView({
         if (cancelled) return;
         setPrograms([]);
         setProgramId("");
-        toast.error("Could not load this university's programmes. Showing the default model.");
+        toast.error(t.loadFailed);
       })
       .finally(() => {
         if (!cancelled) setIsLoadingModel(false);
@@ -124,6 +193,7 @@ export function AnalysisView({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the toast text doesn't change what is loaded
   }, [universityId, dreamProgramId, declaredField]);
 
   useEffect(() => {
@@ -172,8 +242,8 @@ export function AnalysisView({
 
   const analysis = useMemo(() => {
     if (!university) return null;
-    return computeAdmissionAnalysis(university, effectiveProfile, profileCompleteness, weights);
-  }, [effectiveProfile, university, profileCompleteness, weights]);
+    return computeAdmissionAnalysis(university, effectiveProfile, profileCompleteness, weights, locale);
+  }, [effectiveProfile, university, profileCompleteness, weights, locale]);
 
   async function handleSaveReport() {
     if (!analysis || !university) return;
@@ -184,9 +254,9 @@ export function AnalysisView({
         matchScore: analysis.score,
         category: analysis.category,
       });
-      toast.success("Report saved to your prediction history");
+      toast.success(t.saved);
     } catch (error) {
-      toast.error(describeApiError(error, "Could not save this report."));
+      toast.error(describeApiError(error, t.saveFailed));
     } finally {
       setIsSaving(false);
     }
@@ -194,17 +264,18 @@ export function AnalysisView({
 
   function handleDownloadPdf() {
     if (!analysis || !university) return;
+    // The PDF's built-in font has no Cyrillic, so the report is always English.
     downloadAdmissionReport({
       studentName,
       studentEmail,
       universityName: university.name,
-      analysis,
+      analysis: computeAdmissionAnalysis(university, effectiveProfile, profileCompleteness, weights, "en"),
     });
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader />
+      <PageHeader t={t} />
 
       {!profile && (
         <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -213,16 +284,12 @@ export function AnalysisView({
               <Sparkles className="size-4" />
             </span>
             <div>
-              <p className="text-sm font-medium text-foreground">
-                Simulating baseline analysis
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Your profile has no saved academic scores yet. You can explore universities, program criteria, and use the What-If simulator below to test different GPA and test scores.
-              </p>
+              <p className="text-sm font-medium text-foreground">{t.baseline}</p>
+              <p className="text-xs text-muted-foreground">{t.baselineNote}</p>
             </div>
           </div>
           <Button render={<Link href="/dashboard/profile" />} size="sm" variant="outline" className="shrink-0">
-            Fill profile
+            {t.fill}
           </Button>
         </div>
       )}
@@ -232,12 +299,14 @@ export function AnalysisView({
           <div className="flex w-full flex-col gap-2 sm:max-w-2xl sm:flex-row">
             <Select value={country} onValueChange={(v) => handleCountryChange(v as string)}>
               <SelectTrigger className="w-full sm:max-w-44">
-                <SelectValue placeholder="1. Country" />
+                <SelectValue placeholder={t.country}>
+                  {(value: string) => (value ? countryName(value, locale) : t.country)}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {byCountry.map((g) => (
                   <SelectItem key={g.country} value={g.country}>
-                    {g.country}
+                    {countryName(g.country, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -249,15 +318,15 @@ export function AnalysisView({
               disabled={!country}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="2. University">
-                  {(value: string) => universities.find((u) => u.id === value)?.name ?? "2. University"}
+                <SelectValue placeholder={t.university}>
+                  {(value: string) => universities.find((u) => u.id === value)?.name ?? t.university}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {universitiesInCountry.map((u) => (
                   <SelectItem key={u.id} value={u.id}>
                     {u.name}
-                    {u.id === dreamUniversityId ? " (Dream)" : ""}
+                    {u.id === dreamUniversityId ? t.dream : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -269,15 +338,18 @@ export function AnalysisView({
               disabled={programs.length === 0}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="3. Field of study">
-                  {(value: string) => programs.find((p) => p.id === value)?.name ?? "3. Field of study"}
+                <SelectValue placeholder={t.field}>
+                  {(value: string) => {
+                    const program = programs.find((p) => p.id === value);
+                    return program ? fieldName(program.name, locale) : t.field;
+                  }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {programs.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                    {p.id === dreamProgramId ? " (Dream)" : ""}
+                    {fieldName(p.name, locale)}
+                    {p.id === dreamProgramId ? t.dream : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -286,11 +358,11 @@ export function AnalysisView({
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={handleDownloadPdf} disabled={!analysis}>
               <Download />
-              Download Admission Report
+              {t.download}
             </Button>
             <Button onClick={handleSaveReport} disabled={!analysis || isSaving}>
               {isSaving ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
-              Save report
+              {t.save}
             </Button>
           </div>
         </CardContent>
@@ -307,40 +379,38 @@ export function AnalysisView({
         <>
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
             <Card className="flex flex-col items-center justify-center gap-4 py-8 xl:col-span-1">
-              <ScoreCircle score={analysis.score} />
+              <ScoreCircle t={t} score={analysis.score} />
               <div className="flex flex-col items-center gap-1">
                 <p className="font-heading text-lg font-semibold text-foreground">{university.name}</p>
                 {activeProgram ? (
-                  <p className="text-xs text-muted-foreground">{activeProgram.name} evaluation model</p>
+                  <p className="text-xs text-muted-foreground">{t.model(fieldName(activeProgram.name, locale))}</p>
                 ) : null}
                 <MatchBadge category={analysis.category} />
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                Confidence
+                {t.confidence}
                 <span className="font-mono font-medium text-foreground">{analysis.confidence}%</span>
               </div>
             </Card>
 
             <Card className="xl:col-span-2">
               <CardHeader>
-                <CardTitle>Score breakdown</CardTitle>
-                <CardDescription>How your fit score is calculated</CardDescription>
+                <CardTitle>{t.breakdown}</CardTitle>
+                <CardDescription>{t.breakdownNote}</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {analysis.breakdown.map((item) => (
                   <div key={item.label} className="rounded-xl border border-border p-4">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium text-foreground">{item.label}</span>
-                      <span className="text-xs text-muted-foreground">{item.weight}% weight</span>
+                      <span className="text-xs text-muted-foreground">{t.weight(item.weight)}</span>
                     </div>
                     {item.score == null ? (
                       <>
                         <p className="mt-2 font-heading text-lg font-medium text-muted-foreground">
-                          Not assessed
+                          {t.notAssessed}
                         </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          This programme does not weight this component.
-                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">{t.notWeighted}</p>
                       </>
                     ) : (
                       <>
@@ -375,20 +445,20 @@ export function AnalysisView({
             <InsightCard
               icon={CheckCircle2}
               accent="emerald"
-              title="Strengths"
+              title={t.strengths}
               items={analysis.strengths}
             />
             <InsightCard
               icon={TriangleAlert}
               accent="rose"
-              title="Weaknesses"
+              title={t.weaknesses}
               items={analysis.weaknesses}
-              emptyText="No significant weaknesses detected."
+              emptyText={t.noWeaknesses}
             />
             <InsightCard
               icon={Lightbulb}
               accent="amber"
-              title="Recommendations"
+              title={t.recommendations}
               items={analysis.recommendations}
             />
           </div>
@@ -398,18 +468,16 @@ export function AnalysisView({
   );
 }
 
-function PageHeader() {
+function PageHeader({ t }: { t: Copy }) {
   return (
     <div>
-      <h1 className="font-heading text-2xl font-semibold tracking-tight">Admission analysis</h1>
-      <p className="text-sm text-muted-foreground">
-        A rule-based breakdown of how well your profile fits any university on the platform.
-      </p>
+      <h1 className="font-heading text-2xl font-semibold tracking-tight">{t.title}</h1>
+      <p className="text-sm text-muted-foreground">{t.subtitle}</p>
     </div>
   );
 }
 
-function ScoreCircle({ score }: { score: number }) {
+function ScoreCircle({ t, score }: { t: Copy; score: number }) {
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - score / 100);
@@ -435,7 +503,7 @@ function ScoreCircle({ score }: { score: number }) {
         {/* Not "chance": this is a fit score out of 100, and labelling it as a
             probability is the one claim the engine cannot support. See
             `MatchResult.score` in lib/predict.ts. */}
-        <span className="text-xs text-muted-foreground">fit score / 100</span>
+        <span className="text-xs text-muted-foreground">{t.fitScore}</span>
       </div>
     </div>
   );

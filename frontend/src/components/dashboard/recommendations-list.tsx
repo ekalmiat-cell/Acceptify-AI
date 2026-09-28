@@ -16,8 +16,32 @@ import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server"
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
 import { resolveWeightsByUniversity } from "@/lib/weights-server";
 import { UniversityLogo } from "@/components/shared/university-logo";
+import { countryName } from "@/lib/countries";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
+
+const copy = defineCopy({
+  en: {
+    title: "Recommended for you",
+    subtitle: "Based on your current profile",
+    none: "No recommendations yet",
+    noneNote: "Add at least one academic score (GPA, SAT, IELTS, TOEFL, ACT, or ENT) to your profile to get matched.",
+    complete: "Complete your profile",
+    explore: "Explore all universities",
+  },
+  ru: {
+    title: "Рекомендуем тебе",
+    subtitle: "На основе твоего текущего профиля",
+    none: "Рекомендаций пока нет",
+    noneNote: "Добавь в профиль хотя бы один балл (GPA, SAT, IELTS, TOEFL, ACT или ЕНТ), чтобы мы подобрали университеты.",
+    complete: "Заполнить профиль",
+    explore: "Все университеты",
+  },
+});
 
 export async function RecommendationsList() {
+  const locale = await getLocale();
+  const t = copy[locale];
   const [academic, records, universities] = await Promise.all([
     getAcademicProfile(),
     getAchievementRecords(),
@@ -28,21 +52,19 @@ export async function RecommendationsList() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Recommended for you</CardTitle>
-          <CardDescription>Based on your current profile</CardDescription>
+          <CardTitle>{t.title}</CardTitle>
+          <CardDescription>{t.subtitle}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
           <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Sparkles className="size-5" />
           </span>
           <div>
-            <p className="text-sm font-medium text-foreground">No recommendations yet</p>
-            <p className="text-sm text-muted-foreground">
-              Add at least one academic score (GPA, SAT, IELTS, TOEFL, ACT, or ENT) to your profile to get matched.
-            </p>
+            <p className="text-sm font-medium text-foreground">{t.none}</p>
+            <p className="text-sm text-muted-foreground">{t.noneNote}</p>
           </div>
           <Button render={<Link href="/dashboard/profile" />} size="sm" className="mt-1">
-            Complete your profile
+            {t.complete}
           </Button>
         </CardContent>
       </Card>
@@ -70,8 +92,8 @@ export async function RecommendationsList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recommended for you</CardTitle>
-        <CardDescription>Based on your current profile</CardDescription>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.subtitle}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         {recommendations.map(({ university, score, category }) => (
@@ -86,7 +108,7 @@ export async function RecommendationsList() {
                 {university.shortName}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                {university.city}, {university.country}
+                {university.city}, {countryName(university.country, locale)}
               </p>
             </div>
             <MatchBadge category={category} showLabel={false} />
@@ -101,7 +123,7 @@ export async function RecommendationsList() {
           variant="ghost"
           className="mt-2 justify-center"
         >
-          Explore all universities
+          {t.explore}
           <ArrowRight />
         </Button>
       </CardContent>

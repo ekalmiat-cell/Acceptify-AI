@@ -15,24 +15,26 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 
-const chartConfig = {
-  rate: {
-    label: "Acceptance rate",
-    color: "var(--color-chart-1)",
-  },
-} satisfies ChartConfig;
+const copy = defineCopy({
+  en: { rate: "Acceptance rate", title: "Acceptance rate trend", subtitle: "Reported admit rate by application year" },
+  ru: { rate: "Доля принятых", title: "Динамика приёма", subtitle: "Заявленная доля принятых по годам подачи" },
+});
 
 export function AcceptanceTrendChart({
   data,
 }: {
   data: { year: string; rate: number }[];
 }) {
+  const t = useCopy(copy);
+  const chartConfig = { rate: { label: t.rate, color: "var(--color-chart-1)" } } satisfies ChartConfig;
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Acceptance rate trend</CardTitle>
-        <CardDescription>Reported admit rate by application year</CardDescription>
+        <CardTitle>{t.title}</CardTitle>
+        <CardDescription>{t.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="aspect-auto h-56 w-full">

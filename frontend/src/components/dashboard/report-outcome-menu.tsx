@@ -14,14 +14,36 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { describeApiError } from "@/lib/api-error";
 import { reportPredictionOutcome } from "@/lib/predictions-client";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 import type { ApplicationOutcome } from "@/types/domain";
 
-const OPTIONS: { value: ApplicationOutcome; label: string }[] = [
-  { value: "admitted", label: "Admitted" },
-  { value: "rejected", label: "Rejected" },
-  { value: "waitlisted", label: "Waitlisted" },
-  { value: "withdrawn", label: "Didn't apply / withdrew" },
-];
+const VALUES: ApplicationOutcome[] = ["admitted", "rejected", "waitlisted", "withdrawn"];
+
+const copy = defineCopy({
+  en: {
+    outcomes: {
+      admitted: "Admitted",
+      rejected: "Rejected",
+      waitlisted: "Waitlisted",
+      withdrawn: "Didn't apply / withdrew",
+    } as Record<ApplicationOutcome, string>,
+    thanks: "Thanks — that outcome helps calibrate the model.",
+    failed: "Could not save that outcome.",
+    report: "Report outcome",
+  },
+  ru: {
+    outcomes: {
+      admitted: "Приняли",
+      rejected: "Отказ",
+      waitlisted: "Лист ожидания",
+      withdrawn: "Не подана / отозвана",
+    },
+    thanks: "Спасибо — этот результат помогает точнее настроить модель.",
+    failed: "Не удалось сохранить результат.",
+    report: "Указать результат",
+  },
+});
 
 const OUTCOME_STYLES: Record<ApplicationOutcome, string> = {
   admitted: "text-emerald-600 dark:text-emerald-400",
@@ -48,6 +70,8 @@ export function ReportOutcomeMenu({
   predictionId: string;
   outcome: ApplicationOutcome | null;
 }) {
+  const t = useCopy(copy);
+  const OPTIONS = VALUES.map((value) => ({ value, label: t.outcomes[value] }));
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, startRefresh] = useTransition();
@@ -60,10 +84,10 @@ export function ReportOutcomeMenu({
     setIsSaving(true);
     try {
       await reportPredictionOutcome(predictionId, next);
-      toast.success("Thanks — that outcome helps calibrate the model.");
+      toast.success(t.thanks);
       startRefresh(() => router.refresh());
     } catch (error) {
-      toast.error(describeApiError(error, "Could not save that outcome."));
+      toast.error(describeApiError(error, t.failed));
     } finally {
       setIsSaving(false);
     }
@@ -78,7 +102,7 @@ export function ReportOutcomeMenu({
       >
         {busy ? <Loader2 className="animate-spin" /> : null}
         <span className={current ? OUTCOME_STYLES[current.value] : "text-muted-foreground"}>
-          {current ? current.label : "Report outcome"}
+          {current ? current.label : t.report}
         </span>
         <ChevronDown className="opacity-60" />
       </DropdownMenuTrigger>

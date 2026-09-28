@@ -10,10 +10,39 @@ import {
   formatOAuthCallbackError,
   sanitizeRedirectPath,
 } from "@/lib/auth-config";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Create your account",
-};
+const copy = defineCopy({
+  en: {
+    meta: "Create your account",
+    title: "Create your account",
+    subtitle: "Get your first AI admission prediction in under two minutes.",
+    socialBefore: "By continuing with Google or Apple you also agree to our",
+    terms: "Terms of Use",
+    and: "and",
+    privacy: "Privacy Policy",
+    socialAfter: ". Under 18? Please ask a parent or guardian first.",
+    haveAccount: "Already have an account?",
+    signIn: "Sign in",
+  },
+  ru: {
+    meta: "Регистрация",
+    title: "Создай аккаунт",
+    subtitle: "Первый прогноз поступления с ИИ — меньше чем за две минуты.",
+    socialBefore: "Продолжая через Google или Apple, ты тоже принимаешь наши",
+    terms: "Условия использования",
+    and: "и",
+    privacy: "Политику конфиденциальности",
+    socialAfter: ". Тебе меньше 18? Сначала спроси родителя или опекуна.",
+    haveAccount: "Уже есть аккаунт?",
+    signIn: "Войти",
+  },
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: copy[await getLocale()].meta };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +52,10 @@ type SignUpPageProps = {
 
 export default async function SignUpPage({ searchParams }: SignUpPageProps) {
   const params = await searchParams;
+  const locale = await getLocale();
+  const t = copy[locale];
   const callbackURL = sanitizeRedirectPath(params.redirect);
-  const oauthError = formatOAuthCallbackError(params.error);
+  const oauthError = formatOAuthCallbackError(params.error, locale);
 
   const errorCallbackURL = `/sign-up${
     params.redirect ? `?redirect=${encodeURIComponent(callbackURL)}` : ""
@@ -37,11 +68,9 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
       </div>
 
       <h1 className="font-heading text-2xl font-semibold text-foreground">
-        Create your account
+        {t.title}
       </h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        Get your first AI admission prediction in under two minutes.
-      </p>
+      <p className="mt-1.5 text-sm text-muted-foreground">{t.subtitle}</p>
 
       {oauthError ? (
         <Alert variant="destructive" className="mt-6">
@@ -60,21 +89,21 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
       </div>
 
       <p className="mt-6 text-center text-xs leading-relaxed text-muted-foreground">
-        By continuing with Google or Apple you also agree to our{" "}
+        {t.socialBefore}{" "}
         <Link href="/terms" className="text-primary hover:underline">
-          Terms of Use
+          {t.terms}
         </Link>{" "}
-        and{" "}
+        {t.and}{" "}
         <Link href="/privacy" className="text-primary hover:underline">
-          Privacy Policy
+          {t.privacy}
         </Link>
-        . Under 18? Please ask a parent or guardian first.
+        {t.socialAfter}
       </p>
 
       <p className="mt-4 text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t.haveAccount}{" "}
         <Link href="/sign-in" className="font-medium text-primary hover:underline">
-          Sign in
+          {t.signIn}
         </Link>
       </p>
     </div>

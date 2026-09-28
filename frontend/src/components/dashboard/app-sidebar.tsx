@@ -42,21 +42,66 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Logo } from "@/components/shared/logo";
 import { authClient, useSession } from "@/lib/auth-client";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
 
 const studentNavItems = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Universities", href: "/dashboard/universities", icon: Building2 },
-  { label: "Analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
-  { label: "Essay Studio", href: "/dashboard/essays", icon: Sparkles },
-  { label: "Training", href: "/dashboard/training", icon: Dumbbell },
-  { label: "Portfolio", href: "/dashboard/portfolio", icon: Layers },
-  { label: "Profile", href: "/dashboard/profile", icon: UserRound },
-  { label: "Methodology", href: "/dashboard/methodology", icon: FlaskConical },
-];
+  { key: "overview", href: "/dashboard", icon: LayoutDashboard },
+  { key: "universities", href: "/dashboard/universities", icon: Building2 },
+  { key: "analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
+  { key: "essays", href: "/dashboard/essays", icon: Sparkles },
+  { key: "training", href: "/dashboard/training", icon: Dumbbell },
+  { key: "portfolio", href: "/dashboard/portfolio", icon: Layers },
+  { key: "profile", href: "/dashboard/profile", icon: UserRound },
+  { key: "methodology", href: "/dashboard/methodology", icon: FlaskConical },
+] as const;
 
-const adminNavItem = { label: "Admin", href: "/dashboard/admin", icon: ShieldCheck };
+const adminNavItem = { key: "admin", href: "/dashboard/admin", icon: ShieldCheck } as const;
 
-const settingsNavItem = { label: "Settings", href: "/dashboard/settings", icon: Settings };
+const settingsNavItem = { key: "settings", href: "/dashboard/settings", icon: Settings } as const;
+
+const copy = defineCopy({
+  en: {
+    nav: {
+      overview: "Overview",
+      universities: "Universities",
+      analysis: "Analysis",
+      essays: "Essay Studio",
+      training: "Training",
+      portfolio: "Portfolio",
+      profile: "Profile",
+      methodology: "Methodology",
+      admin: "Admin",
+      settings: "Settings",
+    },
+    platform: "Platform",
+    beta: "Free beta",
+    betaNote: "Every feature is unlocked while we're in beta",
+    yourAccount: "Your account",
+    billing: "Billing",
+    signOut: "Sign out",
+  },
+  ru: {
+    nav: {
+      overview: "Обзор",
+      universities: "Университеты",
+      analysis: "Анализ",
+      essays: "Эссе-студия",
+      training: "Тренировка",
+      portfolio: "Портфолио",
+      profile: "Профиль",
+      methodology: "Методология",
+      admin: "Админка",
+      settings: "Настройки",
+    },
+    platform: "Платформа",
+    beta: "Бесплатная бета",
+    betaNote: "Пока идёт бета, открыты все функции",
+    yourAccount: "Твой аккаунт",
+    billing: "Тариф",
+    signOut: "Выйти",
+  },
+});
 
 /**
  * `isAdmin` is resolved on the server (the ADMIN_EMAILS allow-list is not
@@ -65,6 +110,7 @@ const settingsNavItem = { label: "Settings", href: "/dashboard/settings", icon: 
  * both independently gated.
  */
 export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
+  const t = useCopy(copy);
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
@@ -94,7 +140,7 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel>{t.platform}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
@@ -106,11 +152,11 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={isActive}
-                      tooltip={item.label}
+                      tooltip={t.nav[item.key]}
                       render={<Link href={item.href} />}
                     >
                       <item.icon />
-                      <span>{item.label}</span>
+                      <span>{t.nav[item.key]}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -128,11 +174,9 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           >
             <span className="flex items-center gap-1.5 text-xs font-semibold">
               <Sparkles className="size-3.5" />
-              Free beta
+              {t.beta}
             </span>
-            <span className="text-[0.7rem] text-white/80">
-              Every feature is unlocked while we&apos;re in beta
-            </span>
+            <span className="text-[0.7rem] text-white/80">{t.betaNote}</span>
           </Link>
         </div>
 
@@ -152,7 +196,7 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">
-                {user?.name ?? "Your account"}
+                {user?.name ?? t.yourAccount}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {user?.email ?? ""}
@@ -169,7 +213,7 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col gap-0.5">
                   <span className="truncate text-sm font-medium">
-                    {user?.name ?? "Your account"}
+                    {user?.name ?? t.yourAccount}
                   </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {user?.email ?? ""}
@@ -180,16 +224,16 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
               <Settings />
-              Settings
+              {t.nav.settings}
             </DropdownMenuItem>
             <DropdownMenuItem render={<Link href="/dashboard/settings?tab=billing" />}>
               <CreditCard />
-              Billing
+              {t.billing}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
               <LogOut />
-              Sign out
+              {t.signOut}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

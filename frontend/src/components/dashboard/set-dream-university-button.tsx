@@ -9,6 +9,25 @@ import { Button } from "@/components/ui/button";
 import { updateAcademicProfile } from "@/lib/profile-client";
 import type { AcademicProfile } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
+import { defineCopy } from "@/lib/i18n/core";
+import { useCopy } from "@/lib/i18n/client";
+
+const copy = defineCopy({
+  en: {
+    removed: "Removed as dream university",
+    set: "Set as your dream university",
+    failed: "Could not update your dream university.",
+    dream: "Dream university",
+    setButton: "Set as dream university",
+  },
+  ru: {
+    removed: "Университет больше не отмечен как мечта",
+    set: "Теперь это твой университет мечты",
+    failed: "Не удалось обновить университет мечты.",
+    dream: "Университет мечты",
+    setButton: "Сделать университетом мечты",
+  },
+});
 
 export function SetDreamUniversityButton({
   academic,
@@ -17,6 +36,7 @@ export function SetDreamUniversityButton({
   academic: AcademicProfile;
   universityId: string;
 }) {
+  const t = useCopy(copy);
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const isDream = academic.dreamUniversityId === universityId;
@@ -29,14 +49,14 @@ export function SetDreamUniversityButton({
         dreamUniversityId: isDream ? null : universityId,
         dreamProgramId: isDream ? null : academic.dreamProgramId,
       });
-      toast.success(isDream ? "Removed as dream university" : "Set as your dream university");
+      toast.success(isDream ? t.removed : t.set);
       if (isDream) {
         router.refresh();
       } else {
         router.push(`/dashboard/field-of-study?universityId=${universityId}`);
       }
     } catch (error) {
-      toast.error(describeApiError(error, "Could not update your dream university."));
+      toast.error(describeApiError(error, t.failed));
     } finally {
       setIsSaving(false);
     }
@@ -49,7 +69,7 @@ export function SetDreamUniversityButton({
       disabled={isSaving}
     >
       {isSaving ? <Loader2 className="animate-spin" /> : isDream ? <Star className="fill-current" /> : <GraduationCap />}
-      {isDream ? "Dream university" : "Set as dream university"}
+      {isDream ? t.dream : t.setButton}
     </Button>
   );
 }
