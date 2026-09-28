@@ -274,6 +274,83 @@ export const DRILLS: Drill[] = [
     },
   },
 
+  {
+    id: "hook-question",
+    unit: "hook",
+    kind: "rewrite",
+    title: { en: "Drop the rhetorical question", ru: "Убери риторический вопрос" },
+    task: {
+      en: "Opening with a question to the reader is a warm-up in disguise. Start with a real moment instead — one or two sentences.",
+      ru: "Вопрос к читателю в начале — это тот же разгон, только замаскированный. Начни с реального момента — одно-два предложения.",
+    },
+    source: "Have you ever wondered what it feels like to fail at something you love?",
+    placeholder: "At 7:15 on the morning of...",
+    rules: [
+      {
+        type: "avoid",
+        words: ["have you ever", "wondered", "imagine"],
+        label: { en: "a question to the reader", ru: "вопрос к читателю" },
+      },
+      { type: "concrete" },
+      { type: "maxSentences", n: 2 },
+      { type: "maxWords", n: 35 },
+    ],
+    model: "At 7:15 on the morning of the regional olympiad, I realised I had revised the wrong chapter.",
+    modelWhy: {
+      en: "The reader doesn't need to be asked how failure feels — the time and the mistake make them feel it.",
+      ru: "Читателя не нужно спрашивать, каково это — провалиться: время и ошибка заставляют это почувствовать.",
+    },
+  },
+  {
+    id: "hook-quote",
+    unit: "hook",
+    kind: "choose",
+    title: { en: "Your words, not a famous quote", ru: "Свои слова, а не цитата" },
+    task: {
+      en: "Which opening quote actually belongs in a personal essay?",
+      ru: "Какая цитата в начале действительно уместна в личном эссе?",
+    },
+    options: [
+      {
+        text: "As Albert Einstein once said, \"Imagination is more important than knowledge.\"",
+        correct: false,
+        why: {
+          en: "A famous quote borrows someone else's voice in the one place yours matters most — and readers have seen this one hundreds of times.",
+          ru: "Знаменитая цитата — чужой голос там, где важнее всего твой. И эту фразу читали сотни раз.",
+        },
+      },
+      {
+        text: "\"You can't sell a cake that's still on fire,\" my brother said, taking the tray out of my hands.",
+        correct: true,
+        why: {
+          en: "A quote from your own life: funny, specific, and it drops the reader into a scene.",
+          ru: "Цитата из твоей жизни: смешно, конкретно и сразу переносит читателя в сцену.",
+        },
+      },
+      {
+        text: "\"Success is not final, failure is not fatal,\" as the saying goes.",
+        correct: false,
+        why: {
+          en: "A poster slogan tells the reader nothing about you.",
+          ru: "Лозунг с плаката ничего не говорит о тебе.",
+        },
+      },
+      {
+        text: "Everyone has a story, and this is mine.",
+        correct: false,
+        why: {
+          en: "It announces a story instead of starting one.",
+          ru: "Объявляет историю вместо того, чтобы её начать.",
+        },
+      },
+    ],
+    model: "\"You can't sell a cake that's still on fire,\" my brother said, taking the tray out of my hands.",
+    modelWhy: {
+      en: "The best quote in your essay is one only you could have heard.",
+      ru: "Лучшая цитата в эссе — та, что прозвучала в твоей собственной жизни.",
+    },
+  },
+
   // ── Specific story ──────────────────────────────────────────────────────
   {
     id: "spec-show",
@@ -409,6 +486,86 @@ export const DRILLS: Drill[] = [
     modelWhy: {
       en: "One place, one animal, two moments months apart — the change tells the story the list couldn't.",
       ru: "Одно место, одно животное, два момента с разницей в месяцы — перемена рассказывает то, чего не мог список.",
+    },
+  },
+
+  {
+    id: "spec-one-time",
+    unit: "specificity",
+    kind: "rewrite",
+    title: { en: "One time, not \"always\"", ru: "Один случай, а не «always»" },
+    task: {
+      en: "A habit is hard to picture. Replace \"always\" with one particular time it happened — who, when, what.",
+      ru: "Привычку трудно представить. Замени «always» одним конкретным случаем — кто, когда, что было.",
+    },
+    source: "I always help my classmates with their homework, and they always thank me.",
+    placeholder: "The night before the chemistry final...",
+    rules: [
+      {
+        type: "avoid",
+        words: ["always"],
+        label: { en: "\"always\" — a habit instead of a moment", ru: "«always» — привычка вместо момента" },
+      },
+      { type: "concrete" },
+      { type: "name" },
+      { type: "maxSentences", n: 3 },
+      { type: "maxWords", n: 60 },
+    ],
+    model:
+      "The night before the chemistry final, Aruzhan called me at 11 p.m. because moles made no sense to her. We balanced equations over video until she got three in a row without me.",
+    modelWhy: {
+      en: "One evening with a name and a time is more convincing than \"always\" — the reader sees you actually do it.",
+      ru: "Один вечер с именем и временем убедительнее, чем «always», — читатель видит, как ты это делаешь.",
+    },
+  },
+  {
+    id: "spec-proof-pick",
+    unit: "specificity",
+    kind: "choose",
+    title: { en: "Which detail proves it?", ru: "Какая деталь это доказывает?" },
+    task: {
+      en: "The claim is \"I'm curious.\" Which sentence proves it without saying it?",
+      ru: "Утверждение: «I'm curious». Какое предложение доказывает это, не произнося?",
+    },
+    options: [
+      {
+        text: "I have always been an extremely curious person.",
+        correct: false,
+        why: {
+          en: "It repeats the claim louder. Nothing here is evidence.",
+          ru: "Повторяет утверждение, только громче. Доказательств нет.",
+        },
+      },
+      {
+        text: "I love learning new things every single day.",
+        correct: false,
+        why: {
+          en: "Every applicant could write this. What things? Which day?",
+          ru: "Так может написать любой абитуриент. Какие вещи? Какой день?",
+        },
+      },
+      {
+        text: "I once took our microwave apart to find out why it hummed, and the magnetron is still in a shoebox under my bed.",
+        correct: true,
+        why: {
+          en: "An action, an object and a consequence — curiosity you can see.",
+          ru: "Действие, предмет и последствие — любопытство, которое видно.",
+        },
+      },
+      {
+        text: "My teachers often say that I ask a lot of questions.",
+        correct: false,
+        why: {
+          en: "Better — someone else noticed — but still no scene. Which question, to whom?",
+          ru: "Уже лучше — это заметил кто-то другой, — но сцены всё ещё нет. Какой вопрос, кому?",
+        },
+      },
+    ],
+    model:
+      "I once took our microwave apart to find out why it hummed, and the magnetron is still in a shoebox under my bed.",
+    modelWhy: {
+      en: "Evidence beats adjectives: let the reader reach \"curious\" on their own.",
+      ru: "Доказательство сильнее прилагательных: пусть читатель сам придёт к слову «curious».",
     },
   },
 
@@ -561,6 +718,70 @@ export const DRILLS: Drill[] = [
     },
   },
 
+  {
+    id: "refl-before-after",
+    unit: "reflection",
+    kind: "rewrite",
+    title: { en: "Show then and now", ru: "Покажи «тогда» и «сейчас»" },
+    task: {
+      en: "\"Shy\" and \"confident\" are labels. Show the change through two things you did — one before, one now.",
+      ru: "«Shy» и «confident» — ярлыки. Покажи перемену через два поступка: один тогда, один сейчас.",
+    },
+    source: "Before the debate club I was shy, and after it I became confident.",
+    placeholder: "In ninth grade I... Now I...",
+    rules: [
+      { type: "avoid", words: ["shy", "confident", "became"], label: TELLING },
+      {
+        type: "include",
+        pattern: "\\b(now|today|these days|this year|since then)\\b",
+        label: { en: "Shows how it is now", ru: "Показано, как сейчас" },
+        hint: { en: "Add what you do now.", ru: "Добавь, что ты делаешь сейчас." },
+      },
+      { type: "concrete" },
+      { type: "maxSentences", n: 3 },
+      { type: "maxWords", n: 60 },
+    ],
+    model:
+      "In ninth grade I rehearsed my canteen order in my head before reaching the counter. Now I open our debate club's Friday rounds by asking the question nobody wants to answer first.",
+    modelWhy: {
+      en: "Two small, true behaviours side by side — the reader measures the change for themselves.",
+      ru: "Два небольших правдивых поступка рядом — читатель сам оценивает, насколько всё изменилось.",
+    },
+  },
+  {
+    id: "refl-so-what",
+    unit: "reflection",
+    kind: "rewrite",
+    title: { en: "Answer \"so what?\"", ru: "Ответь на «и что?»" },
+    task: {
+      en: "An achievement on its own is a line from your CV. Keep it and add 1–2 sentences: what did it change in how you think or work?",
+      ru: "Достижение само по себе — строчка из резюме. Оставь его и добавь 1–2 предложения: что оно изменило в том, как ты думаешь или работаешь?",
+    },
+    source: "I won second place in the regional physics olympiad.",
+    placeholder: "I won second place in the regional physics olympiad. The problem I lost points on...",
+    rules: [
+      {
+        type: "include",
+        pattern: "\\b(realis|realiz|understood|noticed|learned|learnt|used to|now\\b)",
+        label: { en: "Says what changed", ru: "Сказано, что изменилось" },
+        hint: {
+          en: "Add what you realised, or what you do differently now.",
+          ru: "Добавь, что тебе стало понятно или что ты теперь делаешь иначе.",
+        },
+      },
+      { type: "avoid", words: ["proud", "valuable lesson", "taught me the importance"], label: STOCK_MORALS },
+      { type: "noCliches" },
+      { type: "minWords", n: 20 },
+      { type: "maxSentences", n: 3 },
+    ],
+    model:
+      "I won second place in the regional physics olympiad. The problem I lost points on was one I had skipped in practice because it looked boring, and I realised I only trained on problems I liked. Now I start every practice set with the one I most want to skip.",
+    modelWhy: {
+      en: "The medal becomes a story about how you think — and the new habit proves the lesson stuck.",
+      ru: "Медаль превращается в историю о том, как ты думаешь, а новая привычка доказывает, что урок усвоен.",
+    },
+  },
+
   // ── Voice ───────────────────────────────────────────────────────────────
   {
     id: "voice-thesaurus",
@@ -657,6 +878,78 @@ export const DRILLS: Drill[] = [
     modelWhy: {
       en: "Voice is honesty plus a detail only you would notice.",
       ru: "Голос — это честность плюс деталь, которую замечаешь только ты.",
+    },
+  },
+
+  {
+    id: "voice-closer",
+    unit: "voice",
+    kind: "rewrite",
+    title: { en: "Drop the brochure ending", ru: "Убери концовку из брошюры" },
+    task: {
+      en: "This last line sounds like an advert. End with something only you would say — plain words, one or two sentences.",
+      ru: "Последняя фраза звучит как реклама. Закончи тем, что можешь сказать только ты, — простыми словами, одно-два предложения.",
+    },
+    source: "Therefore, I firmly believe that I would be an invaluable asset to your prestigious university.",
+    placeholder: "In my first semester I'd like to...",
+    rules: [
+      {
+        type: "avoid",
+        words: ["invaluable", "asset", "prestigious", "firmly believe", "therefore"],
+        label: { en: "brochure words", ru: "слова из рекламной брошюры" },
+      },
+      { type: "noCliches" },
+      { type: "maxSentences", n: 2 },
+      { type: "minWords", n: 8 },
+      { type: "maxWords", n: 40 },
+    ],
+    model:
+      "In my first semester I'd like to find the lab that still smells of solder at midnight, and ask if they need someone to sweep.",
+    modelWhy: {
+      en: "Humble, specific and a little funny — the reader finishes smiling at a person, not a sales pitch.",
+      ru: "Скромно, конкретно и немного смешно — читатель заканчивает с улыбкой, глядя на человека, а не на рекламу.",
+    },
+  },
+  {
+    id: "voice-honest-pick",
+    unit: "voice",
+    kind: "choose",
+    title: { en: "Honest or polished?", ru: "Честно или «отполировано»?" },
+    task: {
+      en: "Which sentence about failing sounds like a real person?",
+      ru: "Какая фраза о неудаче звучит как слова живого человека?",
+    },
+    options: [
+      {
+        text: "Although I faced numerous challenges, I persevered and ultimately triumphed.",
+        correct: false,
+        why: {
+          en: "Polished until nothing is left: which challenges? What did winning look like?",
+          ru: "Отполировано до пустоты: какие трудности? Как выглядела победа?",
+        },
+      },
+      {
+        text: "Failure has always been my greatest teacher.",
+        correct: false,
+        why: {
+          en: "A saying, not an experience — no failure is actually described.",
+          ru: "Поговорка, а не опыт: ни одна неудача на самом деле не описана.",
+        },
+      },
+      {
+        text: "I failed my driving test twice, both times at the same roundabout, and by the second time the examiner remembered my name.",
+        correct: true,
+        why: {
+          en: "Specific, a little embarrassing and self-aware — that honesty is what readers trust.",
+          ru: "Конкретно, немного неловко и с самоиронией — именно такой честности читатели доверяют.",
+        },
+      },
+    ],
+    model:
+      "I failed my driving test twice, both times at the same roundabout, and by the second time the examiner remembered my name.",
+    modelWhy: {
+      en: "Admitting something small and real sounds stronger than claiming something big.",
+      ru: "Признать что-то маленькое и настоящее звучит сильнее, чем заявить о чём-то большом.",
     },
   },
 
@@ -768,6 +1061,82 @@ export const DRILLS: Drill[] = [
     modelWhy: {
       en: "One sentence, no repeats, and a sharper detail at the end.",
       ru: "Одно предложение, никаких повторов и более точная деталь в конце.",
+    },
+  },
+  {
+    id: "concise-empty",
+    unit: "concise",
+    kind: "rewrite",
+    title: { en: "Cut the empty constructions", ru: "Убери пустые конструкции" },
+    task: {
+      en: "\"There were… who were… the fact that…\" — the sentence is mostly scaffolding. Say it in 15 words or fewer.",
+      ru: "«There were… who were… the fact that…» — предложение почти целиком из подпорок. Скажи то же самое не больше чем в 15 словах.",
+    },
+    source:
+      "There were many students who were interested in the fact that our club was doing a project that was about recycling.",
+    placeholder: "Many students wanted...",
+    rules: [
+      {
+        type: "avoid",
+        words: ["there were", "the fact that", "who were", "that was"],
+        label: { en: "empty constructions", ru: "пустые конструкции" },
+      },
+      { type: "noFillers" },
+      { type: "maxWords", n: 15 },
+    ],
+    model: "Many students wanted to join our club's recycling project.",
+    modelWhy: {
+      en: "Twenty-two words became nine, and nothing was lost.",
+      ru: "Из двадцати двух слов осталось девять, и ничего не потерялось.",
+    },
+  },
+  {
+    id: "concise-pick",
+    unit: "concise",
+    kind: "choose",
+    title: { en: "Which one earns every word?", ru: "Где каждое слово на месте?" },
+    task: {
+      en: "All four say kindness matters. Which one wastes no words?",
+      ru: "Все четыре говорят, что доброта важна. В каком нет лишних слов?",
+    },
+    options: [
+      {
+        text: "In my opinion, I personally think that it is very important to be kind to others.",
+        correct: false,
+        why: {
+          en: "\"In my opinion\", \"I personally think\" and \"very\" all say the same nothing.",
+          ru: "«In my opinion», «I personally think» и «very» — три раза одно и то же ни о чём.",
+        },
+      },
+      {
+        text: "Being kind to others is important due to the fact that kindness is important.",
+        correct: false,
+        why: {
+          en: "Circular: the reason repeats the claim.",
+          ru: "Замкнутый круг: причина повторяет утверждение.",
+        },
+      },
+      {
+        text: "I learned kindness at 2 a.m. in a hospital corridor, from a nurse who brought my mother tea.",
+        correct: true,
+        why: {
+          en: "Every word adds something — time, place, person, action.",
+          ru: "Каждое слово что-то добавляет: время, место, человека, действие.",
+        },
+      },
+      {
+        text: "Kindness is something that is really, really important in today's modern world.",
+        correct: false,
+        why: {
+          en: "Fillers and a repeat (\"today's modern\") — and still no example.",
+          ru: "Слова-паразиты и повтор («today's modern») — и всё равно ни одного примера.",
+        },
+      },
+    ],
+    model: "I learned kindness at 2 a.m. in a hospital corridor, from a nurse who brought my mother tea.",
+    modelWhy: {
+      en: "Concise doesn't mean short — it means nothing is there for decoration.",
+      ru: "Лаконично — не значит коротко. Это значит, что нет ничего для украшения.",
     },
   },
 ];

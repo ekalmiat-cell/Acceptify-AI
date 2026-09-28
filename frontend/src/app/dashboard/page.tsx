@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { MatchTrendChart } from "@/components/dashboard/match-trend-chart";
 import { PredictionHistoryList } from "@/components/dashboard/prediction-history-list";
+import { OutcomeReminder } from "@/components/dashboard/outcome-reminder";
 import { RecommendationsList } from "@/components/dashboard/recommendations-list";
 import { ProfileProgressCard } from "@/components/dashboard/profile-progress-card";
 import { QuickStatusRow } from "@/components/dashboard/quick-status-row";
@@ -111,6 +112,8 @@ export default async function DashboardOverviewPage() {
         dreamUniversity={dreamUniversity}
         reportsCount={safePredictions.length}
       />
+
+      <OutcomeReminder predictions={safePredictions} universities={safeUniversities} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t.average} value={`${avgScore}/100`} icon={Sparkles} accent="brand" />

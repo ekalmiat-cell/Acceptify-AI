@@ -18,3 +18,8 @@ node_modules/
 *.log
 
 .vercel
+
+# Leftovers kept locally only: the retired FastAPI backend (its code is in git
+# history before 16a25ab) and throwaway design prototypes.
+backend/
+frontend/public/_mockup/

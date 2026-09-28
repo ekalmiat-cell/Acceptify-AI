@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Dumbbell,
+  MessagesSquare,
   LayoutDashboard,
   Building2,
   UserRound,
@@ -51,6 +52,7 @@ const studentNavItems = [
   { key: "analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
   { key: "essays", href: "/dashboard/essays", icon: Sparkles },
   { key: "training", href: "/dashboard/training", icon: Dumbbell },
+  { key: "interview", href: "/dashboard/interview", icon: MessagesSquare },
   { key: "portfolio", href: "/dashboard/portfolio", icon: Layers },
   { key: "profile", href: "/dashboard/profile", icon: UserRound },
   { key: "methodology", href: "/dashboard/methodology", icon: FlaskConical },
@@ -68,6 +70,7 @@ const copy = defineCopy({
       analysis: "Analysis",
       essays: "Essay Studio",
       training: "Training",
+      interview: "Interview",
       portfolio: "Portfolio",
       profile: "Profile",
       methodology: "Methodology",
@@ -88,6 +91,7 @@ const copy = defineCopy({
       analysis: "Анализ",
       essays: "Эссе-студия",
       training: "Тренировка",
+      interview: "Собеседование",
       portfolio: "Портфолио",
       profile: "Профиль",
       methodology: "Методология",
