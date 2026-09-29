@@ -27,11 +27,14 @@ const blink: Transition = {
 export function ArsFace({
   mood = "idle",
   word,
+  strict = false,
   className,
   title,
 }: {
   mood?: ArsMood;
   word?: SpokenWord | null;
+  /** The strict bro style: brows drawn down in a determined frown. */
+  strict?: boolean;
   className?: string;
   title?: string;
 }) {
@@ -98,6 +101,19 @@ export function ArsFace({
         >
           <line x1="62" y1="38" x2="82" y2="32" />
           <line x1="118" y1="32" x2="138" y2="38" />
+        </motion.g>
+
+        {/* Strict brows: slanting down toward the middle. */}
+        <motion.g
+          initial={false}
+          animate={{ opacity: strict && !sad ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+          stroke={INK}
+          strokeWidth="4.5"
+          strokeLinecap="round"
+        >
+          <line x1="62" y1="29" x2="84" y2="35" />
+          <line x1="116" y1="35" x2="138" y2="29" />
         </motion.g>
       </motion.g>
 

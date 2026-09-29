@@ -29,7 +29,7 @@ export const POST = route(async (request) =>
     await consumeAiAllowance(user.id, feature);
 
     const context = input.include_context ? await buildCopilotContext(user.id) : null;
-    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang);
+    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style);
     return json({ ...reply, left: await aiAllowanceLeft(user.id, feature) });
   }),
 );

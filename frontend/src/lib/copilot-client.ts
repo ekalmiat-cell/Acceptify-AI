@@ -1,7 +1,13 @@
 "use client";
 
 import { apiFetch } from "@/lib/api-client";
-import type { ChatMessage, CopilotAllowance, CopilotChatResponse, CopilotMode } from "@/types/copilot";
+import type {
+  ChatMessage,
+  CopilotAllowance,
+  CopilotChatResponse,
+  CopilotMode,
+  CopilotStyle,
+} from "@/types/copilot";
 
 const CHAT_TIMEOUT_MS = 100_000;
 
@@ -11,6 +17,7 @@ export async function sendCopilotMessage(
   includeContext: boolean = true,
   mode: CopilotMode = "text",
   lang?: "ru" | "en",
+  style: CopilotStyle = "friendly",
 ): Promise<CopilotChatResponse> {
   return apiFetch<CopilotChatResponse>("/api/v1/copilot/chat", {
     method: "POST",
@@ -19,6 +26,7 @@ export async function sendCopilotMessage(
       include_context: includeContext,
       mode,
       lang,
+      style,
     }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });

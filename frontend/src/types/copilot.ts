@@ -4,11 +4,14 @@ export interface ChatMessage {
 }
 
 export type CopilotMode = "text" | "voice";
+export type CopilotStyle = "friendly" | "strict";
 
 export interface CopilotChatRequest {
   messages: ChatMessage[];
   include_context?: boolean;
   mode?: CopilotMode;
+  lang?: "ru" | "en";
+  style?: CopilotStyle;
 }
 
 export interface CopilotChatResponse {

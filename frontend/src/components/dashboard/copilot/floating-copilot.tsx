@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
-import { X, Send, Loader2, User, RotateCcw, Minimize2, Maximize2, Keyboard, Mic, Volume2 } from "lucide-react";
+import { X, Send, Loader2, User, RotateCcw, Minimize2, Maximize2, Keyboard, Mic, Volume2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArsFace, type ArsMood } from "@/components/dashboard/copilot/ars-face";
 import {
@@ -27,6 +27,7 @@ type Phase = "idle" | "listening" | "thinking" | "speaking";
 /** Set once the mentor has made its entrance this browser session (cleared on sign-out). */
 const INTRO_KEY = "acceptify-ars-intro";
 const VOICE_LANG_KEY = "acceptify-ars-voice-lang";
+const STYLE_KEY = "acceptify-bro-style";
 
 /** Signing out ends the session, so the next sign-in gets the entrance again. */
 export function forgetArsIntro() {
@@ -79,6 +80,9 @@ const copy = defineCopy({
     cantSpeak: "The browser wouldn't read the answer aloud. Tap the speaker to hear it.",
     replay: "Hear the answer again",
     speechLang: "Language you speak",
+    strict: "Strict",
+    strictOn: "Strict bro is on: blunt, no excuses, a few rough words. Tap to turn off.",
+    strictOff: "Turn on strict bro: blunt, no excuses, a few rough words (voice only).",
   },
   ru: {
     suggestions: [
@@ -120,6 +124,9 @@ const copy = defineCopy({
     cantSpeak: "Браузер не стал читать ответ вслух. Нажми на динамик, чтобы послушать.",
     replay: "Послушать ответ ещё раз",
     speechLang: "Язык, на котором ты говоришь",
+    strict: "Строгий",
+    strictOn: "Строгий бро включён: прямо, без отмазок и с крепким словцом. Нажми, чтобы выключить.",
+    strictOff: "Включить строгого бро: прямо, без отмазок и с крепким словцом (только голосом).",
   },
 });
 
@@ -152,6 +159,7 @@ export function FloatingCopilot() {
   const [note, setNote] = useState<string | null>(null);
   const [voiceLang, setVoiceLang] = useState<VoiceLang>(locale);
   const [word, setWord] = useState<SpokenWord | null>(null);
+  const [strict, setStrict] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -161,6 +169,7 @@ export function FloatingCopilot() {
     try {
       const saved = localStorage.getItem(VOICE_LANG_KEY);
       if (saved === "ru" || saved === "en") setVoiceLang(saved);
+      setStrict(localStorage.getItem(STYLE_KEY) === "strict");
     } catch {}
     getCopilotAllowance()
       .then(setAllowance)
@@ -200,6 +209,14 @@ export function FloatingCopilot() {
     setHeard("");
     setLastReply("");
     setNote(null);
+  }
+
+  function toggleStrict() {
+    const next = !strict;
+    setStrict(next);
+    try {
+      localStorage.setItem(STYLE_KEY, next ? "strict" : "friendly");
+    } catch {}
   }
 
   function chooseVoiceLang(lang: VoiceLang) {
@@ -348,7 +365,7 @@ export function FloatingCopilot() {
     setMessages(updated);
 
     try {
-      const res = await sendCopilotMessage(updated, true, "voice", voiceLang);
+      const res = await sendCopilotMessage(updated, true, "voice", voiceLang, strict ? "strict" : "friendly");
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
       setLastReply(res.reply);
       noteLeft("voice", res.left);
@@ -435,6 +452,23 @@ export function FloatingCopilot() {
                     <X className="h-4 w-4" />
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={toggleStrict}
+                    aria-pressed={strict}
+                    title={strict ? t.strictOn : t.strictOff}
+                    aria-label={strict ? t.strictOn : t.strictOff}
+                    className={cn(
+                      "absolute left-3 top-3 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                      strict
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    <Flame className="h-3 w-3" />
+                    {t.strict}
+                  </button>
+
                   <div className="flex flex-1 flex-col items-center justify-center px-6 pt-6">
                     <motion.button
                       type="button"
@@ -448,7 +482,7 @@ export function FloatingCopilot() {
                         voiceTired ? "cursor-default" : "cursor-pointer",
                       )}
                     >
-                      <ArsFace mood={faceMood} word={word} className="w-[208px]" />
+                      <ArsFace mood={faceMood} word={word} strict={strict} className="w-[208px]" />
                     </motion.button>
 
                     <div className="mt-6 min-h-[92px] w-full text-center" aria-live="polite">
