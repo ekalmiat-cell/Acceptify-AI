@@ -178,7 +178,7 @@ export function HeroAnalysisCard() {
         </AnimatePresence>
 
         <div className="flex items-center justify-between">
-          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-white/50 uppercase">
+          <span className="rounded-full border border-mk-ink/10 bg-mk-ink/5 px-2.5 py-1 text-[0.65rem] font-medium tracking-wide text-mk-ink/50 uppercase">
             {t.example}
           </span>
           <AnimatePresence mode="wait">
@@ -198,9 +198,9 @@ export function HeroAnalysisCard() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="inline-flex items-center gap-1.5 text-xs text-white/50"
+                className="inline-flex items-center gap-1.5 text-xs text-mk-ink/50"
               >
-                <Sparkles className="size-3.5 animate-pulse text-[#4a8bff]" />
+                <Sparkles className="size-3.5 animate-pulse text-mk-accent" />
                 {t.analysing}
               </motion.span>
             )}
@@ -229,26 +229,26 @@ export function HeroAnalysisCard() {
                 className="size-9 text-[0.6rem]"
               />
               <div>
-                <p className="text-sm font-medium text-white">{example.university}</p>
-                <p className="text-xs text-white/45">{fieldName(example.programme, locale)}</p>
+                <p className="text-sm font-medium text-mk-ink">{example.university}</p>
+                <p className="text-xs text-mk-ink/45">{fieldName(example.programme, locale)}</p>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        <div className="mt-5 rounded-xl bg-white/5 p-4">
-          <p className="text-xs text-white/45">{t.fit}</p>
-          <p className="font-heading text-4xl font-semibold text-white tabular-nums">
+        <div className="mt-5 rounded-xl bg-mk-ink/5 p-4">
+          <p className="text-xs text-mk-ink/45">{t.fit}</p>
+          <p className="font-heading text-4xl font-semibold text-mk-ink tabular-nums">
             <CountUp key={`${index}-${phase}`} to={showResult ? example.score : 0} instant={!!reduceMotion} />
-            <span className="text-lg text-white/40">/100</span>
+            <span className="text-lg text-mk-ink/40">/100</span>
           </p>
         </div>
 
         <ul className="mt-5 flex flex-col gap-3">
           {example.rows.map((row, i) => (
             <li key={row.label} className="flex items-center gap-3 text-sm">
-              <span className="w-32 shrink-0 text-white/60">{t.rows[i]}</span>
-              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+              <span className="w-32 shrink-0 text-mk-ink/60">{t.rows[i]}</span>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-mk-ink/10">
                 <motion.span
                   className="block h-full rounded-full bg-brand"
                   initial={false}
@@ -260,14 +260,14 @@ export function HeroAnalysisCard() {
                   }
                 />
               </span>
-              <span className="w-8 shrink-0 text-right font-mono text-xs text-white/70 tabular-nums">
+              <span className="w-8 shrink-0 text-right font-mono text-xs text-mk-ink/70 tabular-nums">
                 {showResult ? row.score : "—"}
               </span>
             </li>
           ))}
         </ul>
 
-        <div className="mt-5 min-h-[3.25rem] border-t border-white/10 pt-4">
+        <div className="mt-5 min-h-[3.25rem] border-t border-mk-ink/10 pt-4">
           <AnimatePresence mode="wait">
             {showResult ? (
               <motion.p
@@ -276,7 +276,7 @@ export function HeroAnalysisCard() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4, delay: 0.9 }}
-                className="text-xs leading-relaxed text-white/55"
+                className="text-xs leading-relaxed text-mk-ink/55"
               >
                 {t.actions[index]}
               </motion.p>
@@ -290,7 +290,7 @@ export function HeroAnalysisCard() {
             <span
               key={e.university}
               className={`h-1 rounded-full transition-all duration-500 ${
-                i === index ? "w-6 bg-[#4a8bff]" : "w-1.5 bg-white/20"
+                i === index ? "w-6 bg-[#4a8bff]" : "w-1.5 bg-mk-ink/20"
               }`}
             />
           ))}

@@ -26,10 +26,10 @@ export async function StatsSection({ universities }: { universities: University[
   const stats = buildPlatformStats(universities, locale);
 
   return (
-    <section className="relative border-y border-white/10 bg-[#050e1c] py-16 sm:py-20">
+    <section className="relative border-y border-mk-ink/10 bg-mk-deep py-16 sm:py-20">
       <Container className="max-w-7xl">
         <FadeIn className="mb-10 flex flex-col items-center gap-2 text-center">
-          <p className="text-sm font-medium text-white/50">
+          <p className="text-sm font-medium text-mk-ink/50">
             {copy[locale].heading}
           </p>
         </FadeIn>
@@ -44,10 +44,10 @@ export async function StatsSection({ universities }: { universities: University[
                     <Icon className="size-4.5" />
                   </span>
                   <div>
-                    <p className="font-heading text-3xl font-semibold text-white">
+                    <p className="font-heading text-3xl font-semibold text-mk-ink">
                       <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                     </p>
-                    <p className="mt-1 text-sm text-white/45">{stat.label}</p>
+                    <p className="mt-1 text-sm text-mk-ink/45">{stat.label}</p>
                   </div>
                 </div>
               </FadeInStaggerItem>

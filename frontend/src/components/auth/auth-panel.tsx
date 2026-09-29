@@ -43,20 +43,20 @@ export async function AuthPanel() {
   ];
 
   return (
-    <div className="relative hidden h-full flex-col justify-between overflow-hidden bg-[#071326] p-12 lg:flex">
+    <div className="relative hidden h-full flex-col justify-between overflow-hidden border-r border-mk-ink/5 bg-mk-deep p-12 lg:flex dark:bg-mk-bg">
       <div className="bg-grid-glow pointer-events-none absolute inset-0 opacity-70" />
 
       <div className="relative">
-        <Logo dark />
+        <Logo />
       </div>
 
       <div className="relative flex flex-col gap-8">
-        <p className="max-w-md text-balance font-heading text-2xl leading-snug text-white">
+        <p className="max-w-md text-balance font-heading text-2xl leading-snug text-mk-ink">
           {t.headline}
         </p>
         <div className="flex flex-col gap-3">
           {points.map((point) => (
-            <div key={point} className="flex items-start gap-2.5 text-sm text-white/70">
+            <div key={point} className="flex items-start gap-2.5 text-sm text-mk-ink/70">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand" />
               {point}
             </div>
@@ -64,11 +64,11 @@ export async function AuthPanel() {
         </div>
       </div>
 
-      <div className="relative grid grid-cols-3 gap-6 border-t border-white/10 pt-6">
+      <div className="relative grid grid-cols-3 gap-6 border-t border-mk-ink/10 pt-6">
         {facts.map((fact) => (
           <div key={fact.id}>
-            <p className="font-heading text-xl font-semibold text-white">{fact.value}</p>
-            <p className="text-xs text-white/40">{fact.label}</p>
+            <p className="font-heading text-xl font-semibold text-mk-ink">{fact.value}</p>
+            <p className="text-xs text-mk-ink/40">{fact.label}</p>
           </div>
         ))}
       </div>

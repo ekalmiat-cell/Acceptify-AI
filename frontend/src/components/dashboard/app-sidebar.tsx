@@ -45,6 +45,7 @@ import { Logo } from "@/components/shared/logo";
 import { authClient, useSession } from "@/lib/auth-client";
 import { defineCopy } from "@/lib/i18n/core";
 import { useCopy } from "@/lib/i18n/client";
+import { forgetArsIntro } from "@/components/dashboard/copilot/floating-copilot";
 
 const studentNavItems = [
   { key: "overview", href: "/dashboard", icon: LayoutDashboard },
@@ -130,6 +131,7 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
 
   async function handleSignOut() {
     await authClient.signOut();
+    forgetArsIntro();
     router.push("/");
     router.refresh();
   }

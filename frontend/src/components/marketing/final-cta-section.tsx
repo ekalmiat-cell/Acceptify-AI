@@ -27,14 +27,14 @@ const copy = defineCopy({
 export async function FinalCtaSection() {
   const t = copy[await getLocale()];
   return (
-    <section className="relative overflow-hidden bg-[#071326] pb-24 sm:pb-32">
+    <section className="relative overflow-hidden bg-mk-bg pb-24 sm:pb-32">
       <Container className="max-w-6xl">
         <FadeIn>
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0d1c33] px-8 py-16 text-center sm:px-16 sm:py-20">
-            <h2 className="relative mx-auto max-w-xl text-balance font-heading text-3xl font-semibold text-white sm:text-4xl">
+          <div className="relative overflow-hidden rounded-2xl border border-mk-ink/10 bg-mk-surface px-8 py-16 text-center sm:px-16 sm:py-20">
+            <h2 className="relative mx-auto max-w-xl text-balance font-heading text-3xl font-semibold text-mk-ink sm:text-4xl">
               {t.title}
             </h2>
-            <p className="relative mx-auto mt-4 max-w-md text-balance text-white/60">{t.text}</p>
+            <p className="relative mx-auto mt-4 max-w-md text-balance text-mk-ink/60">{t.text}</p>
             <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
                 render={<Link href="/sign-up" />}
@@ -48,7 +48,7 @@ export async function FinalCtaSection() {
                 render={<Link href="#universities" />}
                 size="lg"
                 variant="outline"
-                className="h-11 border-white/15 bg-transparent px-6 text-white hover:bg-white/10"
+                className="h-11 border-mk-ink/15 bg-transparent px-6 text-mk-ink hover:bg-mk-ink/10"
               >
                 {t.explore}
               </Button>
@@ -61,7 +61,7 @@ export async function FinalCtaSection() {
           wording appears alongside every score inside the app.
         */}
         <FadeIn delay={0.1}>
-          <p className="mx-auto mt-8 flex max-w-2xl items-start justify-center gap-2.5 text-center text-xs leading-relaxed text-white/40">
+          <p className="mx-auto mt-8 flex max-w-2xl items-start justify-center gap-2.5 text-center text-xs leading-relaxed text-mk-ink/40">
             <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
             <span>{t.disclaimer}</span>
           </p>

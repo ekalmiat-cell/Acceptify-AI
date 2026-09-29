@@ -32,11 +32,11 @@ export async function Footer() {
   const locale = await getLocale();
   const t = copy[locale];
   return (
-    <footer className="border-t border-white/10 bg-[#050e1c]">
+    <footer className="border-t border-mk-ink/10 bg-mk-deep">
       <div className="mx-auto grid w-full max-w-7xl gap-12 px-6 py-16 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-10">
         <div className="flex flex-col gap-4">
-          <Logo dark />
-          <p className="max-w-xs text-sm leading-relaxed text-white/50">{t.about}</p>
+          <Logo />
+          <p className="max-w-xs text-sm leading-relaxed text-mk-ink/50">{t.about}</p>
           {siteConfig.socials.length > 0 ? (
             <div className="flex items-center gap-3 pt-2">
               {siteConfig.socials.map((social) => (
@@ -45,7 +45,7 @@ export async function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex size-8 items-center justify-center rounded-full border border-white/10 text-xs font-medium text-white/60 transition-colors hover:border-white/25 hover:text-white"
+                  className="flex size-8 items-center justify-center rounded-full border border-mk-ink/10 text-xs font-medium text-mk-ink/60 transition-colors hover:border-mk-ink/25 hover:text-mk-ink"
                 >
                   {social.label.slice(0, 1)}
                 </Link>
@@ -59,8 +59,8 @@ export async function Footer() {
         <FooterColumn locale={locale} title={t.legal} links={siteConfig.footerNav.legal} />
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-white/40 sm:flex-row md:px-10">
+      <div className="border-t border-mk-ink/10">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-mk-ink/40 sm:flex-row md:px-10">
           <p>
             © {new Date().getFullYear()} {siteConfig.name} · {t.operator}, {t.country}
           </p>
@@ -82,7 +82,7 @@ function FooterColumn({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <span className="text-sm font-medium text-white">{title}</span>
+      <span className="text-sm font-medium text-mk-ink">{title}</span>
       <ul className="flex flex-col gap-2.5">
         {links.map((link) => (
           <li key={link.label}>
@@ -91,7 +91,7 @@ function FooterColumn({
               {...(link.href.startsWith("http")
                 ? { target: "_blank", rel: "noreferrer" }
                 : {})}
-              className="text-sm text-white/50 transition-colors hover:text-white"
+              className="text-sm text-mk-ink/50 transition-colors hover:text-mk-ink"
             >
               {navLabel(link.label, locale)}
             </Link>

@@ -123,6 +123,14 @@ function PrivacyEn() {
           information that identifies you or other people in essays and
           questions.
         </p>
+        <p>
+          <strong>Talking to Ars by voice.</strong> Your speech is turned into
+          text by your own browser’s speech recognition; in Chrome and Edge that
+          means the audio goes to Google or Microsoft for recognition, and in
+          Safari to Apple. We never record, receive or store audio — only the
+          recognised text reaches us, and it is handled like a typed question.
+          Ars’s replies are read aloud by your device.
+        </p>
       </LegalSection>
 
       <LegalSection title="5. Who processes your data">
@@ -297,6 +305,13 @@ function PrivacyRu() {
           </strong>{" "}
           Пожалуйста, не указывай в эссе и вопросах полное имя, контакты и другие сведения,
           по которым можно узнать тебя или других людей.
+        </p>
+        <p>
+          <strong>Голосовой разговор с Арсом.</strong> Речь превращает в текст сам твой
+          браузер: в Chrome и Edge звук для распознавания уходит в Google или Microsoft, в
+          Safari — в Apple. Мы не записываем, не получаем и не храним звук — к нам приходит
+          только распознанный текст, и с ним мы обращаемся как с обычным вопросом. Ответы
+          Арса читает вслух твоё устройство.
         </p>
       </LegalSection>
 

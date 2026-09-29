@@ -78,7 +78,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
   }, [universities, gpa, sat, ielts]);
 
   return (
-    <section id="ai-demo" className="relative bg-[#071326] py-24 sm:py-32">
+    <section id="ai-demo" className="relative bg-mk-bg py-24 sm:py-32">
       <div className="bg-grid-glow pointer-events-none absolute inset-0 opacity-60" />
       <Container className="relative max-w-7xl">
         <SectionHeading
@@ -119,7 +119,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
               format={(v) => v.toFixed(1)}
             />
 
-            <div className="flex items-start gap-3 rounded-2xl bg-white/5 p-4 text-sm text-white/60">
+            <div className="flex items-start gap-3 rounded-2xl bg-mk-ink/5 p-4 text-sm text-mk-ink/60">
               <Sparkles className="mt-0.5 size-4 shrink-0 text-brand" />
               {t.note}
             </div>
@@ -134,15 +134,15 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
                 <UniversityLogo university={university} className="size-11 rounded-xl text-xs" />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="truncate text-sm font-medium text-white">
+                    <p className="truncate text-sm font-medium text-mk-ink">
                       {university.name}
                     </p>
-                    <span className="shrink-0 font-heading text-lg font-semibold text-white">
+                    <span className="shrink-0 font-heading text-lg font-semibold text-mk-ink">
                       {score}%
                     </span>
                   </div>
                   <Progress value={score} className="mt-2">
-                    <ProgressTrack className="bg-white/10">
+                    <ProgressTrack className="bg-mk-ink/10">
                       <ProgressIndicator className="bg-gradient-brand" />
                     </ProgressTrack>
                   </Progress>
@@ -177,8 +177,8 @@ function DemoSlider({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-white">{label}</span>
-        <span className="font-mono text-white/60">{format(value)}</span>
+        <span className="font-medium text-mk-ink">{label}</span>
+        <span className="font-mono text-mk-ink/60">{format(value)}</span>
       </div>
       <Slider
         value={[value]}

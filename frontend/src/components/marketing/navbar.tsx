@@ -45,13 +45,13 @@ export function Navbar() {
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         scrolled
-          ? "border-b border-white/10 bg-[#071326]/85 backdrop-blur-xl"
+          ? "border-b border-mk-ink/10 bg-mk-bg/85 backdrop-blur-xl"
           : "border-b border-transparent bg-transparent"
       )}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-6 md:px-10">
         <Link href="/" className="shrink-0">
-          <Logo dark />
+          <Logo />
         </Link>
 
         <nav className="hidden items-center gap-2 lg:flex">
@@ -59,7 +59,7 @@ export function Navbar() {
             <Link
               key={item.href}
               href={item.href}
-              className="nav-pill rounded-full px-4 py-1.5 text-sm font-semibold text-white/75 hover:text-white"
+              className="nav-pill rounded-full px-4 py-1.5 text-sm font-semibold text-mk-ink/75 hover:text-mk-ink"
             >
               {navLabel(item.label, locale)}
             </Link>
@@ -80,7 +80,7 @@ export function Navbar() {
               <Button
                 render={<Link href="/sign-in" />}
                 variant="ghost"
-                className="nav-pill rounded-full font-semibold text-white/80 hover:text-white"
+                className="nav-pill rounded-full font-semibold text-mk-ink/80 hover:text-mk-ink"
               >
                 {t.signIn}
               </Button>
@@ -100,17 +100,17 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10 lg:hidden"
+                className="text-mk-ink hover:bg-mk-ink/10 lg:hidden"
               />
             }
           >
             <Menu />
             <span className="sr-only">{t.menu}</span>
           </SheetTrigger>
-          <SheetContent side="right" className="bg-[#071326] text-white">
+          <SheetContent side="right" className="bg-mk-bg text-mk-ink">
             <SheetHeader>
-              <SheetTitle className="text-white">
-                <Logo dark />
+              <SheetTitle className="text-mk-ink">
+                <Logo />
               </SheetTitle>
             </SheetHeader>
             <nav className="flex flex-col gap-1 px-4">
@@ -118,13 +118,13 @@ export function Navbar() {
                 <SheetClose
                   key={item.href}
                   render={<Link href={item.href} />}
-                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-white/5"
+                  className="rounded-lg px-3 py-2.5 text-sm font-medium text-mk-ink/80 hover:bg-mk-ink/5"
                 >
                   {navLabel(item.label, locale)}
                 </SheetClose>
               ))}
             </nav>
-            <div className="mt-auto flex flex-col gap-2 border-t border-white/10 p-4">
+            <div className="mt-auto flex flex-col gap-2 border-t border-mk-ink/10 p-4">
               <LanguageSwitch className="self-start" />
               {!isPending && session ? (
                 <Button render={<Link href="/dashboard" />} className="bg-gradient-brand text-white">
@@ -132,7 +132,7 @@ export function Navbar() {
                 </Button>
               ) : (
                 <>
-                  <Button render={<Link href="/sign-in" />} variant="outline" className="border-white/15 text-white">
+                  <Button render={<Link href="/sign-in" />} variant="outline" className="border-mk-ink/15 text-mk-ink">
                     {t.signIn}
                   </Button>
                   <Button render={<Link href="/sign-up" />} className="bg-gradient-brand text-white">

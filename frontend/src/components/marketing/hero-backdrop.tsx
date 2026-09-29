@@ -43,7 +43,7 @@ export function HeroBackdrop() {
       <div className="hero-glow hero-glow-c" />
       <div ref={spotlight} className="hero-spotlight" />
       {/* Fades the glows out before the next section starts. */}
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-[#071326]" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-mk-bg" />
     </div>
   );
 }

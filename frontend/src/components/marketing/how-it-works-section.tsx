@@ -59,7 +59,7 @@ export async function HowItWorksSection() {
   const t = copy[await getLocale()];
   const steps = t.steps.map((step, index) => ({ ...step, icon: ICONS[index], step: `0${index + 1}` }));
   return (
-    <section id="how-it-works" className="relative scroll-mt-16 bg-[#071326] py-24 sm:py-32">
+    <section id="how-it-works" className="relative scroll-mt-16 bg-mk-bg py-24 sm:py-32">
       <Container className="max-w-7xl">
         <SectionHeading
           eyebrow={t.eyebrow}
@@ -77,12 +77,12 @@ export async function HowItWorksSection() {
                   <span className="inline-flex size-12 items-center justify-center rounded-xl bg-gradient-brand text-white shadow-glow-brand transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                     <step.icon className="size-5" />
                   </span>
-                  <span className="font-mono text-sm font-semibold text-white/30 transition-colors group-hover:text-[#4a8bff]">
+                  <span className="font-mono text-sm font-semibold text-mk-ink/30 transition-colors group-hover:text-mk-accent">
                     {step.step}
                   </span>
                 </div>
-                <h3 className="font-heading text-xl font-semibold text-white">{step.title}</h3>
-                <p className="text-sm leading-relaxed font-medium text-white/60">
+                <h3 className="font-heading text-xl font-semibold text-mk-ink">{step.title}</h3>
+                <p className="text-sm leading-relaxed font-medium text-mk-ink/60">
                   {step.description}
                 </p>
               </div>

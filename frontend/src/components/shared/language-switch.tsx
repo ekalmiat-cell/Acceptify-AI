@@ -10,7 +10,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
   const setLocale = useSetLocale();
 
   return (
-    <div className={cn("flex rounded-full border border-white/15 p-0.5 text-xs font-semibold", className)}>
+    <div className={cn("flex rounded-full border border-mk-ink/15 p-0.5 text-xs font-semibold", className)}>
       {LOCALES.map((code) => (
         <button
           key={code}
@@ -21,7 +21,7 @@ export function LanguageSwitch({ className }: { className?: string }) {
           aria-label={code === "ru" ? "Русский" : "English"}
           className={cn(
             "rounded-full px-2.5 py-1 uppercase transition-colors",
-            locale === code ? "bg-white/15 text-white" : "text-white/55 hover:text-white",
+            locale === code ? "bg-mk-ink/10 text-mk-ink" : "text-mk-ink/55 hover:text-mk-ink",
           )}
         >
           {code}

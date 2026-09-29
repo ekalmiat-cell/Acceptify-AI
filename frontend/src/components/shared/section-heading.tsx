@@ -31,7 +31,7 @@ export function SectionHeading({
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase",
             dark
-              ? "border-white/15 bg-white/5 text-brand"
+              ? "border-mk-ink/15 bg-mk-ink/5 text-brand"
               : "border-border bg-muted text-primary"
           )}
         >
@@ -41,7 +41,7 @@ export function SectionHeading({
       <h2
         className={cn(
           "max-w-2xl text-balance font-heading text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl",
-          dark ? "text-white" : "text-foreground"
+          dark ? "text-mk-ink" : "text-foreground"
         )}
       >
         {title}
@@ -50,7 +50,7 @@ export function SectionHeading({
         <p
           className={cn(
             "max-w-xl text-balance text-base leading-relaxed sm:text-lg",
-            dark ? "text-white/60" : "text-muted-foreground"
+            dark ? "text-mk-ink/60" : "text-muted-foreground"
           )}
         >
           {description}

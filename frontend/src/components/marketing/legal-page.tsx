@@ -11,7 +11,7 @@ const copy = defineCopy({
     orEmail: "or email",
   },
   ru: {
-    updated: "Обновлено 28 сентября 2026 г.",
+    updated: "Обновлено 29 сентября 2026 г.",
     orEmail: "или почта",
   },
 });
@@ -30,11 +30,11 @@ export async function LegalPage({
   return (
     <section className="relative pt-32 pb-24 sm:pt-40">
       <Container className="max-w-3xl">
-        <p className="text-sm font-medium text-white/50">{t.updated}</p>
-        <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <p className="text-sm font-medium text-mk-ink/50">{t.updated}</p>
+        <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-mk-ink sm:text-4xl">
           {title}
         </h1>
-        <div className="mt-6 text-base leading-relaxed text-white/70">{intro}</div>
+        <div className="mt-6 text-base leading-relaxed text-mk-ink/70">{intro}</div>
         <div className="mt-12 flex flex-col gap-10">{children}</div>
       </Container>
     </section>
@@ -52,8 +52,8 @@ export function LegalSection({
 }) {
   return (
     <section id={id} className="scroll-mt-28">
-      <h2 className="font-heading text-xl font-semibold text-white">{title}</h2>
-      <div className="mt-3 flex flex-col gap-3 text-[15px] leading-relaxed text-white/70 [&_a]:text-white [&_a]:underline [&_a]:underline-offset-2 [&_strong]:font-medium [&_strong]:text-white/90 [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5">
+      <h2 className="font-heading text-xl font-semibold text-mk-ink">{title}</h2>
+      <div className="mt-3 flex flex-col gap-3 text-[15px] leading-relaxed text-mk-ink/70 [&_a]:text-mk-ink [&_a]:underline [&_a]:underline-offset-2 [&_strong]:font-medium [&_strong]:text-mk-ink/90 [&_ul]:flex [&_ul]:list-disc [&_ul]:flex-col [&_ul]:gap-1.5 [&_ul]:pl-5">
         {children}
       </div>
     </section>

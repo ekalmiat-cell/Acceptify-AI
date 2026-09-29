@@ -39,7 +39,7 @@ export async function UniversitiesSection({ universities }: { universities: Univ
   const featured = [...universities].sort((a, b) => a.worldRanking - b.worldRanking).slice(0, 8);
 
   return (
-    <section id="universities" className="relative scroll-mt-16 bg-[#071326] py-24 sm:py-32">
+    <section id="universities" className="relative scroll-mt-16 bg-mk-bg py-24 sm:py-32">
       <Container className="max-w-7xl">
         <SectionHeading
           eyebrow={t.eyebrow}
@@ -50,9 +50,9 @@ export async function UniversitiesSection({ universities }: { universities: Univ
         />
 
         {featured.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/15 py-16 text-center">
-            <p className="text-sm font-semibold text-white">{t.unavailable}</p>
-            <p className="max-w-sm text-sm text-white/55">{t.unavailableNote}</p>
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-mk-ink/15 py-16 text-center">
+            <p className="text-sm font-semibold text-mk-ink">{t.unavailable}</p>
+            <p className="max-w-sm text-sm text-mk-ink/55">{t.unavailableNote}</p>
           </div>
         ) : (
           <FadeInStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" staggerDelay={0.1}>
@@ -67,25 +67,25 @@ export async function UniversitiesSection({ universities }: { universities: Univ
                       university={university}
                       className="size-12 rounded-xl text-xs transition-transform duration-300 group-hover:scale-110"
                     />
-                    <ArrowUpRight className="size-4 text-white/30 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#4a8bff]" />
+                    <ArrowUpRight className="size-4 text-mk-ink/30 transition-all duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-mk-accent" />
                   </div>
                   <div>
-                    <h3 className="font-heading text-base font-semibold text-white">
+                    <h3 className="font-heading text-base font-semibold text-mk-ink">
                       {university.name}
                     </h3>
-                    <p className="mt-1 flex items-center gap-1 text-xs font-medium text-white/50">
+                    <p className="mt-1 flex items-center gap-1 text-xs font-medium text-mk-ink/50">
                       <MapPin className="size-3" />
                       {university.city}, {countryName(university.country, locale)}
                     </p>
                   </div>
-                  <div className="mt-auto flex items-center justify-between border-t border-white/10 pt-4 text-xs">
+                  <div className="mt-auto flex items-center justify-between border-t border-mk-ink/10 pt-4 text-xs">
                     <div>
-                      <p className="text-white/40">{t.rank}</p>
-                      <p className="font-semibold text-white">#{university.worldRanking}</p>
+                      <p className="text-mk-ink/40">{t.rank}</p>
+                      <p className="font-semibold text-mk-ink">#{university.worldRanking}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-white/40">{t.acceptance}</p>
-                      <p className="font-semibold text-white">{university.acceptanceRate}%</p>
+                      <p className="text-mk-ink/40">{t.acceptance}</p>
+                      <p className="font-semibold text-mk-ink">{university.acceptanceRate}%</p>
                     </div>
                   </div>
                 </Link>

@@ -2,9 +2,15 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* `.force-light` opts a subtree out of dark mode (see below). */
+@custom-variant dark (&:is(.dark *):not(:is(.force-light, .force-light *)));
 
 @theme inline {
+  --color-mk-bg: var(--mk-bg);
+  --color-mk-deep: var(--mk-deep);
+  --color-mk-surface: var(--mk-surface);
+  --color-mk-ink: var(--mk-ink);
+  --color-mk-accent: var(--mk-accent);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -142,6 +148,59 @@
   --navy-foreground: #f5f7fb;
 }
 
+/* Landing and sign-in pages. They follow the chosen theme like the app:
+   white with navy ink on light, deep navy with white ink on dark. `ink` is
+   used with opacity steps (text-mk-ink/60, border-mk-ink/10) for the greys. */
+:root {
+  --mk-bg: #ffffff;
+  --mk-deep: #f4f7fc;
+  --mk-surface: #ffffff;
+  --mk-ink: #0b1f3a;
+  --mk-accent: #1d4fd8;
+  --mk-gradient-text: linear-gradient(90deg, #2f6feb 0%, #1d4fd8 100%);
+}
+.dark {
+  --mk-bg: #071326;
+  --mk-deep: #050e1c;
+  --mk-surface: #0d1c33;
+  --mk-ink: #ffffff;
+  --mk-accent: #4a8bff;
+  --mk-gradient-text: linear-gradient(90deg, #9cc2ff 0%, #4a8bff 100%);
+}
+
+/* Ars, the copilot's face: navy rim on the light theme, brand blue on dark. */
+:root {
+  --ars-rim: #0b1f3a;
+}
+.dark {
+  --ars-rim: #2f6feb;
+}
+
+/* A surface that stays light whatever the theme — Ars's card. It resets the
+   tokens to their light values, and the `dark:` variant skips it. */
+.force-light {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #0a0e14;
+  --card: #ffffff;
+  --card-foreground: #0a0e14;
+  --popover: #ffffff;
+  --popover-foreground: #0a0e14;
+  --primary: #0b1f3a;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f5f7;
+  --secondary-foreground: #0b1f3a;
+  --muted: #f4f5f7;
+  --muted-foreground: #667085;
+  --accent: #eef1f5;
+  --accent-foreground: #0b1f3a;
+  --destructive: #dc2626;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #0b1f3a;
+  color: var(--foreground);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -161,9 +220,7 @@
 }
 
 @layer utilities {
-  /* Marketing pages are always-dark navy regardless of the app's light/dark
-     theme toggle (same pattern as Linear/Vercel marketing sites), so these
-     use literal brand colors rather than the semantic shadcn tokens. */
+  /* Marketing surfaces follow the theme through the --mk-* tokens. */
   .bg-grid-glow {
     background-image:
       radial-gradient(
@@ -173,12 +230,12 @@
       ),
       linear-gradient(
         to right,
-        color-mix(in oklab, #ffffff 4%, transparent) 1px,
+        color-mix(in oklab, var(--mk-ink) 5%, transparent) 1px,
         transparent 1px
       ),
       linear-gradient(
         to bottom,
-        color-mix(in oklab, #ffffff 4%, transparent) 1px,
+        color-mix(in oklab, var(--mk-ink) 5%, transparent) 1px,
         transparent 1px
       );
     background-size:
@@ -192,7 +249,7 @@
      (a dozen components reference them) but redefined as a single-hue,
      low-contrast step — closer to a solid fill with depth than a gradient. */
   .text-gradient-brand {
-    background: linear-gradient(90deg, #9cc2ff 0%, #4a8bff 100%);
+    background: var(--mk-gradient-text);
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -207,8 +264,8 @@
      is a plain translucent fill. Add `backdrop-blur-*` where something
      actually moves behind a panel, as the hero card does. */
   .glass-panel {
-    background: color-mix(in oklab, #0d1c33 75%, transparent);
-    border: 1px solid color-mix(in oklab, #ffffff 10%, transparent);
+    background: color-mix(in oklab, var(--mk-surface) 75%, transparent);
+    border: 1px solid color-mix(in oklab, var(--mk-ink) 10%, transparent);
   }
 
   .glass-panel-light {
@@ -371,9 +428,9 @@
     box-shadow 0.35s,
     background-color 0.35s;
 }
-/* Marketing cards sit on navy whatever the app theme is. */
+/* Marketing cards take their border from the landing's ink. */
 .glass-panel.hover-lift {
-  border-color: color-mix(in oklab, #ffffff 10%, transparent);
+  border-color: color-mix(in oklab, var(--mk-ink) 10%, transparent);
 }
 .hover-lift:hover {
   transform: translateY(-4px) scale(1.025);
@@ -386,7 +443,7 @@
 /* Pill-shaped links (marketing nav): outlined, a touch bolder, and they
    grow on hover. */
 .nav-pill {
-  border: 1px solid color-mix(in oklab, #ffffff 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--mk-ink) 12%, transparent);
   transition:
     transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.25s,

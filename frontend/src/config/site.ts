@@ -40,5 +40,5 @@ export const siteConfig = {
   /** Official social accounts — left empty until they exist. */
   socials: [] as readonly { label: string; href: string }[],
   /** Date the current Privacy Policy and Terms of Use took effect. */
-  legalUpdated: "28 September 2026",
+  legalUpdated: "29 September 2026",
 } as const;

@@ -8,6 +8,8 @@
 export const AI_LIMITS = {
   essay_review: { perDay: 3 },
   copilot: { perDay: 20 },
+  /** Spoken turns with Ars. Replies are a few sentences, so each is cheap. */
+  copilot_voice: { perDay: 10 },
   training_feedback: { perDay: 3 },
 } as const;
 

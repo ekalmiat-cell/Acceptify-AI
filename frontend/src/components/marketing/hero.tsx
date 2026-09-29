@@ -70,13 +70,13 @@ export function Hero({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70"
+              className="inline-flex items-center gap-2 rounded-full border border-mk-ink/10 bg-mk-ink/5 px-4 py-1.5 text-xs font-medium text-mk-ink/70"
             >
               <Sparkles className="size-3.5 text-brand" />
               {t.badge}
             </motion.span>
 
-            <h1 className="text-balance font-heading text-4xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl">
+            <h1 className="text-balance font-heading text-4xl font-semibold tracking-tight text-mk-ink sm:text-5xl md:text-6xl">
               <RevealWords text={t.line1} delay={0.5} instant={!!reduceMotion} />{" "}
               {/* The gradient goes on each word: background-clip:text on a
                   parent does not reach children animated on their own layer. */}
@@ -92,7 +92,7 @@ export function Hero({
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 1.8, ease: EASE }}
-              className="max-w-lg text-balance text-lg leading-relaxed text-white/60"
+              className="max-w-lg text-balance text-lg leading-relaxed text-mk-ink/60"
             >
               {t.lead}
             </motion.p>
@@ -115,7 +115,7 @@ export function Hero({
                 render={<Link href="#universities" />}
                 size="lg"
                 variant="outline"
-                className="h-11 border-white/15 bg-white/5 px-6 text-white hover:bg-white/10"
+                className="h-11 border-mk-ink/15 bg-mk-ink/5 px-6 text-mk-ink hover:bg-mk-ink/10"
               >
                 {t.explore}
               </Button>
@@ -129,7 +129,7 @@ export function Hero({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 2.6 }}
-                className="text-xs font-medium text-white/50"
+                className="text-xs font-medium text-mk-ink/50"
               >
                 {t.counts(universityCount, countryCount)}
               </motion.p>
@@ -201,10 +201,10 @@ function UniversityMarquee({ universities }: { universities: MarqueeUniversity[]
       {universities.map((university) => (
         <li
           key={university.id}
-          className="nav-pill flex items-center gap-2.5 rounded-full bg-white/[0.03] py-1.5 pr-4 pl-1.5 whitespace-nowrap"
+          className="nav-pill flex items-center gap-2.5 rounded-full bg-mk-ink/[0.03] py-1.5 pr-4 pl-1.5 whitespace-nowrap"
         >
           <UniversityLogo university={university} className="size-8 rounded-lg p-1 text-[0.55rem]" />
-          <span className="text-sm font-semibold text-white/60">{university.name}</span>
+          <span className="text-sm font-semibold text-mk-ink/60">{university.name}</span>
         </li>
       ))}
     </ul>

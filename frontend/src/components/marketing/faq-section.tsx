@@ -20,7 +20,7 @@ export async function FaqSection() {
   const locale = await getLocale();
   const t = copy[locale];
   return (
-    <section id="faq" className="relative bg-[#071326] py-24 sm:py-32">
+    <section id="faq" className="relative bg-mk-bg py-24 sm:py-32">
       <Container className="max-w-3xl">
         <SectionHeading
           eyebrow={t.eyebrow}
@@ -35,12 +35,12 @@ export async function FaqSection() {
               <AccordionItem
                 key={item.id}
                 value={item.id}
-                className="border-white/10"
+                className="border-mk-ink/10"
               >
-                <AccordionTrigger className="text-white hover:no-underline">
+                <AccordionTrigger className="text-mk-ink hover:no-underline">
                   {item.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-white/55">
+                <AccordionContent className="text-mk-ink/55">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>

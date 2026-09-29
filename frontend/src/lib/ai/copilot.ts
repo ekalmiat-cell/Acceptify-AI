@@ -6,7 +6,7 @@ import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@
 import { HttpError } from "@/lib/http-error";
 import type { ChatMessage, CopilotChatResponse } from "@/types/copilot";
 
-const SYSTEM_PROMPT = `You are Acceptify AI Copilot — an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform.
+const SYSTEM_PROMPT = `You are Ars — the student's personal admissions bro: an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform. Talk like a friendly older friend who has been through admissions, never like a formal office.
 
 Your mission is to guide the student toward admission to their dream universities with strategic, actionable, encouraging, and highly specific advice.
 
@@ -28,6 +28,18 @@ You must output a valid JSON object with the following structure:
     "Follow-up question 2"
   ]
 }`;
+
+/**
+ * Added when the student is talking out loud. The reply is read by the
+ * browser's speech synthesizer, so markdown would be spoken as symbols, and
+ * a short answer keeps the conversation moving (and the request cheap).
+ */
+const VOICE_PROMPT = `### Voice Mode (overrides the formatting guidelines above):
+The student is talking to you out loud and your reply will be read aloud by a speech synthesizer.
+- Reply in 2-4 short spoken sentences, at most about 60 words.
+- Plain conversational text only: no markdown, no lists, no headings, no emoji, no links.
+- Write numbers and scores the way they are said, e.g. "IELTS seven point five".
+- Still return 2 short follow-up questions in suggested_followups.`;
 
 /** The shape Gemini is constrained to produce. */
 const REPLY_SCHEMA: GeminiSchema = {
@@ -79,18 +91,21 @@ export function toGeminiHistory(messages: ChatMessage[]): GeminiMessage[] {
 export async function runCopilotChat(
   messages: ChatMessage[],
   studentContext: string | null,
+  mode: "text" | "voice" = "text",
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {
     return {
       reply:
-        "**[Mock copilot — AI_PROVIDER=mock]** This is a placeholder answer for local development. Set `GEMINI_API_KEY` to talk to the real copilot.",
+        mode === "voice"
+          ? "Mock Ars here. This is a placeholder answer for local development, set the Gemini key to hear the real one."
+          : "**[Mock copilot — AI_PROVIDER=mock]** This is a placeholder answer for local development. Set `GEMINI_API_KEY` to talk to the real copilot.",
       suggested_followups: ["How do I balance my university list?", "How do I write a strong essay?"],
     };
   }
 
-  const system = studentContext
-    ? `${SYSTEM_PROMPT}\n\n### Current Student Context:\n${studentContext}`
-    : SYSTEM_PROMPT;
+  const voice = mode === "voice";
+  const base = voice ? `${SYSTEM_PROMPT}\n\n${VOICE_PROMPT}` : SYSTEM_PROMPT;
+  const system = studentContext ? `${base}\n\n### Current Student Context:\n${studentContext}` : base;
 
   const history = toGeminiHistory(messages.slice(-MAX_HISTORY_MESSAGES));
   if (history.length === 0) {
@@ -102,6 +117,8 @@ export async function runCopilotChat(
     messages: history,
     temperature: 0.5,
     schema: REPLY_SCHEMA,
+    // A spoken reply is short and has to come back fast.
+    preferLite: voice,
   });
   const parsed = replySchema.safeParse(raw);
   if (!parsed.success) {

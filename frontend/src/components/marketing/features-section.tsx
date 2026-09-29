@@ -102,7 +102,7 @@ export async function FeaturesSection() {
   const t = copy[await getLocale()];
   const features = t.features.map((feature, index) => ({ ...feature, icon: ICONS[index] }));
   return (
-    <section id="features" className="relative scroll-mt-16 border-y border-white/5 bg-[#050e1c] py-24 sm:py-32">
+    <section id="features" className="relative scroll-mt-16 border-y border-mk-ink/5 bg-mk-deep py-24 sm:py-32">
       <Container className="max-w-7xl">
         <SectionHeading
           eyebrow={t.eyebrow}
@@ -119,20 +119,20 @@ export async function FeaturesSection() {
                 <span className="inline-flex size-12 items-center justify-center rounded-xl bg-gradient-brand text-white shadow-glow-brand transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
                   <feature.icon className="size-5" />
                 </span>
-                <p className="mt-5 text-xs font-semibold tracking-wide text-[#4a8bff] uppercase">
+                <p className="mt-5 text-xs font-semibold tracking-wide text-mk-accent uppercase">
                   {feature.eyebrow}
                 </p>
-                <h3 className="mt-1.5 font-heading text-xl font-semibold text-white">
+                <h3 className="mt-1.5 font-heading text-xl font-semibold text-mk-ink">
                   {feature.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed font-medium text-white/60">
+                <p className="mt-2 text-sm leading-relaxed font-medium text-mk-ink/60">
                   {feature.description}
                 </p>
-                <ul className="mt-5 flex flex-col gap-2.5 border-t border-white/10 pt-5">
+                <ul className="mt-5 flex flex-col gap-2.5 border-t border-mk-ink/10 pt-5">
                   {feature.points.map((point) => (
                     <li
                       key={point}
-                      className="flex gap-2.5 text-sm leading-relaxed text-white/70"
+                      className="flex gap-2.5 text-sm leading-relaxed text-mk-ink/70"
                     >
                       <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#4a8bff]" />
                       {point}
