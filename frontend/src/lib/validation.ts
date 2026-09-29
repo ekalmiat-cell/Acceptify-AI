@@ -131,6 +131,8 @@ export const copilotChatSchema = z.object({
   include_context: z.boolean().default(true),
   /** "voice": the student is talking to Ars; the reply is read aloud. */
   mode: z.enum(["text", "voice"]).default("text"),
+  /** The language the student speaks (voice) or the interface language (text). */
+  lang: z.enum(["ru", "en"]).optional(),
 });
 
 const drillId = z.string().trim().min(1).max(80);

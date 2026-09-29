@@ -10,6 +10,7 @@ export async function sendCopilotMessage(
   messages: ChatMessage[],
   includeContext: boolean = true,
   mode: CopilotMode = "text",
+  lang?: "ru" | "en",
 ): Promise<CopilotChatResponse> {
   return apiFetch<CopilotChatResponse>("/api/v1/copilot/chat", {
     method: "POST",
@@ -17,6 +18,7 @@ export async function sendCopilotMessage(
       messages,
       include_context: includeContext,
       mode,
+      lang,
     }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });

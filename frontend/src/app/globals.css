@@ -2,8 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* `.force-light` opts a subtree out of dark mode (see below). */
-@custom-variant dark (&:is(.dark *):not(:is(.force-light, .force-light *)));
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-mk-bg: var(--mk-bg);
@@ -168,37 +167,15 @@
   --mk-gradient-text: linear-gradient(90deg, #9cc2ff 0%, #4a8bff 100%);
 }
 
-/* Ars, the copilot's face: navy rim on the light theme, brand blue on dark. */
+/* The copilot's face: navy rim on the light theme, brand blue on dark, and
+   the soft glow behind it on the voice screen. */
 :root {
   --ars-rim: #0b1f3a;
+  --ars-glow: #e8f0ff;
 }
 .dark {
   --ars-rim: #2f6feb;
-}
-
-/* A surface that stays light whatever the theme — Ars's card. It resets the
-   tokens to their light values, and the `dark:` variant skips it. */
-.force-light {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #0a0e14;
-  --card: #ffffff;
-  --card-foreground: #0a0e14;
-  --popover: #ffffff;
-  --popover-foreground: #0a0e14;
-  --primary: #0b1f3a;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f5f7;
-  --secondary-foreground: #0b1f3a;
-  --muted: #f4f5f7;
-  --muted-foreground: #667085;
-  --accent: #eef1f5;
-  --accent-foreground: #0b1f3a;
-  --destructive: #dc2626;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #0b1f3a;
-  color: var(--foreground);
+  --ars-glow: color-mix(in oklab, #2f6feb 22%, transparent);
 }
 
 @layer base {

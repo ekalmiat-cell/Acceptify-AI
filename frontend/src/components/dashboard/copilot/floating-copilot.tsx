@@ -2,12 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
-import { X, Send, Loader2, User, RotateCcw, Minimize2, Maximize2, Keyboard, Mic } from "lucide-react";
+import { X, Send, Loader2, User, RotateCcw, Minimize2, Maximize2, Keyboard, Mic, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArsFace, type ArsMood } from "@/components/dashboard/copilot/ars-face";
-import { useArsVoice, type ListenError, type VoiceLang } from "@/components/dashboard/copilot/use-ars-voice";
+import {
+  useArsVoice,
+  type ListenError,
+  type SpokenWord,
+  type VoiceLang,
+} from "@/components/dashboard/copilot/use-ars-voice";
 import { AI_LIMITS } from "@/lib/ai-limits";
 import { ApiError, describeApiError } from "@/lib/api-error";
+import { useSession } from "@/lib/auth-client";
 import { getCopilotAllowance, sendCopilotMessage } from "@/lib/copilot-client";
 import { defineCopy } from "@/lib/i18n/core";
 import { useCopy, useLocale } from "@/lib/i18n/client";
@@ -18,7 +24,7 @@ type Corner = "bottom-right" | "bottom-left" | "top-right" | "top-left";
 type View = "voice" | "text";
 type Phase = "idle" | "listening" | "thinking" | "speaking";
 
-/** Set once Ars has made his entrance this browser session (cleared on sign-out). */
+/** Set once the mentor has made its entrance this browser session (cleared on sign-out). */
 const INTRO_KEY = "acceptify-ars-intro";
 const VOICE_LANG_KEY = "acceptify-ars-voice-lang";
 
@@ -29,7 +35,7 @@ export function forgetArsIntro() {
   } catch {}
 }
 
-/** Short and soft, not bouncy: Ars rises into place and the caption follows. */
+/** Short and soft, not bouncy: the face rises into place and the caption follows. */
 const INTRO_EASE = [0.22, 1, 0.36, 1] as const;
 
 const copy = defineCopy({
@@ -41,10 +47,11 @@ const copy = defineCopy({
       "What matters most in a personal essay?",
     ],
     greeting:
-      "👋 Hi! I'm Ars, your personal admissions bro.\n\nI know your academic profile and can help with your admissions strategy, choosing universities, exam prep and deadlines. What can I help with?",
+      "👋 Hi! I'm your personal admissions bro.\n\nI know your academic profile and can help with your admissions strategy, choosing universities, exam prep and deadlines. What can I help with?",
     error: "The AI connection had a temporary problem. Please try again.",
-    name: "Ars",
-    mentor: "Your AI admissions mentor",
+    name: "AI mentor",
+    mentor: "Your personal admissions bro",
+    caption: (name: string | null) => (name ? `Your Personal Bro ${name}` : "Your Personal Bro"),
     collapse: "Collapse",
     expand: "Expand",
     cleared: "History cleared. How can I help with your applications?",
@@ -53,14 +60,14 @@ const copy = defineCopy({
     thinking: "Looking at your profile...",
     placeholder: "Ask about your chances, essays or deadlines...",
     send: "Send",
-    open: "Ars, your AI mentor (drag him to any corner)",
+    open: "Your AI mentor (drag to any corner)",
     tapToTalk: "Tap me and start talking",
-    tapFace: "Talk to Ars",
+    tapFace: "Talk to the AI mentor",
     listening: "Listening... tap me when you're done",
     pondering: "Thinking...",
     speaking: "Talking... tap me to stop",
     idle: "Tap me to ask something else",
-    tiredTitle: "Ars is out of breath today",
+    tiredTitle: "Out of voice for today",
     tiredBody: "Today's voice replies are used up. They refill tomorrow — you can still type.",
     textTired: "Today's messages are used up. They refill tomorrow.",
     typeInstead: "Type instead",
@@ -68,7 +75,9 @@ const copy = defineCopy({
     voiceLeft: (left: number, total: number) => `Voice: ${left}/${total} today`,
     micDenied: "Allow the microphone for this site, then tap me again.",
     unsupported: "This browser can't hear you. Voice works in Chrome, Edge and Safari — or just type.",
-    didntHear: "I didn't catch that. Tap me and try again.",
+    didntHear: "Couldn't catch that. Tap me and try again.",
+    cantSpeak: "The browser wouldn't read the answer aloud. Tap the speaker to hear it.",
+    replay: "Hear the answer again",
     speechLang: "Language you speak",
   },
   ru: {
@@ -79,10 +88,11 @@ const copy = defineCopy({
       "Что самое важное в мотивационном эссе?",
     ],
     greeting:
-      "👋 Привет! Я Арс, твой личный бро по поступлению.\n\nЯ знаю твой академический профиль и могу помочь со стратегией поступления, выбором вузов, подготовкой к экзаменам и дедлайнами. Чем помочь?",
+      "👋 Привет! Я твой личный бро по поступлению.\n\nЯ знаю твой академический профиль и могу помочь со стратегией поступления, выбором вузов, подготовкой к экзаменам и дедлайнами. Чем помочь?",
     error: "Временная ошибка связи с ИИ. Попробуй ещё раз.",
-    name: "Арс",
-    mentor: "Твой ИИ-наставник по поступлению",
+    name: "ИИ-наставник",
+    mentor: "Твой личный бро по поступлению",
+    caption: (name: string | null) => (name ? `Your Personal Bro ${name}` : "Your Personal Bro"),
     collapse: "Свернуть",
     expand: "Развернуть",
     cleared: "История очищена. Чем помочь с поступлением?",
@@ -91,14 +101,14 @@ const copy = defineCopy({
     thinking: "Смотрю твой профиль...",
     placeholder: "Спроси о шансах, эссе или дедлайнах...",
     send: "Отправить",
-    open: "Арс, твой ИИ-наставник (можно перетащить в любой угол)",
+    open: "Твой ИИ-наставник (можно перетащить в любой угол)",
     tapToTalk: "Нажми на меня и говори",
-    tapFace: "Поговорить с Арсом",
-    listening: "Слушаю... нажми, когда договоришь",
+    tapFace: "Поговорить с ИИ-наставником",
+    listening: "Слушаю... нажми, когда закончишь",
     pondering: "Думаю...",
     speaking: "Говорю... нажми, чтобы остановить",
     idle: "Нажми, чтобы спросить ещё",
-    tiredTitle: "Арс выдохся на сегодня",
+    tiredTitle: "На сегодня голос закончился",
     tiredBody: "Голосовые ответы на сегодня закончились. Завтра они обновятся, а пока можно писать текстом.",
     textTired: "Сообщения на сегодня закончились. Завтра они обновятся.",
     typeInstead: "Написать",
@@ -106,7 +116,9 @@ const copy = defineCopy({
     voiceLeft: (left: number, total: number) => `Голос: ${left}/${total} на сегодня`,
     micDenied: "Разреши доступ к микрофону для этого сайта и нажми на меня снова.",
     unsupported: "Этот браузер не умеет слушать. Голос работает в Chrome, Edge и Safari — или просто напиши.",
-    didntHear: "Не расслышал. Нажми на меня и попробуй ещё раз.",
+    didntHear: "Не получилось расслышать. Нажми на меня и попробуй ещё раз.",
+    cantSpeak: "Браузер не стал читать ответ вслух. Нажми на динамик, чтобы послушать.",
+    replay: "Послушать ответ ещё раз",
     speechLang: "Язык, на котором ты говоришь",
   },
 });
@@ -116,6 +128,8 @@ export function FloatingCopilot() {
   const locale = useLocale();
   const voice = useArsVoice();
   const dragControls = useDragControls();
+  const { data: session } = useSession();
+  const firstName = session?.user?.name?.trim().split(/\s+/)[0] || null;
   const INITIAL_SUGGESTIONS = t.suggestions;
   const [mounted, setMounted] = useState(false);
   const [corner, setCorner] = useState<Corner>("bottom-right");
@@ -137,6 +151,7 @@ export function FloatingCopilot() {
   const [lastReply, setLastReply] = useState("");
   const [note, setNote] = useState<string | null>(null);
   const [voiceLang, setVoiceLang] = useState<VoiceLang>(locale);
+  const [word, setWord] = useState<SpokenWord | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -258,7 +273,7 @@ export function FloatingCopilot() {
     setIsLoading(true);
 
     try {
-      const res = await sendCopilotMessage(updated, true);
+      const res = await sendCopilotMessage(updated, true, "text", locale);
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
       noteLeft("text", res.left);
       if (res.suggested_followups && res.suggested_followups.length > 0) {
@@ -280,12 +295,30 @@ export function FloatingCopilot() {
     }
   }
 
+  /** Reads a reply aloud, moving the mouth word by word. */
+  async function readAloud(text: string) {
+    if (!voice.canSpeak) return;
+    setPhase("speaking");
+    const result = await voice.speak(text, setWord);
+    setWord(null);
+    if (result === "failed") setNote(t.cantSpeak);
+    setPhase((current) => (current === "speaking" ? "idle" : current));
+  }
+
+  /** The speaker button: a fresh tap, so it works even where autoplay was blocked. */
+  function replay() {
+    if (phase !== "idle" || !lastReply) return;
+    setNote(null);
+    void readAloud(lastReply);
+  }
+
   /** One spoken turn: listen, ask, read the answer aloud. Tapping again stops. */
   async function handleFaceTap() {
     if (voiceTired) return;
     if (phase === "listening") return voice.stopListening();
     if (phase === "speaking") {
       voice.stopSpeaking();
+      setWord(null);
       return setPhase("idle");
     }
     if (phase === "thinking") return;
@@ -315,15 +348,12 @@ export function FloatingCopilot() {
     setMessages(updated);
 
     try {
-      const res = await sendCopilotMessage(updated, true, "voice");
+      const res = await sendCopilotMessage(updated, true, "voice", voiceLang);
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
       setLastReply(res.reply);
       noteLeft("voice", res.left);
       if (res.suggested_followups?.length) setFollowups(res.suggested_followups);
-      if (voice.canSpeak) {
-        setPhase("speaking");
-        await voice.speak(res.reply);
-      }
+      await readAloud(res.reply);
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) markSpent("voice");
       else setNote(describeApiError(err, t.error));
@@ -387,21 +417,20 @@ export function FloatingCopilot() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: playIntro ? 0.25 : 0.12, ease: "easeOut" }}
-              // Ars always lives on a light card, whatever the theme.
               className={cn(
-                "force-light mb-3 flex flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl",
+                "mb-3 flex flex-col overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-2xl",
                 view === "text" && isExpanded ? "h-[620px] w-[90vw] sm:w-[480px]" : "h-[500px] w-[88vw] sm:w-[380px]",
                 "max-h-[calc(100dvh-140px)]",
               )}
             >
               {view === "voice" ? (
-                <div className="relative flex flex-1 flex-col bg-[radial-gradient(120%_70%_at_50%_0%,#e8f0ff_0%,#ffffff_65%)]">
+                <div className="relative flex flex-1 flex-col bg-[radial-gradient(120%_70%_at_50%_0%,var(--ars-glow)_0%,transparent_65%)]">
                   <button
                     type="button"
                     onClick={closePanel}
                     title={t.close}
                     aria-label={t.close}
-                    className="absolute right-3 top-3 rounded-full p-1.5 text-[#667085] transition-colors hover:bg-black/5 hover:text-[#0a0e14]"
+                    className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -419,43 +448,56 @@ export function FloatingCopilot() {
                         voiceTired ? "cursor-default" : "cursor-pointer",
                       )}
                     >
-                      <ArsFace mood={faceMood} className="w-[208px]" />
+                      <ArsFace mood={faceMood} word={word} className="w-[208px]" />
                     </motion.button>
 
                     <div className="mt-6 min-h-[92px] w-full text-center" aria-live="polite">
                       {showCaption ? (
                         <motion.div key={voiceTired ? "tired" : "ready"} {...introFrom(0.1)}>
-                          <p className="text-[18px] font-extrabold tracking-tight text-[#0a0e14]">
-                            {voiceTired ? t.tiredTitle : "Your Personal Bro Ars"}
+                          <p className="text-[18px] font-extrabold tracking-tight text-foreground">
+                            {voiceTired ? t.tiredTitle : t.caption(firstName)}
                           </p>
-                          <p className="mx-auto mt-1 max-w-[270px] text-xs text-[#667085]">
+                          <p className="mx-auto mt-1 max-w-[270px] text-xs text-muted-foreground">
                             {voiceTired ? t.tiredBody : t.tapToTalk}
                           </p>
                         </motion.div>
                       ) : (
                         <div className="space-y-2">
-                          <p className="text-xs font-medium text-[#667085]">{statusLine}</p>
+                          <p className="text-xs font-medium text-muted-foreground">{statusLine}</p>
                           {heard && (
-                            <p className="line-clamp-2 text-sm italic text-[#0a0e14]/70">«{heard}»</p>
+                            <p className="line-clamp-2 text-sm italic text-foreground/70">«{heard}»</p>
                           )}
                           {lastReply && phase !== "listening" && (
-                            <p className="mx-auto max-h-24 overflow-y-auto text-left text-sm leading-relaxed text-[#0a0e14]">
-                              {lastReply}
-                            </p>
+                            <div className="flex items-start gap-2 text-left">
+                              <p className="max-h-24 flex-1 overflow-y-auto [scrollbar-width:thin] text-sm leading-relaxed text-foreground">
+                                {lastReply}
+                              </p>
+                              {voice.canSpeak && phase === "idle" && (
+                                <button
+                                  type="button"
+                                  onClick={replay}
+                                  title={t.replay}
+                                  aria-label={t.replay}
+                                  className="shrink-0 rounded-full border border-border bg-background p-1.5 text-foreground transition-colors hover:bg-accent"
+                                >
+                                  <Volume2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
                           )}
                         </div>
                       )}
-                      {note && <p className="mt-2 text-xs text-[#b42318]">{note}</p>}
+                      {note && <p className="mt-2 text-xs text-destructive">{note}</p>}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 border-t border-black/5 px-4 py-3">
+                  <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div
                         role="radiogroup"
                         aria-label={t.speechLang}
                         title={t.speechLang}
-                        className="flex rounded-full border border-[#e5e7eb] bg-white p-0.5 text-[11px] font-semibold"
+                        className="flex rounded-full border border-border bg-background p-0.5 text-[11px] font-semibold"
                       >
                         {(["ru", "en"] as const).map((lang) => (
                           <button
@@ -466,7 +508,7 @@ export function FloatingCopilot() {
                             onClick={() => chooseVoiceLang(lang)}
                             className={cn(
                               "rounded-full px-2 py-0.5 uppercase transition-colors",
-                              voiceLang === lang ? "bg-[#0b1f3a] text-white" : "text-[#667085] hover:text-[#0a0e14]",
+                              voiceLang === lang ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
                             )}
                           >
                             {lang}
@@ -474,7 +516,7 @@ export function FloatingCopilot() {
                         ))}
                       </div>
                       {allowance && (
-                        <span className="text-[11px] text-[#667085]">
+                        <span className="text-[11px] text-muted-foreground">
                           {t.voiceLeft(allowance.voice_left, AI_LIMITS.copilot_voice.perDay)}
                         </span>
                       )}
@@ -482,7 +524,7 @@ export function FloatingCopilot() {
                     <button
                       type="button"
                       onClick={() => switchView("text")}
-                      className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#e5e7eb] bg-white px-3 py-1.5 text-xs font-semibold text-[#0b1f3a] transition-colors hover:bg-[#eef1f5]"
+                      className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-accent"
                     >
                       <Keyboard className="h-3.5 w-3.5" />
                       {t.typeInstead}

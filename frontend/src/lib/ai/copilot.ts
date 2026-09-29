@@ -6,7 +6,8 @@ import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@
 import { HttpError } from "@/lib/http-error";
 import type { ChatMessage, CopilotChatResponse } from "@/types/copilot";
 
-const SYSTEM_PROMPT = `You are Ars — the student's personal admissions bro: an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform. Talk like a friendly older friend who has been through admissions, never like a formal office.
+const SYSTEM_PROMPT = `You are the student's personal admissions bro: an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform. Talk like a friendly older friend who has been through admissions, never like a formal office. You don't have a personal name yet; if asked, you are "the Acceptify AI mentor".
+If asked what you are or what powers you, say honestly that you are an AI assistant inside Acceptify built on Google's Gemini models. Never claim special training, datasets of applicant profiles, or abilities you do not have.
 
 Your mission is to guide the student toward admission to their dream universities with strategic, actionable, encouraging, and highly specific advice.
 
@@ -88,23 +89,41 @@ export function toGeminiHistory(messages: ChatMessage[]): GeminiMessage[] {
   return history;
 }
 
+const LANGUAGE_NAME = { ru: "Russian", en: "English" } as const;
+
+/**
+ * The reply language, stated outright. Left to itself the model (the light
+ * one especially) drifts into English under an English system prompt even
+ * when the student asked in Russian.
+ */
+export function languageRule(mode: "text" | "voice", lang: "ru" | "en" | undefined): string {
+  if (!lang) return "";
+  const name = LANGUAGE_NAME[lang];
+  return mode === "voice"
+    ? `### Reply Language:\nThe student is speaking ${name}. Reply in ${name}, including suggested_followups.`
+    : `### Reply Language:\nReply in the language of the student's latest message. If it is unclear or mixed, reply in ${name} (the student's interface language). suggested_followups are in the same language as the reply.`;
+}
+
 export async function runCopilotChat(
   messages: ChatMessage[],
   studentContext: string | null,
   mode: "text" | "voice" = "text",
+  lang?: "ru" | "en",
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {
     return {
       reply:
         mode === "voice"
-          ? "Mock Ars here. This is a placeholder answer for local development, set the Gemini key to hear the real one."
-          : "**[Mock copilot — AI_PROVIDER=mock]** This is a placeholder answer for local development. Set `GEMINI_API_KEY` to talk to the real copilot.",
+          ? lang === "ru"
+            ? "Это тестовый ответ для локальной разработки. Первое предложение короткое. А второе чуть длиннее, чтобы проверить, как двигается рот."
+            : "Mock mentor here. This is a placeholder answer for local development, set the Gemini key to hear the real one."
+          :"**[Mock copilot — AI_PROVIDER=mock]** This is a placeholder answer for local development. Set `GEMINI_API_KEY` to talk to the real copilot.",
       suggested_followups: ["How do I balance my university list?", "How do I write a strong essay?"],
     };
   }
 
   const voice = mode === "voice";
-  const base = voice ? `${SYSTEM_PROMPT}\n\n${VOICE_PROMPT}` : SYSTEM_PROMPT;
+  const base = [SYSTEM_PROMPT, voice ? VOICE_PROMPT : "", languageRule(mode, lang)].filter(Boolean).join("\n\n");
   const system = studentContext ? `${base}\n\n### Current Student Context:\n${studentContext}` : base;
 
   const history = toGeminiHistory(messages.slice(-MAX_HISTORY_MESSAGES));

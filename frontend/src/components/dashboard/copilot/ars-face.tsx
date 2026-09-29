@@ -2,11 +2,12 @@
 
 import { motion, useReducedMotion, type Transition } from "framer-motion";
 
+import type { SpokenWord } from "@/components/dashboard/copilot/use-ars-voice";
 import { cn } from "@/lib/utils";
 
 export type ArsMood = "idle" | "listening" | "thinking" | "speaking" | "sad";
 
-/** Face ink. The card around Ars is always light, so it is navy in both themes. */
+/** Face ink. The face itself is white in both themes, so the ink is always navy. */
 const INK = "#0b1f3a";
 
 const blink: Transition = {
@@ -17,18 +18,20 @@ const blink: Transition = {
 };
 
 /**
- * Ars, the copilot's face: a rounded pill with two eyes and a mouth. The rim
- * follows the theme through `--ars-rim` (navy on white, brand blue on dark);
- * everything inside stays white and navy because Ars always sits on a light
- * card. Moods: idle blinks, listening leans in, thinking glances around,
- * speaking moves the mouth, sad droops.
+ * The mentor's face: a rounded pill with two eyes and a mouth. The rim
+ * follows the theme through `--ars-rim` (navy on light, brand blue on dark);
+ * the face stays white with navy features. Moods: idle blinks, listening
+ * leans in, thinking glances around, speaking opens the mouth once per
+ * syllable of each spoken `word`, sad droops.
  */
 export function ArsFace({
   mood = "idle",
+  word,
   className,
   title,
 }: {
   mood?: ArsMood;
+  word?: SpokenWord | null;
   className?: string;
   title?: string;
 }) {
@@ -98,12 +101,20 @@ export function ArsFace({
         </motion.g>
       </motion.g>
 
-      <Mouth mood={mood} still={still} />
+      <Mouth mood={mood} still={still} word={word ?? null} />
     </svg>
   );
 }
 
-function Mouth({ mood, still }: { mood: ArsMood; still: boolean }) {
+/** Mouth openness per syllable: open wide, then nearly shut, a little uneven. */
+function syllableFrames(syllables: number): number[] {
+  const frames = [0.2];
+  for (let i = 0; i < syllables; i++) frames.push(i % 2 === 0 ? 1 : 0.78, 0.25);
+  frames[frames.length - 1] = 0.2;
+  return frames;
+}
+
+function Mouth({ mood, still, word }: { mood: ArsMood; still: boolean; word: SpokenWord | null }) {
   if (mood === "sad") {
     return (
       <path d="M88 86 Q100 74 112 86" fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
@@ -119,8 +130,11 @@ function Mouth({ mood, still }: { mood: ArsMood; still: boolean }) {
         ry="8"
         fill={INK}
         style={{ transformBox: "fill-box", transformOrigin: "center" }}
-        animate={still ? { scaleY: 0.7 } : { scaleY: [0.25, 1, 0.45, 0.9, 0.3, 0.75, 0.25] }}
-        transition={still ? { duration: 0.2 } : { duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+        // A new word restarts the mouth; between words it rests nearly shut.
+        key={word?.id ?? "rest"}
+        initial={{ scaleY: 0.2 }}
+        animate={still || !word ? { scaleY: still ? 0.6 : 0.2 } : { scaleY: syllableFrames(word.syllables) }}
+        transition={still || !word ? { duration: 0.12 } : { duration: word.ms / 1000, ease: "easeInOut" }}
       />
     );
   }

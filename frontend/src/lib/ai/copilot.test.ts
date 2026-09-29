@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toGeminiHistory } from "@/lib/ai/copilot";
+import { languageRule, toGeminiHistory } from "@/lib/ai/copilot";
 
 describe("toGeminiHistory", () => {
   it("drops the widget's greeting so the conversation opens with the user", () => {
@@ -33,5 +33,21 @@ describe("toGeminiHistory", () => {
 
   it("returns nothing for a log with no user message", () => {
     expect(toGeminiHistory([{ role: "assistant", content: "Hi" }])).toEqual([]);
+  });
+});
+
+describe("languageRule", () => {
+  it("pins a spoken reply to the language the student speaks", () => {
+    expect(languageRule("voice", "ru")).toContain("Reply in Russian");
+  });
+
+  it("lets a typed reply follow the message, falling back to the interface language", () => {
+    const rule = languageRule("text", "ru");
+    expect(rule).toContain("latest message");
+    expect(rule).toContain("reply in Russian");
+  });
+
+  it("adds nothing when the browser sent no language", () => {
+    expect(languageRule("voice", undefined)).toBe("");
   });
 });

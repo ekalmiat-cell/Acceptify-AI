@@ -8,7 +8,7 @@ import { copilotChatSchema } from "@/lib/validation";
 
 export const maxDuration = 120;
 
-/** What the student has left today, so Ars can look tired before a turn fails. */
+/** What the student has left today, so the mentor can look tired before a turn fails. */
 export const GET = route(async () => {
   const user = await requireUser();
   const [text, voice] = await Promise.all([
@@ -29,7 +29,7 @@ export const POST = route(async (request) =>
     await consumeAiAllowance(user.id, feature);
 
     const context = input.include_context ? await buildCopilotContext(user.id) : null;
-    const reply = await runCopilotChat(input.messages, context, input.mode);
+    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang);
     return json({ ...reply, left: await aiAllowanceLeft(user.id, feature) });
   }),
 );
