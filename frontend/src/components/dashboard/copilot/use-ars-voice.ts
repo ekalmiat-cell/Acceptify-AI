@@ -89,16 +89,24 @@ function syllableCount(word: string): number {
   return Math.max(1, (word.match(/[аеёиоуыэюяaeiouy]+/gi) ?? []).length);
 }
 
+/** Male voices by name, so the "bro" does not speak in a woman's voice when there is a choice. */
+const MALE_VOICE = /\b(male|dmitry|pavel|maxim|yuri|guy|davis|andrew|brian|christopher|eric|roger|steffan|daniel|alex|aaron|fred)\b/i;
+
 /**
- * The best installed voice for a language. Local and Edge "Natural" voices
- * come first: they are reliable and report word boundaries, which drive the
- * mouth. Chrome's network "Google" voices sound fine but report nothing.
+ * The most natural-sounding voice for a language. Edge's "Natural" voices
+ * are neural and clearly best; Chrome's network "Google" voices come next.
+ * Windows' own desktop voices (Irina, Pavel) sound robotic, so they are the
+ * last resort, not the first pick. Voices without word timings still move
+ * the mouth on an estimate (see simulate below).
  */
-function pickVoice(lang: VoiceLang): SpeechSynthesisVoice | null {
-  const all = window.speechSynthesis.getVoices();
+function pickVoice(lang: VoiceLang, localOnly = false): SpeechSynthesisVoice | null {
+  const all = window.speechSynthesis.getVoices().filter((v) => !localOnly || v.localService);
   const voices = all.filter((v) => v.lang.toLowerCase().startsWith(lang));
   const rank = (v: SpeechSynthesisVoice) =>
-    (/natural|neural/i.test(v.name) ? 4 : 0) + (v.localService ? 2 : 0) + (/google/i.test(v.name) ? 1 : 0);
+    (/natural|neural|online/i.test(v.name) ? 8 : 0) +
+    (/google/i.test(v.name) ? 4 : 0) +
+    (/desktop|irina|pavel|zira|david|mark/i.test(v.name) ? -2 : 0) +
+    (MALE_VOICE.test(v.name) ? 1 : 0);
   // Many Windows PCs here have only Russian voices installed. An English reply
   // read with an accent beats silence, which is what a missing voice gives.
   return voices.sort((a, b) => rank(b) - rank(a))[0] ?? all.find((v) => v.default) ?? all[0] ?? null;
@@ -219,7 +227,7 @@ export function useArsVoice() {
     if (!alive()) return "stopped";
 
     const lang = replyLang(clean);
-    const voice = pickVoice(lang);
+    let voice = pickVoice(lang);
 
     const emit = (word: string) => {
       const syllables = syllableCount(word);
@@ -295,7 +303,13 @@ export function useArsVoice() {
 
     for (const sentence of sentences(clean)) {
       if (!alive()) return "stopped";
-      const result = await speakSentence(sentence);
+      let result = await speakSentence(sentence);
+      // A network voice (Chrome's Google ones) fails without internet access
+      // to Google; finish the reply with an installed voice instead of going quiet.
+      if (result === "failed" && alive() && voice && !voice.localService) {
+        voice = pickVoice(lang, true);
+        result = await speakSentence(sentence);
+      }
       if (result !== "done") return alive() ? result : "stopped";
     }
     return "done";
