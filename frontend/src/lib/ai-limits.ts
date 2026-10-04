@@ -1,13 +1,14 @@
 /**
  * Per-user daily ceilings on the AI features, shared by the server (which
  * enforces them in lib/data/ai-usage.ts) and the UI (which shows what is
- * left). Gemini's free tier gives the whole site only about 20 requests per
- * model per day, so these keep one busy student from using it up for all.
+ * left). The Gemini key is paid from a small monthly credit (~$8 spend cap),
+ * so these keep one busy student from spending it for everyone. Essay
+ * reviews are the expensive call; the rest run on Flash-Lite first.
  * The day is the database's calendar day (UTC).
  */
 export const AI_LIMITS = {
-  essay_review: { perDay: 3 },
-  copilot: { perDay: 20 },
+  essay_review: { perDay: 2 },
+  copilot: { perDay: 10 },
   /** Spoken turns with Ars. Replies are a few sentences, so each is cheap. */
   copilot_voice: { perDay: 10 },
   training_feedback: { perDay: 3 },

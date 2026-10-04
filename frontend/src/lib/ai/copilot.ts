@@ -154,8 +154,9 @@ export async function runCopilotChat(
     messages: history,
     temperature: 0.5,
     schema: REPLY_SCHEMA,
-    // A spoken reply is short and has to come back fast.
-    preferLite: voice,
+    // Chat replies are short: Flash-Lite answers them well at a fraction of
+    // the price, which leaves the paid budget for essay reviews.
+    preferLite: true,
   });
   const parsed = replySchema.safeParse(raw);
   if (!parsed.success) {
