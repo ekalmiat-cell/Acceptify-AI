@@ -32,13 +32,18 @@ You must output a valid JSON object with the following structure:
 }`;
 
 /**
- * Added when the student is talking out loud. The reply is read by the
- * browser's speech synthesizer, so markdown would be spoken as symbols, and
- * a short answer keeps the conversation moving (and the request cheap).
+ * Added when the student is talking out loud. The reply is read aloud, so
+ * markdown would be spoken as symbols, and a short answer keeps the
+ * conversation moving. Voicing is paid per second, so everyone but the admin
+ * gets the brief version.
  */
-const VOICE_PROMPT = `### Voice Mode (overrides the formatting guidelines above):
+const voicePrompt = (brief: boolean) => `### Voice Mode (overrides the formatting guidelines above):
 The student is talking to you out loud and your reply will be read aloud by a speech synthesizer.
-- Reply in 2-4 short spoken sentences, at most about 60 words.
+${
+  brief
+    ? "- Reply in 1-2 short spoken sentences, at most about 30 words. Keep only the single most useful point."
+    : "- Reply in 2-4 short spoken sentences, at most about 60 words."
+}
 - Plain conversational text only: no markdown, no lists, no headings, no emoji, no links.
 - Write numbers and scores the way they are said, e.g. "IELTS seven point five".
 - Still return 2 short follow-up questions in suggested_followups.`;
@@ -138,6 +143,8 @@ export async function runCopilotChat(
   mode: "text" | "voice" = "text",
   lang?: "ru" | "en",
   style: CopilotStyle = "friendly",
+  /** Voice only: half-length replies, which halves what the voice costs. */
+  brief = false,
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {
     return {
@@ -157,7 +164,7 @@ export async function runCopilotChat(
   const strict = voice && style === "strict";
   const base = [
     SYSTEM_PROMPT,
-    voice ? VOICE_PROMPT : "",
+    voice ? voicePrompt(brief) : "",
     strict ? STRICT_PROMPT : "",
     uncensored ? UNCENSORED_PROMPT : "",
     languageRule(mode, lang),

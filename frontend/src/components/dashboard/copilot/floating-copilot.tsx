@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import Link from "next/link";
 import { X, Send, Loader2, User, RotateCcw, Minimize2, Maximize2, Keyboard, Mic, Volume2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ArsFace, type ArsMood } from "@/components/dashboard/copilot/ars-face";
@@ -70,16 +71,19 @@ const copy = defineCopy({
     pondering: "Thinking...",
     speaking: "Talking... tap me to stop",
     idle: "Tap me to ask something else",
-    tiredTitle: "Out of voice for today",
-    tiredBody: "Today's voice replies are used up. They refill tomorrow — you can still type.",
-    textTired: "Today's messages are used up. They refill tomorrow.",
+    outTitle: "Out of credits",
+    outBody: "You've used up your credits on the free plan. Get Pro to keep going.",
+    getPro: "Get Pro",
+    textTired: "You've used up your messages on the free plan. Get Pro to keep going.",
+    downTitle: "Sorry, technical difficulties",
+    downBody: "The voice isn't working right now. Try again a bit later — you can still type.",
+    gotIt: "OK",
     typeInstead: "Type instead",
     talkInstead: "Talk by voice",
     voiceLeft: (left: number, total: number) => `Voice: ${left}/${total} today`,
     micDenied: "Allow the microphone for this site, then tap me again.",
     unsupported: "This browser can't hear you. Voice works in Chrome, Edge and Safari — or just type.",
     didntHear: "Couldn't catch that. Tap me and try again.",
-    cantSpeak: "The browser wouldn't read the answer aloud. Tap the speaker to hear it.",
     replay: "Hear the answer again",
     speechLang: "Language you speak",
     strict: "Strict",
@@ -121,16 +125,19 @@ const copy = defineCopy({
     pondering: "Думаю...",
     speaking: "Говорю... нажми, чтобы остановить",
     idle: "Нажми, чтобы спросить ещё",
-    tiredTitle: "На сегодня голос закончился",
-    tiredBody: "Голосовые ответы на сегодня закончились. Завтра они обновятся, а пока можно писать текстом.",
-    textTired: "Сообщения на сегодня закончились. Завтра они обновятся.",
+    outTitle: "Кредиты закончились",
+    outBody: "У тебя закончились кредиты на бесплатном тарифе. Купи подписку Pro, чтобы пользоваться дальше.",
+    getPro: "Купить Pro",
+    textTired: "Сообщения на бесплатном тарифе закончились. Купи Pro, чтобы писать дальше.",
+    downTitle: "Сорян, технические неполадки",
+    downBody: "Голос сейчас не работает. Попробуй чуть позже, а пока можно написать текстом.",
+    gotIt: "Понятно",
     typeInstead: "Написать",
     talkInstead: "Говорить голосом",
     voiceLeft: (left: number, total: number) => `Голос: ${left}/${total} на сегодня`,
     micDenied: "Разреши доступ к микрофону для этого сайта и нажми на меня снова.",
     unsupported: "Этот браузер не умеет слушать. Голос работает в Chrome, Edge и Safari — или просто напиши.",
     didntHear: "Не получилось расслышать. Нажми на меня и попробуй ещё раз.",
-    cantSpeak: "Браузер не стал читать ответ вслух. Нажми на динамик, чтобы послушать.",
     replay: "Послушать ответ ещё раз",
     speechLang: "Язык, на котором ты говоришь",
     strict: "Строгий",
@@ -172,12 +179,16 @@ export function FloatingCopilot() {
   const [started, setStarted] = useState(false);
   const [heard, setHeard] = useState("");
   const [lastReply, setLastReply] = useState("");
+  /** Lets the last spoken reply be read in Gemini's voice (see the speech route). */
+  const lastSpeechRef = useRef<{ token: string; style: CopilotStyle } | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [voiceLang, setVoiceLang] = useState<VoiceLang>(locale);
   const [word, setWord] = useState<SpokenWord | null>(null);
   const [strict, setStrict] = useState(false);
   const [uncensored, setUncensored] = useState(false);
   const [askAdult, setAskAdult] = useState(false);
+  /** Gemini's voice failed: the mentor stays silent and says so on screen. */
+  const [voiceDown, setVoiceDown] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -225,6 +236,7 @@ export function FloatingCopilot() {
     // Ars always greets by voice; typing is one tap away.
     setView("voice");
     setPhase("idle");
+    setVoiceDown(false);
     setStarted(false);
     setHeard("");
     setLastReply("");
@@ -316,6 +328,7 @@ export function FloatingCopilot() {
 
   function markSpent(mode: "text" | "voice") {
     setAllowance((prev) => ({
+      ...prev,
       text_left: mode === "text" ? 0 : (prev?.text_left ?? AI_LIMITS.copilot.perDay),
       voice_left: mode === "voice" ? 0 : (prev?.voice_left ?? AI_LIMITS.copilot_voice.perDay),
     }));
@@ -324,6 +337,7 @@ export function FloatingCopilot() {
   function noteLeft(mode: "text" | "voice", left: number | undefined) {
     if (typeof left !== "number") return;
     setAllowance((prev) => ({
+      ...prev,
       text_left: mode === "text" ? left : (prev?.text_left ?? AI_LIMITS.copilot.perDay),
       voice_left: mode === "voice" ? left : (prev?.voice_left ?? AI_LIMITS.copilot_voice.perDay),
     }));
@@ -362,13 +376,14 @@ export function FloatingCopilot() {
     }
   }
 
-  /** Reads a reply aloud, moving the mouth word by word. */
+  /** Reads a reply aloud in Gemini's voice, moving the mouth with it. No voice, no reading. */
   async function readAloud(text: string) {
-    if (!voice.canSpeak) return;
+    const speech = lastSpeechRef.current;
+    if (!voice.canSpeak || !speech) return setVoiceDown(true);
     setPhase("speaking");
-    const result = await voice.speak(text, setWord);
+    const result = await voice.speak(text, speech.token, speech.style, setWord);
     setWord(null);
-    if (result === "failed") setNote(t.cantSpeak);
+    if (result === "unavailable") setVoiceDown(true);
     setPhase((current) => (current === "speaking" ? "idle" : current));
   }
 
@@ -376,12 +391,13 @@ export function FloatingCopilot() {
   function replay() {
     if (phase !== "idle" || !lastReply) return;
     setNote(null);
+    voice.unlockSpeech();
     void readAloud(lastReply);
   }
 
   /** One spoken turn: listen, ask, read the answer aloud. Tapping again stops. */
   async function handleFaceTap() {
-    if (voiceTired) return;
+    if (voiceTired || voiceDown) return;
     if (phase === "listening") return voice.stopListening();
     if (phase === "speaking") {
       voice.stopSpeaking();
@@ -414,21 +430,18 @@ export function FloatingCopilot() {
     const updated: ChatMessage[] = [...messages, { role: "user", content: text }];
     setMessages(updated);
 
+    const style: CopilotStyle = uncensored ? "uncensored" : strict ? "strict" : "friendly";
     try {
-      const res = await sendCopilotMessage(
-        updated,
-        true,
-        "voice",
-        voiceLang,
-        uncensored ? "uncensored" : strict ? "strict" : "friendly",
-      );
+      const res = await sendCopilotMessage(updated, true, "voice", voiceLang, style);
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
+      lastSpeechRef.current = res.speech_token ? { token: res.speech_token, style } : null;
       setLastReply(res.reply);
       noteLeft("voice", res.left);
       if (res.suggested_followups?.length) setFollowups(res.suggested_followups);
       await readAloud(res.reply);
     } catch (err) {
       if (err instanceof ApiError && err.status === 429) markSpent("voice");
+      else if (err instanceof ApiError && err.status === 503) setVoiceDown(true);
       else setNote(describeApiError(err, t.error));
     } finally {
       setPhase((current) => (current === "listening" ? current : "idle"));
@@ -455,10 +468,10 @@ export function FloatingCopilot() {
 
   if (!mounted) return null;
 
-  const faceMood: ArsMood = voiceTired && phase === "idle" ? "sad" : phase === "idle" ? "idle" : phase;
+  const faceMood: ArsMood = phase === "idle" ? "idle" : phase;
   const statusLine =
     phase === "listening" ? t.listening : phase === "thinking" ? t.pondering : phase === "speaking" ? t.speaking : t.idle;
-  const showCaption = voiceTired || !started;
+  const showCaption = !started;
   const introFrom = (delay: number) =>
     playIntro
       ? {
@@ -498,6 +511,51 @@ export function FloatingCopilot() {
             >
               {view === "voice" ? (
                 <div className="relative flex flex-1 flex-col bg-[radial-gradient(120%_70%_at_50%_0%,var(--ars-glow)_0%,transparent_65%)]">
+                  {(voiceTired || voiceDown) && (
+                    // Out of credits, or no voice to talk with: the whole card says so.
+                    <div
+                      role="alert"
+                      className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-card px-6 text-center"
+                    >
+                      <button
+                        type="button"
+                        onClick={closePanel}
+                        title={t.close}
+                        aria-label={t.close}
+                        className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                      {/* Out of credits, the mentor shakes his head: "no more". */}
+                      <motion.div
+                        animate={voiceTired ? { x: [0, -14, 14, -10, 10, -4, 0], rotate: [0, -5, 5, -4, 4, -1, 0] } : undefined}
+                        transition={{ duration: 1.1, ease: "easeInOut", repeat: Infinity, repeatDelay: 1.4 }}
+                      >
+                        <ArsFace mood="sad" className="w-[168px]" />
+                      </motion.div>
+                      <p className="mt-6 text-[18px] font-extrabold tracking-tight text-foreground">
+                        {voiceTired ? t.outTitle : t.downTitle}
+                      </p>
+                      <p className="mx-auto mt-2 max-w-[280px] text-sm text-muted-foreground">
+                        {voiceTired ? t.outBody : t.downBody}
+                      </p>
+                      <div className="mt-5 flex w-full max-w-[240px] flex-col gap-2">
+                        {voiceTired ? (
+                          <Button size="sm" render={<Link href="/pricing" />}>
+                            {t.getPro}
+                          </Button>
+                        ) : (
+                          <Button size="sm" onClick={() => setVoiceDown(false)}>
+                            {t.gotIt}
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => switchView("text")}>
+                          {t.typeInstead}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     type="button"
                     onClick={closePanel}
@@ -572,27 +630,21 @@ export function FloatingCopilot() {
                     <motion.button
                       type="button"
                       {...introFrom(0)}
-                      whileTap={voiceTired ? undefined : { scale: 0.96 }}
+                      whileTap={{ scale: 0.96 }}
                       onClick={handleFaceTap}
                       aria-label={t.tapFace}
-                      aria-disabled={voiceTired}
-                      className={cn(
-                        "rounded-[48px] outline-offset-4",
-                        voiceTired ? "cursor-default" : "cursor-pointer",
-                      )}
+                      className="cursor-pointer rounded-[48px] outline-offset-4"
                     >
                       <ArsFace mood={faceMood} word={word} strict={strict} className="w-[208px]" />
                     </motion.button>
 
                     <div className="mt-6 min-h-[92px] w-full text-center" aria-live="polite">
                       {showCaption ? (
-                        <motion.div key={voiceTired ? "tired" : "ready"} {...introFrom(0.1)}>
+                        <motion.div {...introFrom(0.1)}>
                           <p className="text-[18px] font-extrabold tracking-tight text-foreground">
-                            {voiceTired ? t.tiredTitle : t.caption(firstName)}
+                            {t.caption(firstName)}
                           </p>
-                          <p className="mx-auto mt-1 max-w-[270px] text-xs text-muted-foreground">
-                            {voiceTired ? t.tiredBody : t.tapToTalk}
-                          </p>
+                          <p className="mx-auto mt-1 max-w-[270px] text-xs text-muted-foreground">{t.tapToTalk}</p>
                         </motion.div>
                       ) : (
                         <div className="space-y-2">
@@ -650,7 +702,7 @@ export function FloatingCopilot() {
                       </div>
                       {allowance && (
                         <span className="text-[11px] text-muted-foreground">
-                          {t.voiceLeft(allowance.voice_left, AI_LIMITS.copilot_voice.perDay)}
+                          {t.voiceLeft(allowance.voice_left, allowance.voice_total ?? AI_LIMITS.copilot_voice.perDay)}
                         </span>
                       )}
                     </div>
@@ -766,7 +818,14 @@ export function FloatingCopilot() {
                   )}
 
                   <div className="p-3 border-t bg-background/50">
-                    {textTired && <p className="mb-2 text-center text-xs text-muted-foreground">{t.textTired}</p>}
+                    {textTired && (
+                      <p className="mb-2 text-center text-xs text-muted-foreground">
+                        {t.textTired}{" "}
+                        <Link href="/pricing" className="font-semibold text-primary underline-offset-2 hover:underline">
+                          {t.getPro}
+                        </Link>
+                      </p>
+                    )}
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();

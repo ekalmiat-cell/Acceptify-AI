@@ -2,17 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { CopilotStyle } from "@/types/copilot";
+
 /**
- * Talking to the mentor with the browser's own speech tools: the Web Speech
- * API turns the student's voice into text, and speechSynthesis reads the
- * reply. Both are free — only the text goes to Gemini — which is what keeps
- * a spoken turn as cheap as a typed one. No audio is recorded or uploaded
- * by us (Chrome does send the audio to Google's recognizer).
+ * Talking to the mentor: the browser's Web Speech API turns the student's
+ * voice into text, and the reply is read by Gemini's voice, streamed from
+ * /api/v1/copilot/speech and played as it arrives. There is deliberately no
+ * fallback to the browser's own robotic voices: when Gemini's voice is not
+ * available the mentor stays silent and says so on screen. No audio of the
+ * student is recorded or uploaded by us (Chrome does send it to Google's
+ * recognizer).
  */
 
 export type VoiceLang = "ru" | "en";
 export type ListenError = "unsupported" | "denied" | "no-speech" | "failed";
-export type SpeakResult = "done" | "stopped" | "failed";
+/** "unavailable": nothing was played because the voice could not be had. */
+export type SpeakResult = "done" | "stopped" | "unavailable";
 
 /** One spoken word, so the face can open its mouth once per syllable. */
 export interface SpokenWord {
@@ -22,11 +27,6 @@ export interface SpokenWord {
 }
 
 const LANG_TAG: Record<VoiceLang, string> = { ru: "ru-RU", en: "en-US" };
-const RATE = 1.03;
-/** Rough length of one spoken syllable at RATE, for voices that report no word timings. */
-const SYLLABLE_MS = 190;
-/** A voice that has not reported a word by then is not going to. */
-const BOUNDARY_GRACE_MS = 350;
 
 interface RecognitionResultLike {
   isFinal: boolean;
@@ -56,70 +56,79 @@ function recognitionCtor(): RecognitionCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-function hasSynth(): boolean {
-  return typeof window !== "undefined" && "speechSynthesis" in window;
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** What the speech route streams: 16-bit mono PCM at this rate. */
+const PCM_RATE = 24_000;
+/** Loudness is measured over frames this long to find syllables. */
+const FRAME_SECONDS = 0.02;
+/** Quieter than this (RMS, 0..1) is a pause, not a syllable. */
+const SYLLABLE_FLOOR = 0.03;
+/** Syllables closer together than this are one mouth movement. */
+const MIN_SYLLABLE_GAP_SECONDS = 0.11;
+/** How long the mouth takes to open and close on one syllable. */
+const SYLLABLE_MS = 200;
+/** Headroom before the first chunk plays, so a slow next chunk does not leave a gap. */
+const START_DELAY_SECONDS = 0.15;
+
+type AudioContextCtor = typeof AudioContext;
+
+function audioContextCtor(): AudioContextCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { AudioContext?: AudioContextCtor; webkitAudioContext?: AudioContextCtor };
+  return w.AudioContext ?? w.webkitAudioContext ?? null;
 }
 
-/** Reads text aloud in the language it is written in, whatever the UI language. */
-function replyLang(text: string): VoiceLang {
-  const cyrillic = (text.match(/[а-яё]/gi) ?? []).length;
-  const latin = (text.match(/[a-z]/gi) ?? []).length;
-  return cyrillic >= latin ? "ru" : "en";
+/** Bytes of little-endian 16-bit PCM to samples in -1..1. */
+function toSamples(bytes: Uint8Array): Float32Array {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const samples = new Float32Array(bytes.byteLength >> 1);
+  for (let i = 0; i < samples.length; i++) samples[i] = view.getInt16(i * 2, true) / 32768;
+  return samples;
 }
-
-/** Markdown and emoji would be read out as symbols. */
-function speakable(text: string): string {
-  return text
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/[*_#`>|~]/g, "")
-    .replace(/^\s*[-•]\s+/gm, "")
-    .replace(/\p{Extended_Pictographic}/gu, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/** Short utterances: Chrome silently stops reading one that runs past ~15 seconds. */
-function sentences(text: string): string[] {
-  const parts = text.match(/[^.!?…]+[.!?…]*/g) ?? [text];
-  return parts.map((part) => part.trim()).filter(Boolean);
-}
-
-function syllableCount(word: string): number {
-  return Math.max(1, (word.match(/[аеёиоуыэюяaeiouy]+/gi) ?? []).length);
-}
-
-/** Male voices by name, so the "bro" does not speak in a woman's voice when there is a choice. */
-const MALE_VOICE = /\b(male|dmitry|pavel|maxim|yuri|guy|davis|andrew|brian|christopher|eric|roger|steffan|daniel|alex|aaron|fred)\b/i;
 
 /**
- * The most natural-sounding voice for a language. Edge's "Natural" voices
- * are neural and clearly best; Chrome's network "Google" voices come next.
- * Windows' own desktop voices (Irina, Pavel) sound robotic, so they are the
- * last resort, not the first pick. Voices without word timings still move
- * the mouth on an estimate (see simulate below).
+ * Finds where syllables start in a stream of audio, one chunk at a time:
+ * the loudness rises clearly above the last dip, then has to fall well
+ * below its peak before the next one can start.
  */
-function pickVoice(lang: VoiceLang, localOnly = false): SpeechSynthesisVoice | null {
-  const all = window.speechSynthesis.getVoices().filter((v) => !localOnly || v.localService);
-  const voices = all.filter((v) => v.lang.toLowerCase().startsWith(lang));
-  const rank = (v: SpeechSynthesisVoice) =>
-    (/natural|neural|online/i.test(v.name) ? 8 : 0) +
-    (/google/i.test(v.name) ? 4 : 0) +
-    (/desktop|irina|pavel|zira|david|mark/i.test(v.name) ? -2 : 0) +
-    (MALE_VOICE.test(v.name) ? 1 : 0);
-  // Many Windows PCs here have only Russian voices installed. An English reply
-  // read with an accent beats silence, which is what a missing voice gives.
-  return voices.sort((a, b) => rank(b) - rank(a))[0] ?? all.find((v) => v.default) ?? all[0] ?? null;
+function syllableFinder() {
+  let open = false;
+  let peak = 0;
+  let valley = 1;
+  let lastOnset = -Infinity;
+  return (samples: Float32Array, startsAt: number): number[] => {
+    const frame = Math.round(PCM_RATE * FRAME_SECONDS);
+    const onsets: number[] = [];
+    for (let i = 0; i + frame <= samples.length; i += frame) {
+      let sum = 0;
+      for (let j = i; j < i + frame; j++) sum += samples[j] * samples[j];
+      const rms = Math.sqrt(sum / frame);
+      const at = startsAt + i / PCM_RATE;
+      if (open) {
+        if (rms > peak) peak = rms;
+        else if (rms < peak * 0.55) {
+          open = false;
+          valley = rms;
+        }
+      } else if (rms < valley) {
+        valley = rms;
+      } else if (rms > SYLLABLE_FLOOR && rms > valley * 1.6 && at - lastOnset >= MIN_SYLLABLE_GAP_SECONDS) {
+        open = true;
+        peak = rms;
+        lastOnset = at;
+        onsets.push(at);
+      }
+    }
+    return onsets;
+  };
 }
 
-/** Safari (desktop and iOS) only lets a page speak once it has spoken inside a tap. */
-function needsSpeechUnlock(): boolean {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  return /iPad|iPhone|iPod/.test(ua) || (/Safari/.test(ua) && !/Chrome|Chromium|Edg|CriOS|FxiOS/.test(ua));
+/** A reply already voiced once, so the replay button costs nothing. */
+interface VoicedReply {
+  text: string;
+  chunks: Uint8Array[];
 }
-
-const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function useArsVoice() {
   const [canListen, setCanListen] = useState(false);
@@ -127,29 +136,50 @@ export function useArsVoice() {
   const recognitionRef = useRef<RecognitionLike | null>(null);
   const speakTokenRef = useRef(0);
   const wordIdRef = useRef(0);
+  const audioRef = useRef<AudioContext | null>(null);
+  /** Everything the current playback started, so stopping can undo it. */
+  const playbackRef = useRef<{ sources: AudioBufferSourceNode[]; timers: number[]; abort: AbortController | null }>({
+    sources: [],
+    timers: [],
+    abort: null,
+  });
+  const voicedRef = useRef<VoicedReply | null>(null);
 
   useEffect(() => {
     setCanListen(recognitionCtor() !== null);
-    setCanSpeak(hasSynth());
-    // Voices load asynchronously in Chrome; asking once starts the load.
-    if (hasSynth()) window.speechSynthesis.getVoices();
+    setCanSpeak(audioContextCtor() !== null);
   }, []);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
   }, []);
 
-  const stopSpeaking = useCallback(() => {
-    speakTokenRef.current += 1;
-    if (hasSynth()) window.speechSynthesis.cancel();
+  const stopPlayback = useCallback(() => {
+    const playback = playbackRef.current;
+    playback.abort?.abort();
+    playback.sources.forEach((source) => {
+      try {
+        source.stop();
+      } catch {}
+    });
+    playback.timers.forEach((id) => window.clearTimeout(id));
+    playbackRef.current = { sources: [], timers: [], abort: null };
   }, []);
 
-  /** Call inside the tap itself (see needsSpeechUnlock). A no-op elsewhere. */
+  const stopSpeaking = useCallback(() => {
+    speakTokenRef.current += 1;
+    stopPlayback();
+  }, [stopPlayback]);
+
+  /**
+   * Call inside the tap itself: browsers only let a page start sound after a
+   * user gesture, and the reply arrives seconds later.
+   */
   const unlockSpeech = useCallback(() => {
-    if (!hasSynth() || !needsSpeechUnlock()) return;
-    const primer = new SpeechSynthesisUtterance(".");
-    primer.volume = 0;
-    window.speechSynthesis.speak(primer);
+    const Ctor = audioContextCtor();
+    if (!Ctor) return;
+    audioRef.current ??= new Ctor();
+    void audioRef.current.resume().catch(() => {});
   }, []);
 
   const listen = useCallback(
@@ -204,123 +234,147 @@ export function useArsVoice() {
   );
 
   /**
-   * Reads `text` aloud one sentence at a time and reports each word as it is
-   * spoken — from the voice's own word boundaries when it has them, from an
-   * estimate by syllables when it does not.
+   * Plays PCM chunks as they come, scheduling each right after the last, and
+   * opens the mouth on every syllable the audio actually has.
    */
-  const speak = useCallback(async (text: string, onWord: (word: SpokenWord) => void): Promise<SpeakResult> => {
-    if (!hasSynth()) return "failed";
-    const clean = speakable(text);
-    if (!clean) return "done";
+  const playPcm = useCallback(
+    async (
+      next: () => Promise<Uint8Array | null>,
+      onWord: (word: SpokenWord) => void,
+      alive: () => boolean,
+      keep: Uint8Array[],
+    ): Promise<SpeakResult> => {
+      const ctx = audioRef.current;
+      if (!ctx) return "unavailable";
+      if (ctx.state !== "running") await ctx.resume().catch(() => {});
+      if (ctx.state !== "running") return "unavailable";
 
-    const synth = window.speechSynthesis;
-    const token = ++speakTokenRef.current;
-    const alive = () => speakTokenRef.current === token;
+      const playback = playbackRef.current;
+      const findSyllables = syllableFinder();
+      let playAt = 0;
+      let leftover: Uint8Array | null = null;
+      let played = 0;
 
-    // Chrome drops an utterance queued right after cancel(), and can sit
-    // paused after a tab switch; clear it, give it a beat, and resume.
-    if (synth.speaking || synth.pending) {
-      synth.cancel();
-      await pause(120);
-    }
-    synth.resume();
-    if (!alive()) return "stopped";
+      for (;;) {
+        let chunk: Uint8Array | null;
+        try {
+          chunk = await next();
+        } catch {
+          // Cut off mid-reply: let what was scheduled finish.
+          chunk = null;
+        }
+        if (!alive()) return "stopped";
+        if (!chunk) break;
+        keep.push(chunk);
 
-    const lang = replyLang(clean);
-    let voice = pickVoice(lang);
+        // Samples are two bytes; a chunk can split one.
+        let bytes = chunk;
+        if (leftover) {
+          bytes = new Uint8Array(leftover.length + chunk.length);
+          bytes.set(leftover);
+          bytes.set(chunk, leftover.length);
+          leftover = null;
+        }
+        if (bytes.length % 2) {
+          leftover = bytes.slice(-1);
+          bytes = bytes.subarray(0, bytes.length - 1);
+        }
+        if (!bytes.length) continue;
 
-    const emit = (word: string) => {
-      const syllables = syllableCount(word);
-      onWord({ id: ++wordIdRef.current, syllables, ms: (syllables * SYLLABLE_MS) / RATE });
-    };
+        const samples = toSamples(bytes);
+        const buffer = ctx.createBuffer(1, samples.length, PCM_RATE);
+        buffer.getChannelData(0).set(samples);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        playAt = Math.max(playAt, ctx.currentTime + (played === 0 ? START_DELAY_SECONDS : 0.02));
+        source.start(playAt);
+        playback.sources.push(source);
 
-    const speakSentence = (sentence: string) =>
-      new Promise<SpeakResult>((resolve) => {
-        const utterance = new SpeechSynthesisUtterance(sentence);
-        utterance.lang = voice?.lang ?? LANG_TAG[lang];
-        if (voice) utterance.voice = voice;
-        utterance.rate = RATE;
-
-        let started = false;
-        let boundaries = false;
-        let settled = false;
-        const timers: number[] = [];
-
-        const settle = (result: SpeakResult) => {
-          if (settled) return;
-          settled = true;
-          timers.forEach((id) => window.clearTimeout(id));
-          window.clearInterval(watchdog);
-          resolve(result);
-        };
-
-        /** No word timings from this voice: move the mouth on an estimated schedule. */
-        const simulate = () => {
-          let at = 0;
-          for (const token of sentence.match(/[\p{L}\p{N}'’-]+|[,;:—.!?…]/gu) ?? []) {
-            if (/^[,;:—.!?…]$/.test(token)) {
-              at += 220;
-              continue;
-            }
-            const word = token;
-            timers.push(window.setTimeout(() => !boundaries && emit(word), at));
-            at += (syllableCount(word) * SYLLABLE_MS) / RATE + 40;
-          }
-        };
-
-        utterance.onstart = () => {
-          started = true;
-          timers.push(window.setTimeout(() => !boundaries && simulate(), BOUNDARY_GRACE_MS));
-        };
-        utterance.onboundary = (event) => {
-          if (event.name && event.name !== "word") return;
-          if (!boundaries) {
-            boundaries = true;
-            timers.forEach((id) => window.clearTimeout(id));
-          }
-          const word = sentence.slice(event.charIndex).match(/^[\p{L}\p{N}'’-]+/u)?.[0];
-          if (word) emit(word);
-        };
-        utterance.onend = () => settle("done");
-        utterance.onerror = (event) =>
-          settle(event.error === "interrupted" || event.error === "canceled" ? "stopped" : "failed");
-
-        // onend is not reliable in every browser, and a voice that never
-        // starts must not leave the face "talking" forever.
-        let quiet = 0;
-        let waited = 0;
-        const watchdog = window.setInterval(() => {
-          if (!alive()) return settle("stopped");
-          waited += 400;
-          if (!started && waited >= 6000) return settle("failed");
-          if (!started) return;
-          quiet = synth.speaking ? 0 : quiet + 1;
-          if (quiet >= 3) settle("done");
-        }, 400);
-
-        synth.speak(utterance);
-      });
-
-    for (const sentence of sentences(clean)) {
-      if (!alive()) return "stopped";
-      let result = await speakSentence(sentence);
-      // A network voice (Chrome's Google ones) fails without internet access
-      // to Google; finish the reply with an installed voice instead of going quiet.
-      if (result === "failed" && alive() && voice && !voice.localService) {
-        voice = pickVoice(lang, true);
-        result = await speakSentence(sentence);
+        for (const onset of findSyllables(samples, playAt)) {
+          const delay = Math.max(0, (onset - ctx.currentTime) * 1000);
+          playback.timers.push(
+            window.setTimeout(
+              () => alive() && onWord({ id: ++wordIdRef.current, syllables: 1, ms: SYLLABLE_MS }),
+              delay,
+            ),
+          );
+        }
+        playAt += buffer.duration;
+        played += 1;
       }
-      if (result !== "done") return alive() ? result : "stopped";
-    }
-    return "done";
-  }, []);
+
+      if (played === 0) return "unavailable";
+      // The stream is in; wait for the last of it to be heard.
+      while (alive() && ctx.currentTime < playAt) await pause(100);
+      return alive() ? "done" : "stopped";
+    },
+    [],
+  );
+
+  /**
+   * Reads one of the copilot's replies in Gemini's voice: streamed from the
+   * speech route the first time, from memory on a replay. `voiceToken` is
+   * the chat route's signature that lets this reply be voiced.
+   */
+  const speak = useCallback(
+    async (
+      text: string,
+      voiceToken: string,
+      style: CopilotStyle,
+      onWord: (word: SpokenWord) => void,
+    ): Promise<SpeakResult> => {
+      stopPlayback();
+      const token = ++speakTokenRef.current;
+      const alive = () => speakTokenRef.current === token;
+
+      const voiced = voicedRef.current;
+      if (voiced?.text === text) {
+        const chunks = [...voiced.chunks];
+        return playPcm(async () => chunks.shift() ?? null, onWord, alive, []);
+      }
+
+      const abort = new AbortController();
+      playbackRef.current.abort = abort;
+      let reader: ReadableStreamDefaultReader<Uint8Array>;
+      try {
+        const response = await fetch("/api/v1/copilot/speech", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, token: voiceToken, style }),
+          signal: abort.signal,
+        });
+        if (!response.ok || !response.body) return alive() ? "unavailable" : "stopped";
+        reader = response.body.getReader();
+      } catch {
+        return alive() ? "unavailable" : "stopped";
+      }
+
+      const keep: Uint8Array[] = [];
+      let complete = false;
+      const result = await playPcm(
+        async () => {
+          const { done, value } = await reader.read();
+          if (done) complete = true;
+          return done ? null : value;
+        },
+        onWord,
+        alive,
+        keep,
+      );
+      if (complete) voicedRef.current = { text, chunks: keep };
+      return result;
+    },
+    [playPcm, stopPlayback],
+  );
 
   useEffect(
     () => () => {
       recognitionRef.current?.abort();
-      if (hasSynth()) window.speechSynthesis.cancel();
+      stopPlayback();
+      void audioRef.current?.close().catch(() => {});
     },
-    [],
+    [stopPlayback],
   );
 
   return { canListen, canSpeak, listen, stopListening, speak, stopSpeaking, unlockSpeech };

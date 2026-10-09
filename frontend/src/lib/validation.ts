@@ -137,6 +137,13 @@ export const copilotChatSchema = z.object({
   style: z.enum(["friendly", "strict", "uncensored"]).default("friendly"),
 });
 
+/** A spoken reply to read aloud, with the token the chat route signed it with. */
+export const copilotSpeechSchema = z.object({
+  text: z.string().min(1).max(2000),
+  token: z.string().min(1).max(200),
+  style: z.enum(["friendly", "strict", "uncensored"]).default("friendly"),
+});
+
 const drillId = z.string().trim().min(1).max(80);
 
 export const trainingCompleteSchema = z.object({

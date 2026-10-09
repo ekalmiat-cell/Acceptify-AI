@@ -1,6 +1,6 @@
 import "server-only";
 
-import { AI_LIMITS, type AiFeature } from "@/lib/ai-limits";
+import { dailyLimit, type AiFeature } from "@/lib/ai-limits";
 import { pgPool } from "@/lib/db";
 import { HttpError } from "@/lib/http-error";
 
@@ -9,8 +9,8 @@ import { HttpError } from "@/lib/http-error";
  * hour, or throws a 429 when it is already spent. Atomic: the increment and
  * the read are one statement, so parallel requests cannot both slip under.
  */
-export async function consumeAiAllowance(userId: string, feature: AiFeature): Promise<void> {
-  const { perDay } = AI_LIMITS[feature];
+export async function consumeAiAllowance(userId: string, feature: AiFeature, admin = false): Promise<void> {
+  const perDay = dailyLimit(feature, admin);
 
   const result = await pgPool.query<{ count: number }>(
     `INSERT INTO ai_usage (user_id, feature, window_start, count)
@@ -38,11 +38,11 @@ export async function consumeAiAllowance(userId: string, feature: AiFeature): Pr
 }
 
 /** How many uses of `feature` the user has left today. */
-export async function aiAllowanceLeft(userId: string, feature: AiFeature): Promise<number> {
+export async function aiAllowanceLeft(userId: string, feature: AiFeature, admin = false): Promise<number> {
   const result = await pgPool.query<{ count: number }>(
     `SELECT count FROM ai_usage
      WHERE user_id = $1 AND feature = $2 AND window_start = date_trunc('day', now())`,
     [userId, feature],
   );
-  return Math.max(0, AI_LIMITS[feature].perDay - (result.rows[0]?.count ?? 0));
+  return Math.max(0, dailyLimit(feature, admin) - (result.rows[0]?.count ?? 0));
 }
