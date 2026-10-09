@@ -1,8 +1,14 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 import { isAdminUser } from "@/lib/admin";
 import { getSession } from "@/lib/session";
+import { defineCopy } from "@/lib/i18n/core";
+import { getLocale } from "@/lib/i18n/server";
+
+const copy = defineCopy({ en: { settings: "Settings" }, ru: { settings: "Настройки" } });
 
 /**
  * Gates every `/dashboard/admin/*` route on the ADMIN_EMAILS allow-list.
@@ -19,5 +25,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     notFound();
   }
 
-  return <>{children}</>;
+  // The admin area lives under Settings; this is the way back.
+  const t = copy[await getLocale()];
+  return (
+    <>
+      <Link
+        href="/dashboard/settings"
+        className="-mb-2 inline-flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        {t.settings}
+      </Link>
+      {children}
+    </>
+  );
 }

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { SettingsView } from "@/components/settings/settings-view";
+import { isAdminUser } from "@/lib/admin";
+import { getSession } from "@/lib/session";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
 import { getPredictionHistory } from "@/lib/predictions-server";
@@ -17,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SettingsPage() {
   const t = copy[await getLocale()];
-  const predictionHistory = await getPredictionHistory();
+  const [predictionHistory, session] = await Promise.all([getPredictionHistory(), getSession()]);
   const now = new Date();
   const predictionsThisMonth = predictionHistory.filter((p) => {
     const createdAt = new Date(p.createdAt);
@@ -32,7 +34,7 @@ export default async function SettingsPage() {
       </div>
 
       <Suspense>
-        <SettingsView predictionsUsed={predictionsThisMonth} />
+        <SettingsView predictionsUsed={predictionsThisMonth} isAdmin={isAdminUser(session?.user)} />
       </Suspense>
     </div>
   );

@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Palette, Bell, UserRound, CreditCard, Smartphone } from "lucide-react";
+import { Palette, Bell, UserRound, CreditCard, Smartphone, ShieldCheck } from "lucide-react";
 
 import { LanguageSettings } from "@/components/settings/language-settings";
 import { defineCopy } from "@/lib/i18n/core";
@@ -23,11 +24,30 @@ const tabs = [
 ] as const;
 
 const copy = defineCopy({
-  en: { theme: "Language and theme", notifications: "Notifications", account: "Account", billing: "Billing", app: "App" },
-  ru: { theme: "Язык и тема", notifications: "Уведомления", account: "Аккаунт", billing: "Тариф", app: "Приложение" },
+  en: {
+    theme: "Language and theme",
+    notifications: "Notifications",
+    account: "Account",
+    billing: "Billing",
+    app: "App",
+    admin: "Admin",
+  },
+  ru: {
+    theme: "Язык и тема",
+    notifications: "Уведомления",
+    account: "Аккаунт",
+    billing: "Тариф",
+    app: "Приложение",
+    admin: "Админка",
+  },
 });
 
-export function SettingsView({ predictionsUsed }: { predictionsUsed: number }) {
+/**
+ * `isAdmin` comes from the server (the allow-list never reaches the browser).
+ * The admin link is a convenience; the admin pages and their API are gated
+ * on their own.
+ */
+export function SettingsView({ predictionsUsed, isAdmin = false }: { predictionsUsed: number; isAdmin?: boolean }) {
   const t = useCopy(copy);
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
@@ -49,6 +69,15 @@ export function SettingsView({ predictionsUsed }: { predictionsUsed: number }) {
             {t[tab.value]}
           </TabsTrigger>
         ))}
+        {isAdmin ? (
+          <Link
+            href="/dashboard/admin"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ShieldCheck className="size-4" />
+            {t.admin}
+          </Link>
+        ) : null}
       </TabsList>
 
       <div className="min-w-0 flex-1">

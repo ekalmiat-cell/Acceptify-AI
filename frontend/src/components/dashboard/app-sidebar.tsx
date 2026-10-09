@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Dumbbell,
-  MessagesSquare,
   LayoutDashboard,
   Building2,
   UserRound,
@@ -14,8 +12,6 @@ import {
   ChevronsUpDown,
   CreditCard,
   ChartNoAxesCombined,
-  ShieldCheck,
-  Layers,
   FlaskConical,
 } from "lucide-react";
 
@@ -46,22 +42,23 @@ import { authClient, useSession } from "@/lib/auth-client";
 import { defineCopy } from "@/lib/i18n/core";
 import { useCopy } from "@/lib/i18n/client";
 import { forgetArsIntro } from "@/components/dashboard/copilot/floating-copilot";
+import { ACCOUNT_PATHS, STUDIO_PATHS } from "@/components/dashboard/page-tabs";
 
-const studentNavItems = [
+/**
+ * `paths`: every page an item stands for. Several sections share one item and
+ * switch with tabs at the top: the essay studio (review, training,
+ * interview), the profile (with the portfolio), and the settings (with the
+ * admin area, which only admins can open — see app/dashboard/admin/layout.tsx).
+ */
+const navItems = [
   { key: "overview", href: "/dashboard", icon: LayoutDashboard },
   { key: "universities", href: "/dashboard/universities", icon: Building2 },
   { key: "analysis", href: "/dashboard/analysis", icon: ChartNoAxesCombined },
-  { key: "essays", href: "/dashboard/essays", icon: Sparkles },
-  { key: "training", href: "/dashboard/training", icon: Dumbbell },
-  { key: "interview", href: "/dashboard/interview", icon: MessagesSquare },
-  { key: "portfolio", href: "/dashboard/portfolio", icon: Layers },
-  { key: "profile", href: "/dashboard/profile", icon: UserRound },
+  { key: "essays", href: "/dashboard/essays", icon: Sparkles, paths: STUDIO_PATHS },
+  { key: "profile", href: "/dashboard/profile", icon: UserRound, paths: ACCOUNT_PATHS },
   { key: "methodology", href: "/dashboard/methodology", icon: FlaskConical },
+  { key: "settings", href: "/dashboard/settings", icon: Settings, paths: ["/dashboard/settings", "/dashboard/admin"] },
 ] as const;
-
-const adminNavItem = { key: "admin", href: "/dashboard/admin", icon: ShieldCheck } as const;
-
-const settingsNavItem = { key: "settings", href: "/dashboard/settings", icon: Settings } as const;
 
 const copy = defineCopy({
   en: {
@@ -70,12 +67,8 @@ const copy = defineCopy({
       universities: "Universities",
       analysis: "Analysis",
       essays: "Essay Studio",
-      training: "Training",
-      interview: "Interview",
-      portfolio: "Portfolio",
       profile: "Profile",
       methodology: "Methodology",
-      admin: "Admin",
       settings: "Settings",
     },
     platform: "Platform",
@@ -91,12 +84,8 @@ const copy = defineCopy({
       universities: "Университеты",
       analysis: "Анализ",
       essays: "Эссе-студия",
-      training: "Тренировка",
-      interview: "Собеседование",
-      portfolio: "Портфолио",
       profile: "Профиль",
       methodology: "Методология",
-      admin: "Админка",
       settings: "Настройки",
     },
     platform: "Платформа",
@@ -108,23 +97,11 @@ const copy = defineCopy({
   },
 });
 
-/**
- * `isAdmin` is resolved on the server (the ADMIN_EMAILS allow-list is not
- * exposed to the browser) and passed down — see app/dashboard/layout.tsx.
- * Hiding the link is a convenience only; the route and the API behind it are
- * both independently gated.
- */
-export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
+export function AppSidebar() {
   const t = useCopy(copy);
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
-
-  const items = [
-    ...studentNavItems,
-    ...(isAdmin ? [adminNavItem] : []),
-    settingsNavItem,
-  ];
 
   const user = session?.user;
   const initials = getInitials(user?.name ?? user?.email ?? "AA");
@@ -149,11 +126,12 @@ export function AppSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           <SidebarGroupLabel>{t.platform}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {navItems.map((item) => {
+                const paths: readonly string[] = "paths" in item ? item.paths : [item.href];
                 const isActive =
                   item.href === "/dashboard"
                     ? pathname === "/dashboard"
-                    : Boolean(pathname?.startsWith(item.href));
+                    : paths.some((path) => pathname?.startsWith(path));
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton

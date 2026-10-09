@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 
-import { isAdminUser } from "@/lib/admin";
 import { getSession } from "@/lib/session";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
@@ -21,7 +20,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar isAdmin={isAdminUser(session.user)} />
+      <AppSidebar />
       <SidebarInset>
         <DashboardHeader />
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>

@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   ArrowRight,
   Check,
   CircleCheck,
@@ -32,7 +32,7 @@ import type { DrillFeedback } from "@/types/training";
 
 const copy = defineCopy({
   en: {
-    back: "Training",
+    exit: "Exit the drill",
     position: (unit: string, index: number, total: number) => `${unit} · drill ${index} of ${total}`,
     fromEssayPosition: (unit: string) => `From your essay · ${unit}`,
     from: (title: string) => `From “${title}”`,
@@ -66,7 +66,7 @@ const copy = defineCopy({
     backToTraining: "Back to training",
   },
   ru: {
-    back: "Тренировка",
+    exit: "Выйти из упражнения",
     position: (unit: string, index: number, total: number) => `${unit} · упражнение ${index} из ${total}`,
     fromEssayPosition: (unit: string) => `Из твоего эссе · ${unit}`,
     from: (title: string) => `Из «${title}»`,
@@ -124,7 +124,26 @@ export function DrillView({
   const t = copy[locale];
   const [progress, setProgress] = useState<TrainingProgress | null>(null);
   const recorded = useRef(false);
+  const router = useRouter();
   const Icon = UNIT_ICON[unit.key];
+
+  // A drill is a lesson: it takes the whole screen, like Duolingo's. The page
+  // behind stops scrolling, and Esc leaves just like the cross does.
+  useEffect(() => {
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !(event.target instanceof HTMLTextAreaElement)) router.push("/dashboard/training");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [router]);
+
+  // Drills already done in this unit, this one included once it passes.
+  const doneShare = position ? (position.index - 1 + (progress ? 1 : 0)) / position.total : progress ? 1 : 0;
 
   async function markDone() {
     if (recorded.current) return;
@@ -138,58 +157,82 @@ export function DrillView({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <Link href="/dashboard/training" className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-4" />
-          {t.back}
-        </Link>
-        <span className="inline-flex items-center gap-1.5 text-right text-muted-foreground">
+    <div role="dialog" aria-modal="true" aria-label={drill.title[locale]} className="fixed inset-0 z-[60] overflow-y-auto bg-background">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-4 px-4 py-4">
+          <Link
+            href="/dashboard/training"
+            title={t.exit}
+            aria-label={t.exit}
+            className="-ml-1 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <X className="size-6" />
+          </Link>
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(doneShare * 100)}
+            className="h-4 flex-1 overflow-hidden rounded-full bg-muted"
+          >
+            <div
+              className="relative h-full rounded-full bg-[#58cc02] transition-[width] duration-700 ease-out"
+              style={{ width: `${Math.max(doneShare * 100, 4)}%` }}
+            >
+              {/* The glossy streak along the top, as on Duolingo's bar. */}
+              <span className="absolute inset-x-2 top-1 h-1 rounded-full bg-white/30" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-4 pt-2 pb-16">
+        <p className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
           <Icon className="size-4 shrink-0" />
           {position
             ? t.position(unit.title[locale], position.index, position.total)
             : t.fromEssayPosition(unit.title[locale])}
-        </span>
-      </div>
+        </p>
 
-      <p className="flex items-start gap-2.5 rounded-xl border bg-muted/40 px-4 py-3 text-[13px] leading-relaxed text-muted-foreground">
-        <Lightbulb className="mt-0.5 size-4 shrink-0 text-amber-400" />
-        {unit.lesson[locale]}
-      </p>
+        <p className="flex items-start gap-2.5 rounded-xl border bg-muted/40 px-4 py-3 text-[13px] leading-relaxed text-muted-foreground">
+          <Lightbulb className="mt-0.5 size-4 shrink-0 text-amber-400" />
+          {unit.lesson[locale]}
+        </p>
 
-      <section className="rounded-2xl border bg-card p-5 sm:p-6">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight">{drill.title[locale]}</h1>
-        <p className="mt-2 text-[15px] leading-relaxed">{drill.task[locale]}</p>
-        {drill.source ? (
-          <blockquote
-            lang="en"
-            className="mt-4 whitespace-pre-line border-l-2 border-brand/60 bg-muted/40 py-2.5 pr-3 pl-4 font-heading text-[15px] leading-relaxed text-foreground/90"
-          >
-            {essayTitle ? (
-              <span lang={locale} className="mb-1 block font-sans text-xs text-muted-foreground">
-                {t.from(essayTitle)}
-              </span>
-            ) : null}
-            {drill.source}
-          </blockquote>
+        <section className="rounded-2xl border bg-card p-5 sm:p-6">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight">{drill.title[locale]}</h1>
+          <p className="mt-2 text-[15px] leading-relaxed">{drill.task[locale]}</p>
+          {drill.source ? (
+            <blockquote
+              lang="en"
+              className="mt-4 whitespace-pre-line border-l-2 border-brand/60 bg-muted/40 py-2.5 pr-3 pl-4 font-heading text-[15px] leading-relaxed text-foreground/90"
+            >
+              {essayTitle ? (
+                <span lang={locale} className="mb-1 block font-sans text-xs text-muted-foreground">
+                  {t.from(essayTitle)}
+                </span>
+              ) : null}
+              {drill.source}
+            </blockquote>
+          ) : null}
+
+          {drill.kind === "rewrite" ? (
+            <RewriteExercise drill={drill} locale={locale} t={t} initialCoachLeft={initialCoachLeft} onPassed={markDone} />
+          ) : (
+            <ChoiceExercise drill={drill} locale={locale} t={t} onCorrect={markDone} />
+          )}
+        </section>
+
+        {progress ? <DoneBanner t={t} progress={progress} nextHref={nextHref} fromEssay={Boolean(essayTitle)} /> : null}
+
+        {!progress && nextHref ? (
+          <div className="text-center">
+            <Link href={nextHref} className="text-sm text-muted-foreground hover:text-foreground">
+              {t.skip}
+            </Link>
+          </div>
         ) : null}
-
-        {drill.kind === "rewrite" ? (
-          <RewriteExercise drill={drill} locale={locale} t={t} initialCoachLeft={initialCoachLeft} onPassed={markDone} />
-        ) : (
-          <ChoiceExercise drill={drill} locale={locale} t={t} onCorrect={markDone} />
-        )}
-      </section>
-
-      {progress ? <DoneBanner t={t} progress={progress} nextHref={nextHref} fromEssay={Boolean(essayTitle)} /> : null}
-
-      {!progress && nextHref ? (
-        <div className="text-center">
-          <Link href={nextHref} className="text-sm text-muted-foreground hover:text-foreground">
-            {t.skip}
-          </Link>
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 }
