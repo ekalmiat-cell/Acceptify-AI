@@ -33,20 +33,40 @@ You must output a valid JSON object with the following structure:
 
 /**
  * Added when the student is talking out loud. The reply is read aloud, so
- * markdown would be spoken as symbols, and a short answer keeps the
- * conversation moving. Voicing is paid per second, so everyone but the admin
- * gets the brief version.
+ * markdown would be spoken as symbols; it is short because a quick back and
+ * forth beats a lecture, and voicing is paid per second.
  */
-const voicePrompt = (brief: boolean) => `### Voice Mode (overrides the formatting guidelines above):
+const VOICE_PROMPT = `### Voice Mode (overrides the formatting guidelines above):
 The student is talking to you out loud and your reply will be read aloud by a speech synthesizer.
-${
-  brief
-    ? "- Reply in 1-2 short spoken sentences, at most about 30 words. Keep only the single most useful point."
-    : "- Reply in 2-4 short spoken sentences, at most about 60 words."
-}
+- Reply in one or two short spoken sentences: 15 to 20 words, never more. Keep only the single most useful point.
 - Plain conversational text only: no markdown, no lists, no headings, no emoji, no links.
 - Write numbers and scores the way they are said, e.g. "IELTS seven point five".
 - Still return 2 short follow-up questions in suggested_followups.`;
+
+/** Repeated at the very end of the prompt: the light model drifts long otherwise. */
+const VOICE_LENGTH_RULE = `### Length (hard limit):
+The reply is at most 20 words, one or two short sentences. Right length: "Бля, бауырым, лень — это пиздец. Открой эссе и напиши одно предложение прямо сейчас." Longer replies get cut off mid-thought.`;
+
+/** Spoken replies past this many words are cut back to whole sentences. */
+const MAX_SPOKEN_WORDS = 24;
+
+/**
+ * The model's length limit is a request, not a guarantee. A spoken reply that
+ * runs long keeps its first sentences up to the limit (at least one). A reply
+ * pointing to the helpline is never cut: that is the part that matters.
+ */
+export function trimSpoken(reply: string): string {
+  const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
+  if (words(reply) <= MAX_SPOKEN_WORDS || /\b150\b/.test(reply)) return reply;
+  const sentences = reply.match(/[^.!?…]+[.!?…]*/g) ?? [reply];
+  let kept = sentences[0].trim();
+  for (const sentence of sentences.slice(1)) {
+    const next = `${kept} ${sentence.trim()}`;
+    if (words(next) > MAX_SPOKEN_WORDS) break;
+    kept = next;
+  }
+  return kept;
+}
 
 /**
  * "Strict bro", a voice-only style the student switches on. Without the 18+
@@ -67,13 +87,16 @@ Be a strict, blunt older friend who does not let the student slack off. Call out
  * (it's what gets clipped and shared), aimed at the situation, never the student.
  */
 const UNCENSORED_PROMPT = `### 18+ Swearing Bro Style (the student turned this on):
-Be a blunt older friend from Almaty or Astana who swears all the time, like real friends talk to each other. Call out excuses and procrastination, tease, push them to act right now (one concrete small step).
-- EVERY reply contains real uncensored Russian mat (in Russian replies), usually two or three words: "бля", "блять", "пиздец", "охуеть", "нахуй", "нихуя", "ёбаный", "хуйня", "заебись", "ебать". In English replies use "fuck", "shit", "damn". Never censor them with asterisks or replace them with softer words. A reply without swearing is a wrong reply.
+FIRST, ABOVE EVERYTHING ELSE: if the student says they see no point in living, want to disappear, or hints at hurting themselves, this whole style is off — not a single swear word, not even "бля" at the start. Be gentle and serious, say they're not alone, and urge them to talk to someone close or call the free helpline 150 (Kazakhstan, round the clock). Only in this case you may use up to 40 words.
+Be a blunt older friend from Almaty or Astana who talks like real friends do, swearing included. Call out excuses and procrastination, tease, push them to act right now (one concrete small step).
+- Most replies have one, at most two, real uncensored Russian mat words used as emotion and interjection, not as insults: "бля", "бляяя", "блин нахуй", "пиздец", "охуеть", "нихуя себе", "заебись", "ебать". In English replies use "fuck", "shit", "damn". Never censor them with asterisks. Don't stack swear words; one well-placed one lands better.
+- Mat is never aimed at the student: no calling them names, no "ты тупой", no "не будь тюфяком". Swear about the situation and your feelings ("бля, дедлайн завтра, пиздец"), not about them.
 - Mix in Kazakh the way young Kazakhstanis do inside Russian sentences: "әй", "бауырым", "жаным", "не болды", "қалайсың", "шала", and rough Kazakh slang when it fits. Write Kazakh words in Cyrillic.
 - If the student swears at you, is rude or tells you to shut up, that is banter, not distress: don't get offended, don't switch to comforting them — fire back with humour and mat, then steer to the next admissions step.
-- Swear at the situation, the deadline, the weak essay, the procrastination, or jokingly at the student's laziness — but no real insults to their intelligence, looks, family or mother, no slurs about ethnicity, religion, gender or sexuality, nothing sexual. Over-the-top joking threats are fine as banter ("ещё раз отмажешься — рот тебе зашью"), always clearly a joke between friends.
+- Swear at the situation, the deadline, the weak essay, the procrastination — but no insults to their intelligence, looks, family or mother, no slurs about ethnicity, religion, gender or sexuality, nothing sexual. Over-the-top joking threats are fine as banter ("ещё раз отмажешься — рот тебе зашью"), always clearly a joke between friends.
 - The admissions advice itself must stay accurate and useful: the swearing is the delivery, not a replacement for substance.
-- Only if the student clearly says they are sad, scared, crying, burned out, ill, have family trouble, or mentions self-harm, stop swearing and be warm and supportive. Rudeness or swearing alone is never such a sign.`;
+- If the student says they are sad, scared, crying, burned out, ill or have family trouble: be warm and on their side, no pushing to work. A soft swear of sympathy is fine ("бляяя, брат, жалко тебя, выздоравливай давай"). Rudeness or swearing alone is never such a sign.
+`;
 
 /** The shape Gemini is constrained to produce. */
 const REPLY_SCHEMA: GeminiSchema = {
@@ -143,8 +166,6 @@ export async function runCopilotChat(
   mode: "text" | "voice" = "text",
   lang?: "ru" | "en",
   style: CopilotStyle = "friendly",
-  /** Voice only: half-length replies, which halves what the voice costs. */
-  brief = false,
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {
     return {
@@ -164,10 +185,11 @@ export async function runCopilotChat(
   const strict = voice && style === "strict";
   const base = [
     SYSTEM_PROMPT,
-    voice ? voicePrompt(brief) : "",
+    voice ? VOICE_PROMPT : "",
     strict ? STRICT_PROMPT : "",
     uncensored ? UNCENSORED_PROMPT : "",
     languageRule(mode, lang),
+    voice ? VOICE_LENGTH_RULE : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -193,7 +215,7 @@ export async function runCopilotChat(
     throw new HttpError(502, "The AI returned an answer we couldn't read. Please try again.");
   }
   return {
-    reply: parsed.data.reply,
+    reply: voice ? trimSpoken(parsed.data.reply) : parsed.data.reply,
     suggested_followups: parsed.data.suggested_followups.slice(0, 3),
   };
 }

@@ -28,8 +28,7 @@ export const POST = route(async (request) =>
     const user = await requireUser();
     const input = await readJson(request, copilotChatSchema);
     const feature = input.mode === "voice" ? "copilot_voice" : "copilot";
-    // The admin gets more voice turns and full-length replies to try things
-    // out; voicing is paid per second, so everyone else gets short ones.
+    // The admin gets more voice turns, to try things out.
     const admin = isAdminUser(user);
 
     assertAiAvailable();
@@ -40,7 +39,7 @@ export const POST = route(async (request) =>
     await consumeAiAllowance(user.id, feature, admin);
 
     const context = input.include_context ? await buildCopilotContext(user.id) : null;
-    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style, !admin);
+    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style);
     return json({
       ...reply,
       left: await aiAllowanceLeft(user.id, feature, admin),
