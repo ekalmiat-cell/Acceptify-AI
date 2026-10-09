@@ -13,6 +13,14 @@ import { getSessionCookie } from "better-auth/cookies";
 const PROTECTED_PATH_PREFIXES: string[] = ["/dashboard"];
 
 export function middleware(request: NextRequest) {
+  // A returning student opens the site straight into their dashboard. Only
+  // the cookie's presence is checked here; if it turns out stale, the
+  // dashboard sends them to sign in, which shows the form (it checks the
+  // session for real), so this can never loop.
+  if (request.nextUrl.pathname === "/" && getSessionCookie(request)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
   const isProtected = PROTECTED_PATH_PREFIXES.some((prefix) =>
     request.nextUrl.pathname.startsWith(prefix)
   );

@@ -196,7 +196,9 @@ export const auth = betterAuth({
     },
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 30, // 30 days
+    // Students stay signed in: each day they use the site pushes expiry 90
+    // days out again, so only three months away signs them out.
+    expiresIn: 60 * 60 * 24 * 90, // 90 days
     updateAge: 60 * 60 * 24, // refresh once a day of active use
     /**
      * Keeps a short-lived signed copy of the session in the cookie itself, so

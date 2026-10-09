@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
@@ -12,6 +13,7 @@ import {
 } from "@/lib/auth-config";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
+import { getSession } from "@/lib/session";
 
 const copy = defineCopy({
   en: {
@@ -45,6 +47,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   const locale = await getLocale();
   const t = copy[locale];
   const callbackURL = sanitizeRedirectPath(params.redirect);
+  // Already signed in: straight on, never the form again. A real session
+  // check, not just the cookie, so a stale cookie can't loop back here.
+  if (await getSession()) redirect(/^\/(sign-in|sign-up)/.test(callbackURL) ? "/dashboard" : callbackURL);
   const oauthError = formatOAuthCallbackError(params.error, locale);
 
   const errorCallbackURL = `/sign-in${
