@@ -64,6 +64,12 @@ export default async function LandingPage() {
         universityCount={universities.length}
         countryCount={countryCount}
         marqueeUniversities={marqueeUniversities}
+        boardFlights={universities.map((u) => ({
+          name: u.shortName || u.name,
+          city: u.city,
+          country: u.country,
+          deadline: u.applicationDeadline,
+        }))}
       />
       <HowItWorksSection />
       <FeaturesSection />

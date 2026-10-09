@@ -19,7 +19,7 @@ export function AppProviders({ locale, children }: { locale: Locale; children: R
     <LocaleProvider locale={locale}>
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="light"
         enableSystem
         disableTransitionOnChange
       >

@@ -26,21 +26,21 @@ export function SectionHeading({
         className
       )}
     >
+      {/* The eyebrow reads like a file label on a dossier: mono, spaced, a red dot. */}
       {eyebrow ? (
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase",
-            dark
-              ? "border-mk-ink/15 bg-mk-ink/5 text-brand"
-              : "border-border bg-muted text-primary"
+            "inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] uppercase",
+            dark ? "text-mk-ink/55" : "text-muted-foreground"
           )}
         >
+          <span className="size-1.5 rounded-full bg-[#e5484d]" />
           {eyebrow}
         </span>
       ) : null}
       <h2
         className={cn(
-          "max-w-2xl text-balance font-heading text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl",
+          "max-w-3xl text-balance font-display text-[1.9rem] leading-[1.15] font-bold tracking-tight sm:text-4xl md:text-[2.8rem]",
           dark ? "text-mk-ink" : "text-foreground"
         )}
       >

@@ -30,6 +30,7 @@ export function ArsFace({
   strict = false,
   className,
   title,
+  look,
 }: {
   mood?: ArsMood;
   word?: SpokenWord | null;
@@ -37,6 +38,8 @@ export function ArsFace({
   strict?: boolean;
   className?: string;
   title?: string;
+  /** Where the eyes look, as a nudge in face units (about ±10 across, ±5 down); for following the pointer. */
+  look?: { x: number; y: number };
 }) {
   const reduceMotion = useReducedMotion();
   const still = reduceMotion ?? false;
@@ -73,8 +76,16 @@ export function ArsFace({
       />
 
       <motion.g
-        animate={lookAround ? { x: [0, -9, -9, 9, 9, 0], y: [0, -4, -4, -4, -4, 0] } : { x: 0, y: 0 }}
-        transition={lookAround ? { duration: 2.6, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+        animate={
+          lookAround
+            ? { x: [0, -9, -9, 9, 9, 0], y: [0, -4, -4, -4, -4, 0] }
+            : { x: look && !still ? look.x : 0, y: look && !still ? look.y : 0 }
+        }
+        transition={
+          lookAround
+            ? { duration: 2.6, repeat: Infinity, ease: "easeInOut" }
+            : { type: "spring", stiffness: 260, damping: 22 }
+        }
       >
         {[74, 126].map((cx) => (
           <motion.ellipse

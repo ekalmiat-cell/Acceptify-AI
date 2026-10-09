@@ -15,6 +15,8 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  --font-display: var(--font-unbounded);
+  --font-hand: var(--font-caveat);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-navy: var(--navy);
@@ -152,11 +154,10 @@
    used with opacity steps (text-mk-ink/60, border-mk-ink/10) for the greys. */
 :root {
   --mk-bg: #ffffff;
-  --mk-deep: #f4f7fc;
+  --mk-deep: #f7f7f4;
   --mk-surface: #ffffff;
   --mk-ink: #0b1f3a;
-  --mk-accent: #1d4fd8;
-  --mk-gradient-text: linear-gradient(90deg, #2f6feb 0%, #1d4fd8 100%);
+  --mk-accent: #2f6feb;
 }
 .dark {
   --mk-bg: #071326;
@@ -164,7 +165,6 @@
   --mk-surface: #0d1c33;
   --mk-ink: #ffffff;
   --mk-accent: #4a8bff;
-  --mk-gradient-text: linear-gradient(90deg, #9cc2ff 0%, #4a8bff 100%);
 }
 
 /* The copilot's face: navy rim on the light theme, brand blue on dark, and
@@ -197,64 +197,47 @@
 }
 
 @layer utilities {
-  /* Marketing surfaces follow the theme through the --mk-* tokens. */
+  /* The white redesign: flat surfaces, ink and paper, no glows or gradients.
+     These utilities keep their old names because dozens of components use
+     them; what they draw is new. */
+
+  /* Dotted notebook paper behind auth and pricing pages. */
   .bg-grid-glow {
-    background-image:
-      radial-gradient(
-        ellipse 60% 50% at 50% -10%,
-        color-mix(in oklab, #2f6feb 16%, transparent),
-        transparent
-      ),
-      linear-gradient(
-        to right,
-        color-mix(in oklab, var(--mk-ink) 5%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--mk-ink) 5%, transparent) 1px,
-        transparent 1px
-      );
-    background-size:
-      100% 100%,
-      48px 48px,
-      48px 48px;
+    background-image: radial-gradient(
+      color-mix(in oklab, var(--mk-ink) 10%, transparent) 1px,
+      transparent 1.4px
+    );
+    background-size: 22px 22px;
   }
 
-  /* Both of these used to span a wide blue-to-violet ramp, which is the
-     look the brief calls "cheap AI aesthetic". They are kept as utilities
-     (a dozen components reference them) but redefined as a single-hue,
-     low-contrast step — closer to a solid fill with depth than a gradient. */
+  /* Accent text: one solid blue, like a marker. */
   .text-gradient-brand {
-    background: var(--mk-gradient-text);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
+    color: var(--mk-accent);
   }
 
+  /* Primary buttons and filled bars: solid ink on white, blue on dark. */
   .bg-gradient-brand {
-    background: linear-gradient(180deg, #2f6feb 0%, #2159cd 100%);
+    background: #0b1f3a;
+  }
+  .dark .bg-gradient-brand {
+    background: #2f6feb;
   }
 
-  /* Marketing cards sit on solid navy, where a backdrop blur is invisible
-     but costly (every card re-blurs what is behind it each frame), so this
-     is a plain translucent fill. Add `backdrop-blur-*` where something
-     actually moves behind a panel, as the hero card does. */
+  /* Cards: an opaque sheet with a hairline border. */
   .glass-panel {
-    background: color-mix(in oklab, var(--mk-surface) 75%, transparent);
+    background: var(--mk-surface);
     border: 1px solid color-mix(in oklab, var(--mk-ink) 10%, transparent);
   }
 
   .glass-panel-light {
-    background: color-mix(in oklab, #ffffff 70%, transparent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid color-mix(in oklab, #ffffff 40%, transparent);
+    background: #ffffff;
+    border: 1px solid color-mix(in oklab, #0b1f3a 10%, transparent);
   }
 
+  /* A paper shadow under raised things, not a coloured glow. */
   .shadow-glow-brand {
-    box-shadow: 0 0 0 1px color-mix(in oklab, #4a8bff 18%, transparent),
-      0 10px 30px -14px color-mix(in oklab, #2f6feb 45%, transparent);
+    box-shadow: 0 1px 0 color-mix(in oklab, #0b1f3a 8%, transparent),
+      0 10px 24px -14px color-mix(in oklab, #0b1f3a 45%, transparent);
   }
 
   .animate-in-up {
@@ -273,100 +256,12 @@
   }
 }
 
-/* ── Landing hero motion ─────────────────────────────────────────────── */
+/* ── Landing motion ──────────────────────────────────────────────────── */
 
-/* Soft glows drawn as radial gradients: already soft, so no `filter: blur`
-   (which the browser would recompute every frame while they drift). Only
-   `transform` animates. */
-.hero-glow {
-  position: absolute;
-  border-radius: 9999px;
-  will-change: transform;
-}
-
-.hero-glow-a {
-  top: -25%;
-  left: 45%;
-  width: 56rem;
-  height: 56rem;
-  background: radial-gradient(closest-side, color-mix(in oklab, #2f6feb 32%, transparent), transparent);
-  animation: hero-drift-a 18s ease-in-out infinite alternate;
-}
-
-.hero-glow-b {
-  top: 15%;
-  left: -20%;
-  width: 48rem;
-  height: 48rem;
-  background: radial-gradient(closest-side, color-mix(in oklab, #4a8bff 18%, transparent), transparent);
-  animation: hero-drift-b 22s ease-in-out infinite alternate;
-}
-
-.hero-glow-c {
-  bottom: -30%;
-  left: 25%;
-  width: 44rem;
-  height: 44rem;
-  background: radial-gradient(closest-side, color-mix(in oklab, #1d4fd8 24%, transparent), transparent);
-  animation: hero-drift-c 26s ease-in-out infinite alternate;
-}
-
-@keyframes hero-drift-a {
-  to {
-    transform: translate3d(-8rem, 6rem, 0) scale(1.15);
-  }
-}
-@keyframes hero-drift-b {
-  to {
-    transform: translate3d(10rem, -4rem, 0) scale(0.9);
-  }
-}
-@keyframes hero-drift-c {
-  to {
-    transform: translate3d(-6rem, -8rem, 0) scale(1.1);
-  }
-}
-
-/* Soft light under the pointer: a fixed-size disc moved with transform by
-   hero-backdrop.tsx, so following the mouse never repaints the page. */
-.hero-spotlight {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1200px;
-  height: 1200px;
-  margin: -600px 0 0 -600px;
-  opacity: 0;
-  transition: opacity 0.6s;
-  will-change: transform;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in oklab, #4a8bff 10%, transparent),
-    transparent
-  );
-}
-
-/* A light sweep across the main call to action every few seconds. */
+/* Kept as a hook for buttons that used to carry a light sweep; the sweep
+   was part of the glossy look the white redesign dropped. */
 .btn-shine {
   position: relative;
-  overflow: hidden;
-}
-.btn-shine::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-120%) skewX(-20deg);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.28), transparent);
-  animation: btn-shine 4.5s ease-in-out 2s infinite;
-}
-@keyframes btn-shine {
-  0% {
-    transform: translateX(-120%) skewX(-20deg);
-  }
-  30%,
-  100% {
-    transform: translateX(220%) skewX(-20deg);
-  }
 }
 
 .marquee-mask {
@@ -386,8 +281,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-glow,
-  .btn-shine::after,
   .marquee-track {
     animation: none;
   }
@@ -395,8 +288,8 @@
 
 /* ── Site-wide hover language ────────────────────────────────────────── */
 
-/* Bordered cards that grow a little and light up under the pointer. The
-   resting border is the theme's own, so it shows in light mode too. */
+/* Bordered cards that lift a little under the pointer, like a sheet picked
+   up off the desk. The resting border is the theme's own. */
 .hover-lift {
   border: 1px solid var(--border);
   transition:
@@ -410,15 +303,12 @@
   border-color: color-mix(in oklab, var(--mk-ink) 10%, transparent);
 }
 .hover-lift:hover {
-  transform: translateY(-4px) scale(1.025);
-  border-color: color-mix(in oklab, #4a8bff 45%, transparent);
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, #4a8bff 15%, transparent),
-    0 18px 40px -18px color-mix(in oklab, #2f6feb 60%, transparent);
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--mk-ink) 28%, transparent);
+  box-shadow: 0 14px 28px -18px color-mix(in oklab, #0b1f3a 45%, transparent);
 }
 
-/* Pill-shaped links (marketing nav): outlined, a touch bolder, and they
-   grow on hover. */
+/* Pill-shaped links (marketing nav): outlined, darkening on hover. */
 .nav-pill {
   border: 1px solid color-mix(in oklab, var(--mk-ink) 12%, transparent);
   transition:
@@ -428,9 +318,8 @@
     color 0.25s;
 }
 .nav-pill:hover {
-  transform: scale(1.08);
-  border-color: color-mix(in oklab, #4a8bff 55%, transparent);
-  background-color: color-mix(in oklab, #4a8bff 12%, transparent);
+  border-color: color-mix(in oklab, var(--mk-ink) 30%, transparent);
+  background-color: color-mix(in oklab, var(--mk-ink) 5%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
