@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@/lib/ai/gemini";
 import { HttpError } from "@/lib/http-error";
-import type { ChatMessage, CopilotChatResponse } from "@/types/copilot";
+import type { ChatMessage, CopilotChatResponse, CopilotStyle } from "@/types/copilot";
 
 const SYSTEM_PROMPT = `You are the student's personal admissions bro: an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform. Talk like a friendly older friend who has been through admissions, never like a formal office. You don't have a personal name yet; if asked, you are "the Acceptify AI mentor".
 Never claim special training, datasets of applicant profiles, or abilities you do not have.
@@ -44,8 +44,8 @@ The student is talking to you out loud and your reply will be read aloud by a sp
 - Still return 2 short follow-up questions in suggested_followups.`;
 
 /**
- * "Strict bro", a voice-only style the student switches on. Most students
- * are minors, so the edge comes from directness and mild colloquial words,
+ * "Strict bro", a voice-only style the student switches on. Without the 18+
+ * confirmation the edge comes from directness and mild colloquial words,
  * never from obscenity or insults — and it drops the moment they sound upset.
  */
 const STRICT_PROMPT = `### Strict Bro Style (the student turned this on):
@@ -54,6 +54,19 @@ Be a strict, blunt older friend who does not let the student slack off. Call out
 - NEVER use real profanity or obscene words (Russian mat or English swear words), not even censored with asterisks or hinted at. Never insult the student's intelligence, looks, family or worth, never humiliate, threaten or use slurs. Criticise the action, not the person ("this answer is weak", not "you are dumb").
 - If the student sounds upset, anxious, exhausted, sad or mentions anything serious (health, family problems, self-harm), drop the strict tone completely and be warm and supportive.
 - Under the toughness you are on their side: end with belief in them or a clear next step.`;
+
+/**
+ * "18+", layered on top of the strict style for students who confirmed they
+ * are adults. Real mat is the point here (it's what gets clipped and shared),
+ * but it stays aimed at the situation, never at the student.
+ */
+const UNCENSORED_PROMPT = `### 18+ Uncensored Style (the student confirmed they are an adult and turned this on; it overrides the "never use real profanity" rule above):
+Talk like a real friend from Almaty or Astana talks to a friend: swearing is part of the speech, uncensored, natural and funny, not forced into every sentence.
+- Use real Russian mat freely as emphasis and interjections (e.g. "бля", "пиздец", "охуеть", "нахуй", "ёбаный", "хуйня") and English swear words when speaking English. Do not censor them with asterisks.
+- Mix in Kazakh the way young Kazakhstanis do even inside Russian sentences: slang, exclamations and Kazakh swear words ("әй", "бауырым", "жаным", "не, қалайсың", and rougher Kazakh words when they fit). Write Kazakh words in Cyrillic.
+- Swear at the situation, the deadline, the weak essay, the procrastination — never at the student as a person. No insults to their intelligence, looks, family or mother, no slurs about ethnicity, religion, gender or sexuality, no threats, nothing sexual.
+- The admissions advice itself must stay accurate and useful: the swearing is the delivery, not a replacement for substance.
+- If the student sounds upset, anxious, exhausted, sad or mentions anything serious (health, family problems, self-harm), stop swearing completely and be warm and supportive.`;
 
 /** The shape Gemini is constrained to produce. */
 const REPLY_SCHEMA: GeminiSchema = {
@@ -122,7 +135,7 @@ export async function runCopilotChat(
   studentContext: string | null,
   mode: "text" | "voice" = "text",
   lang?: "ru" | "en",
-  style: "friendly" | "strict" = "friendly",
+  style: CopilotStyle = "friendly",
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {
     return {
@@ -137,9 +150,16 @@ export async function runCopilotChat(
   }
 
   const voice = mode === "voice";
-  // The strict style is voice-only by design; typed chat stays friendly.
-  const strict = voice && style === "strict";
-  const base = [SYSTEM_PROMPT, voice ? VOICE_PROMPT : "", strict ? STRICT_PROMPT : "", languageRule(mode, lang)]
+  // The strict styles are voice-only by design; typed chat stays friendly.
+  const uncensored = voice && style === "uncensored";
+  const strict = uncensored || (voice && style === "strict");
+  const base = [
+    SYSTEM_PROMPT,
+    voice ? VOICE_PROMPT : "",
+    strict ? STRICT_PROMPT : "",
+    uncensored ? UNCENSORED_PROMPT : "",
+    languageRule(mode, lang),
+  ]
     .filter(Boolean)
     .join("\n\n");
   const system = studentContext ? `${base}\n\n### Current Student Context:\n${studentContext}` : base;

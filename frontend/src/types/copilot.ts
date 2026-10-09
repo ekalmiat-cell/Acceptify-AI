@@ -4,7 +4,7 @@ export interface ChatMessage {
 }
 
 export type CopilotMode = "text" | "voice";
-export type CopilotStyle = "friendly" | "strict";
+export type CopilotStyle = "friendly" | "strict" | "uncensored";
 
 export interface CopilotChatRequest {
   messages: ChatMessage[];

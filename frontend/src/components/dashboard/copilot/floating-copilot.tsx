@@ -18,7 +18,7 @@ import { getCopilotAllowance, sendCopilotMessage } from "@/lib/copilot-client";
 import { defineCopy } from "@/lib/i18n/core";
 import { useCopy, useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import type { ChatMessage, CopilotAllowance } from "@/types/copilot";
+import type { ChatMessage, CopilotAllowance, CopilotStyle } from "@/types/copilot";
 
 type Corner = "bottom-right" | "bottom-left" | "top-right" | "top-left";
 type View = "voice" | "text";
@@ -28,6 +28,8 @@ type Phase = "idle" | "listening" | "thinking" | "speaking";
 const INTRO_KEY = "acceptify-ars-intro";
 const VOICE_LANG_KEY = "acceptify-ars-voice-lang";
 const STYLE_KEY = "acceptify-bro-style";
+/** Set once the student has confirmed they are 18+ for the swearing style. */
+const ADULT_KEY = "acceptify-bro-adult";
 
 /** Signing out ends the session, so the next sign-in gets the entrance again. */
 export function forgetArsIntro() {
@@ -83,6 +85,13 @@ const copy = defineCopy({
     strict: "Strict",
     strictOn: "Strict bro is on: blunt, no excuses, a few rough words. Tap to turn off.",
     strictOff: "Turn on strict bro: blunt, no excuses, a few rough words (voice only).",
+    adult: "18+",
+    adultOn: "18+ is on: the bro swears for real. Tap to turn off.",
+    adultOff: "Turn on 18+: real swearing in Russian, Kazakh and English.",
+    adultTitle: "18+ mode",
+    adultBody: "The bro will swear for real — Russian mat, Kazakh and English. Only for adults.",
+    adultConfirm: "I'm 18+, turn it on",
+    adultCancel: "Cancel",
   },
   ru: {
     suggestions: [
@@ -127,6 +136,13 @@ const copy = defineCopy({
     strict: "Строгий",
     strictOn: "Строгий бро включён: прямо, без отмазок и с крепким словцом. Нажми, чтобы выключить.",
     strictOff: "Включить строгого бро: прямо, без отмазок и с крепким словцом (только голосом).",
+    adult: "18+",
+    adultOn: "18+ включён: бро матерится по-настоящему. Нажми, чтобы выключить.",
+    adultOff: "Включить 18+: настоящий мат на русском, казахском и английском.",
+    adultTitle: "Режим 18+",
+    adultBody: "Бро будет материться по-настоящему — на русском, казахском и английском. Только для совершеннолетних.",
+    adultConfirm: "Мне есть 18, включить",
+    adultCancel: "Отмена",
   },
 });
 
@@ -160,6 +176,8 @@ export function FloatingCopilot() {
   const [voiceLang, setVoiceLang] = useState<VoiceLang>(locale);
   const [word, setWord] = useState<SpokenWord | null>(null);
   const [strict, setStrict] = useState(false);
+  const [uncensored, setUncensored] = useState(false);
+  const [askAdult, setAskAdult] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -169,7 +187,9 @@ export function FloatingCopilot() {
     try {
       const saved = localStorage.getItem(VOICE_LANG_KEY);
       if (saved === "ru" || saved === "en") setVoiceLang(saved);
-      setStrict(localStorage.getItem(STYLE_KEY) === "strict");
+      const style = localStorage.getItem(STYLE_KEY);
+      setStrict(style === "strict" || style === "uncensored");
+      setUncensored(style === "uncensored" && localStorage.getItem(ADULT_KEY) === "1");
     } catch {}
     getCopilotAllowance()
       .then(setAllowance)
@@ -211,12 +231,42 @@ export function FloatingCopilot() {
     setNote(null);
   }
 
+  function saveStyle(style: CopilotStyle) {
+    try {
+      localStorage.setItem(STYLE_KEY, style);
+    } catch {}
+  }
+
   function toggleStrict() {
     const next = !strict;
     setStrict(next);
+    // 18+ is a layer on top of strict, so it goes off with it.
+    setUncensored(false);
+    setAskAdult(false);
+    saveStyle(next ? "strict" : "friendly");
+  }
+
+  function toggleUncensored() {
+    if (uncensored) {
+      setUncensored(false);
+      return saveStyle("strict");
+    }
+    let adult = false;
     try {
-      localStorage.setItem(STYLE_KEY, next ? "strict" : "friendly");
+      adult = localStorage.getItem(ADULT_KEY) === "1";
     } catch {}
+    if (!adult) return setAskAdult(true);
+    setUncensored(true);
+    saveStyle("uncensored");
+  }
+
+  function confirmAdult() {
+    try {
+      localStorage.setItem(ADULT_KEY, "1");
+    } catch {}
+    setAskAdult(false);
+    setUncensored(true);
+    saveStyle("uncensored");
   }
 
   function chooseVoiceLang(lang: VoiceLang) {
@@ -365,7 +415,13 @@ export function FloatingCopilot() {
     setMessages(updated);
 
     try {
-      const res = await sendCopilotMessage(updated, true, "voice", voiceLang, strict ? "strict" : "friendly");
+      const res = await sendCopilotMessage(
+        updated,
+        true,
+        "voice",
+        voiceLang,
+        uncensored ? "uncensored" : strict ? "strict" : "friendly",
+      );
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
       setLastReply(res.reply);
       noteLeft("voice", res.left);
@@ -452,22 +508,65 @@ export function FloatingCopilot() {
                     <X className="h-4 w-4" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={toggleStrict}
-                    aria-pressed={strict}
-                    title={strict ? t.strictOn : t.strictOff}
-                    aria-label={strict ? t.strictOn : t.strictOff}
-                    className={cn(
-                      "absolute left-3 top-3 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                      strict
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-muted-foreground hover:text-foreground",
+                  <div className="absolute left-3 top-3 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={toggleStrict}
+                      aria-pressed={strict}
+                      title={strict ? t.strictOn : t.strictOff}
+                      aria-label={strict ? t.strictOn : t.strictOff}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                        strict
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <Flame className="h-3 w-3" />
+                      {t.strict}
+                    </button>
+                    {strict && (
+                      <button
+                        type="button"
+                        onClick={toggleUncensored}
+                        aria-pressed={uncensored}
+                        title={uncensored ? t.adultOn : t.adultOff}
+                        aria-label={uncensored ? t.adultOn : t.adultOff}
+                        className={cn(
+                          "rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors",
+                          uncensored
+                            ? "border-destructive bg-destructive text-white"
+                            : "border-border bg-background text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        {t.adult}
+                      </button>
                     )}
-                  >
-                    <Flame className="h-3 w-3" />
-                    {t.strict}
-                  </button>
+                  </div>
+
+                  {askAdult && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/90 p-6 backdrop-blur-sm">
+                      <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="bro-adult-title"
+                        className="w-full max-w-[280px] text-center"
+                      >
+                        <p id="bro-adult-title" className="text-base font-extrabold text-foreground">
+                          {t.adultTitle}
+                        </p>
+                        <p className="mt-2 text-xs text-muted-foreground">{t.adultBody}</p>
+                        <div className="mt-4 flex flex-col gap-2">
+                          <Button size="sm" variant="destructive" onClick={confirmAdult}>
+                            {t.adultConfirm}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setAskAdult(false)}>
+                            {t.adultCancel}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex flex-1 flex-col items-center justify-center px-6 pt-6">
                     <motion.button
