@@ -29,8 +29,6 @@ type Phase = "idle" | "listening" | "thinking" | "speaking";
 const INTRO_KEY = "acceptify-ars-intro";
 const VOICE_LANG_KEY = "acceptify-ars-voice-lang";
 const STYLE_KEY = "acceptify-bro-style";
-/** Set once the student has confirmed they are 18+ for the swearing style. */
-const ADULT_KEY = "acceptify-bro-adult";
 
 /** Signing out ends the session, so the next sign-in gets the entrance again. */
 export function forgetArsIntro() {
@@ -92,10 +90,6 @@ const copy = defineCopy({
     adult: "18+",
     adultOn: "18+ is on: the bro swears for real. Tap to turn off.",
     adultOff: "Turn on 18+: real swearing in Russian, Kazakh and English.",
-    adultTitle: "18+ mode",
-    adultBody: "The bro will swear for real — Russian mat, Kazakh and English. Only for adults.",
-    adultConfirm: "I'm 18+, turn it on",
-    adultCancel: "Cancel",
   },
   ru: {
     suggestions: [
@@ -146,10 +140,6 @@ const copy = defineCopy({
     adult: "18+",
     adultOn: "18+ включён: бро матерится по-настоящему. Нажми, чтобы выключить.",
     adultOff: "Включить 18+: настоящий мат на русском, казахском и английском.",
-    adultTitle: "Режим 18+",
-    adultBody: "Бро будет материться по-настоящему — на русском, казахском и английском. Только для совершеннолетних.",
-    adultConfirm: "Мне есть 18, включить",
-    adultCancel: "Отмена",
   },
 });
 
@@ -186,7 +176,6 @@ export function FloatingCopilot() {
   const [word, setWord] = useState<SpokenWord | null>(null);
   const [strict, setStrict] = useState(false);
   const [uncensored, setUncensored] = useState(false);
-  const [askAdult, setAskAdult] = useState(false);
   /** Gemini's voice failed: the mentor stays silent and says so on screen. */
   const [voiceDown, setVoiceDown] = useState(false);
 
@@ -200,7 +189,7 @@ export function FloatingCopilot() {
       if (saved === "ru" || saved === "en") setVoiceLang(saved);
       const style = localStorage.getItem(STYLE_KEY);
       setStrict(style === "strict" || style === "uncensored");
-      setUncensored(style === "uncensored" && localStorage.getItem(ADULT_KEY) === "1");
+      setUncensored(style === "uncensored");
     } catch {}
     getCopilotAllowance()
       .then(setAllowance)
@@ -254,31 +243,14 @@ export function FloatingCopilot() {
     setStrict(next);
     // 18+ is a layer on top of strict, so it goes off with it.
     setUncensored(false);
-    setAskAdult(false);
     saveStyle(next ? "strict" : "friendly");
   }
 
+  // No age question: the owner's call. The chip itself says 18+.
   function toggleUncensored() {
-    if (uncensored) {
-      setUncensored(false);
-      return saveStyle("strict");
-    }
-    let adult = false;
-    try {
-      adult = localStorage.getItem(ADULT_KEY) === "1";
-    } catch {}
-    if (!adult) return setAskAdult(true);
-    setUncensored(true);
-    saveStyle("uncensored");
-  }
-
-  function confirmAdult() {
-    try {
-      localStorage.setItem(ADULT_KEY, "1");
-    } catch {}
-    setAskAdult(false);
-    setUncensored(true);
-    saveStyle("uncensored");
+    const next = !uncensored;
+    setUncensored(next);
+    saveStyle(next ? "uncensored" : "strict");
   }
 
   function chooseVoiceLang(lang: VoiceLang) {
@@ -601,30 +573,6 @@ export function FloatingCopilot() {
                       </button>
                     )}
                   </div>
-
-                  {askAdult && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-card/90 p-6 backdrop-blur-sm">
-                      <div
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="bro-adult-title"
-                        className="w-full max-w-[280px] text-center"
-                      >
-                        <p id="bro-adult-title" className="text-base font-extrabold text-foreground">
-                          {t.adultTitle}
-                        </p>
-                        <p className="mt-2 text-xs text-muted-foreground">{t.adultBody}</p>
-                        <div className="mt-4 flex flex-col gap-2">
-                          <Button size="sm" variant="destructive" onClick={confirmAdult}>
-                            {t.adultConfirm}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setAskAdult(false)}>
-                            {t.adultCancel}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="flex flex-1 flex-col items-center justify-center px-6 pt-6">
                     <motion.button
