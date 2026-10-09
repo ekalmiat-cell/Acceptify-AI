@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { CheckCircle2, Download, Loader2, Sparkles, TriangleAlert, Lightbulb } from "lucide-react";
 
@@ -23,6 +24,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchBadge } from "@/components/shared/match-badge";
 import { WhatIfPanel } from "@/components/dashboard/what-if-panel";
+import { AcceptedStamp } from "@/components/dashboard/acceptance/accepted-stamp";
+import { FlightOverlay } from "@/components/dashboard/acceptance/flight-overlay";
+import { ALMATY, cityName, placeOf, type LonLat } from "@/lib/geo";
 import { computeAdmissionAnalysis } from "@/lib/scoring";
 import type { StudentProfileInput } from "@/lib/predict";
 import type { CriterionWeights } from "@/lib/predict";
@@ -100,6 +104,24 @@ const copy = defineCopy({
 });
 
 type Copy = (typeof copy)["en"];
+
+/** A fit score above this earns the "accepted" stamp and the flight. */
+const ACCEPTED_SCORE = 75;
+/** Closer to Almaty than this (degrees), there is no flight worth showing. */
+const SAME_CITY_DEGREES = 1.5;
+
+interface Flight {
+  to: LonLat;
+  city: string;
+  universityName: string;
+}
+
+/** The flight to a university, or null when it is in or next to Almaty. */
+function flightTo(university: University): Flight | null {
+  const to = placeOf(university.country, university.city);
+  if (!to || Math.hypot(to[0] - ALMATY[0], to[1] - ALMATY[1]) < SAME_CITY_DEGREES) return null;
+  return { to, city: cityName(university.city), universityName: university.name };
+}
 
 export function AnalysisView({
   studentName,
@@ -245,6 +267,32 @@ export function AnalysisView({
     return computeAdmissionAnalysis(university, effectiveProfile, profileCompleteness, weights, locale);
   }, [effectiveProfile, university, profileCompleteness, weights, locale]);
 
+  const accepted = !isLoadingModel && analysis !== null && analysis.score > ACCEPTED_SCORE;
+  const resultKey = university ? `${university.id}:${programId}` : "";
+  /** The result whose stamp should come down hard (only the first time it is earned). */
+  const [slamKey, setSlamKey] = useState<string | null>(null);
+  const [flight, setFlight] = useState<Flight | null>(null);
+
+  // A result earns the celebration once per browser session: the stamp
+  // slams, and a beat later the plane takes off.
+  useEffect(() => {
+    if (!accepted || !university) return;
+    const seenKey = `acceptify-accepted:${resultKey}`;
+    try {
+      if (sessionStorage.getItem(seenKey) === "1") return;
+      sessionStorage.setItem(seenKey, "1");
+    } catch {}
+    setSlamKey(resultKey);
+    const next = flightTo(university);
+    if (!next || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const takeOff = window.setTimeout(() => setFlight(next), 1100);
+    return () => window.clearTimeout(takeOff);
+  }, [accepted, resultKey, university]);
+
+  function replayFlight() {
+    if (university) setFlight(flightTo(university));
+  }
+
   async function handleSaveReport() {
     if (!analysis || !university) return;
     setIsSaving(true);
@@ -378,7 +426,15 @@ export function AnalysisView({
       {!isLoadingModel && analysis && university ? (
         <>
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <Card className="flex flex-col items-center justify-center gap-4 py-8 xl:col-span-1">
+            <Card className="relative flex flex-col items-center justify-center gap-4 overflow-visible py-8 xl:col-span-1">
+              {accepted ? (
+                <AcceptedStamp
+                  key={resultKey}
+                  slam={slamKey === resultKey}
+                  onClick={replayFlight}
+                  className="absolute bottom-16 right-5 z-10"
+                />
+              ) : null}
               <ScoreCircle t={t} score={analysis.score} />
               <div className="flex flex-col items-center gap-1">
                 <p className="font-heading text-lg font-semibold text-foreground">{university.name}</p>
@@ -464,6 +520,18 @@ export function AnalysisView({
           </div>
         </>
       ) : null}
+
+      <AnimatePresence>
+        {flight ? (
+          <FlightOverlay
+            key={flight.universityName}
+            to={flight.to}
+            city={flight.city}
+            universityName={flight.universityName}
+            onDone={() => setFlight(null)}
+          />
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
