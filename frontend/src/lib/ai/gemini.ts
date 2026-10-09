@@ -272,6 +272,7 @@ export async function generateJson(options: {
    * cheaper, and it leaves the stronger models' quota for essay reviews.
    */
   preferLite?: boolean;
+  relaxedSafety?: boolean;
 }): Promise<unknown> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new HttpError(503, NOT_CONFIGURED_MESSAGE);
@@ -289,6 +290,14 @@ export async function generateJson(options: {
         responseMimeType: "application/json",
         ...(withSchema && options.schema ? { responseSchema: options.schema } : {}),
       },
+      ...(options.relaxedSafety
+        ? {
+            safetySettings: [
+              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+            ],
+          }
+        : {}),
     });
 
   const deadline = Date.now() + TOTAL_BUDGET_MS;

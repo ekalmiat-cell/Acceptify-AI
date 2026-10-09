@@ -177,6 +177,7 @@ export async function runCopilotChat(
     // Chat replies are short: Flash-Lite answers them well at a fraction of
     // the price, which leaves the paid budget for essay reviews.
     preferLite: true,
+    relaxedSafety: uncensored,
   });
   const parsed = replySchema.safeParse(raw);
   if (!parsed.success) {
