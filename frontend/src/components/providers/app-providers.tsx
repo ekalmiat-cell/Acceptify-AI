@@ -17,8 +17,12 @@ export function AppProviders({ locale, children }: { locale: Locale; children: R
   usePwaSetup();
   return (
     <LocaleProvider locale={locale}>
+      {/* A new storage key (next-themes used "theme") forgets the dark choice
+          everyone had while dark was the default: the white redesign is what
+          every student sees first. Picking dark in Settings is remembered again. */}
       <ThemeProvider
         attribute="class"
+        storageKey="acceptify-theme"
         defaultTheme="light"
         enableSystem
         disableTransitionOnChange
