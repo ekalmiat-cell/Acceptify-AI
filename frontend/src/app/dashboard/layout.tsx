@@ -21,7 +21,8 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      {/* Warm paper behind the white cards, like sheets on a desk. */}
+      <SidebarInset className="bg-mk-deep">
         <DashboardHeader />
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
       </SidebarInset>

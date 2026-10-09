@@ -88,7 +88,7 @@ export function DashboardHeader() {
   const segments = pathname.split("/").filter(Boolean);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b bg-mk-deep/85 px-4 backdrop-blur-md">
       <SidebarTrigger />
       <Separator orientation="vertical" className="mr-1 h-4" />
       <Breadcrumb>

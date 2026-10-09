@@ -200,7 +200,7 @@ export function DrillView({
         </p>
 
         <section className="rounded-2xl border bg-card p-5 sm:p-6">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">{drill.title[locale]}</h1>
+          <h1 className="font-display text-[1.65rem] leading-tight font-bold tracking-tight">{drill.title[locale]}</h1>
           <p className="mt-2 text-[15px] leading-relaxed">{drill.task[locale]}</p>
           {drill.source ? (
             <blockquote

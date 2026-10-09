@@ -96,7 +96,7 @@ export default async function DashboardOverviewPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="font-heading text-2xl font-semibold tracking-tight">
+          <h1 className="font-display text-[1.65rem] leading-tight font-bold tracking-tight">
             {t.welcome(firstName)}
           </h1>
           <p className="text-sm text-muted-foreground">{t.subtitle}</p>

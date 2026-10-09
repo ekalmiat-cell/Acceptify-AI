@@ -49,11 +49,11 @@ export async function QuickStatusRow({
       <Link href="/dashboard/profile">
         <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <UserRound className="size-4" />
+            <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">
+              <UserRound className="size-3.5" />
               {t.completion}
             </div>
-            <p className="font-heading text-2xl font-semibold text-foreground">
+            <p className="font-display text-[1.75rem] leading-none font-bold text-foreground">
               {profileCompleteness}%
             </p>
             <Progress value={profileCompleteness}>
@@ -68,11 +68,11 @@ export async function QuickStatusRow({
       <Link href={dreamUniversity ? `/dashboard/universities/${dreamUniversity.slug}` : "/dashboard/profile"}>
         <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GraduationCap className="size-4" />
+            <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">
+              <GraduationCap className="size-3.5" />
               {t.dream}
             </div>
-            <p className="truncate font-heading text-lg font-semibold text-foreground">
+            <p className="truncate font-display text-lg font-bold text-foreground">
               {dreamUniversity?.name ?? t.notSelected}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -87,11 +87,11 @@ export async function QuickStatusRow({
       <Link href="/dashboard/analysis">
         <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <ListChecks className="size-4" />
+            <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">
+              <ListChecks className="size-3.5" />
               {t.analysis}
             </div>
-            <p className="font-heading text-2xl font-semibold text-foreground">
+            <p className="font-display text-[1.75rem] leading-none font-bold text-foreground">
               {reportsCount > 0 ? t.reports(reportsCount) : t.notStarted}
             </p>
             <p className="text-xs text-muted-foreground">

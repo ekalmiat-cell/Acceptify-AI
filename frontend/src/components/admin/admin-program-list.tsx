@@ -124,7 +124,7 @@ export function AdminProgramList({
           <ChevronLeft className="size-3.5" />
           {t.all}
         </Link>
-        <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight">
+        <h1 className="mt-2 font-display text-[1.65rem] leading-tight font-bold tracking-tight">
           {t.programs(university.name)}
         </h1>
         <p className="text-sm text-muted-foreground">{t.intro}</p>

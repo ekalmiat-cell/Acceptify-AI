@@ -123,7 +123,7 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{t.platform}</SidebarGroupLabel>
+          <SidebarGroupLabel className="font-mono text-[10.5px] tracking-[0.16em] uppercase">{t.platform}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
@@ -136,6 +136,8 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={isActive}
+                      // The current page is the one filled in ink.
+                      className="data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground"
                       tooltip={t.nav[item.key]}
                       render={<Link href={item.href} />}
                     >
@@ -154,13 +156,13 @@ export function AppSidebar() {
         <div className="group-data-[collapsible=icon]:hidden">
           <Link
             href="/pricing"
-            className="bg-gradient-brand flex flex-col gap-1 rounded-xl p-3 text-white shadow-glow-brand transition-opacity hover:opacity-90"
+            className="flex flex-col gap-1 rounded-xl border bg-background p-3 transition-colors hover:border-foreground/25"
           >
-            <span className="flex items-center gap-1.5 text-xs font-semibold">
-              <Sparkles className="size-3.5" />
+            <span className="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] text-foreground uppercase">
+              <span className="size-1.5 rounded-full bg-[#e5484d]" />
               {t.beta}
             </span>
-            <span className="text-[0.7rem] text-white/80">{t.betaNote}</span>
+            <span className="text-[0.7rem] text-muted-foreground">{t.betaNote}</span>
           </Link>
         </div>
 
