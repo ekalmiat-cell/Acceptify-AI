@@ -1,20 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
 
 import { Container } from "@/components/shared/container";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { FadeIn } from "@/components/shared/fade-in";
 import { MatchBadge } from "@/components/shared/match-badge";
 import { Slider } from "@/components/ui/slider";
-import { Progress, ProgressTrack, ProgressIndicator } from "@/components/ui/progress";
 import { predictMatch } from "@/lib/predict";
 import type { AchievementCriterionKey } from "@/lib/criteria";
 import type { University } from "@/types/domain";
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { defineCopy } from "@/lib/i18n/core";
 import { useCopy } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
 
 const copy = defineCopy({
   en: {
@@ -25,6 +25,9 @@ const copy = defineCopy({
     sat: "SAT score",
     ielts: "IELTS band",
     note: "Scores update instantly using the same weighting as your full dashboard: academics, test scores, and achievement breadth.",
+    panel: "Your profile",
+    board: "Fit score",
+    hint: "drag me",
   },
   ru: {
     eyebrow: "Демо",
@@ -34,6 +37,9 @@ const copy = defineCopy({
     sat: "Балл SAT",
     ielts: "Балл IELTS",
     note: "Оценки пересчитываются сразу, с теми же весами, что и в кабинете: учёба, баллы тестов и широта достижений.",
+    panel: "Твой профиль",
+    board: "Балл соответствия",
+    hint: "подвигай",
   },
 });
 
@@ -79,8 +85,7 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
 
   return (
     <section id="ai-demo" className="relative bg-mk-bg py-24 sm:py-32">
-      <div className="bg-grid-glow pointer-events-none absolute inset-0 opacity-60" />
-      <Container className="relative max-w-7xl">
+      <Container className="relative max-w-6xl">
         <SectionHeading
           eyebrow={t.eyebrow}
           title={t.title}
@@ -90,7 +95,11 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
         />
 
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-          <FadeIn className="glass-panel flex flex-col gap-8 rounded-2xl p-8">
+          <FadeIn className="relative flex flex-col gap-7 rounded-2xl border border-mk-ink/10 bg-mk-deep p-7 sm:p-8">
+            <p className="font-mono text-[11px] tracking-[0.2em] text-mk-ink/50 uppercase">{t.panel}</p>
+            <span className="pointer-events-none absolute top-5 right-6 -rotate-6 font-hand text-2xl text-mk-accent" aria-hidden="true">
+              {t.hint} ↓
+            </span>
             <DemoSlider
               label="GPA"
               value={gpa}
@@ -119,41 +128,66 @@ export function AiDemoSection({ universities }: { universities: University[] }) 
               format={(v) => v.toFixed(1)}
             />
 
-            <div className="flex items-start gap-3 rounded-2xl bg-mk-ink/5 p-4 text-sm text-mk-ink/60">
-              <Sparkles className="mt-0.5 size-4 shrink-0 text-brand" />
-              {t.note}
-            </div>
+            <p className="border-t border-dashed border-mk-ink/15 pt-5 text-sm leading-relaxed text-mk-ink/55">{t.note}</p>
           </FadeIn>
 
-          <FadeIn delay={0.1} className="flex flex-col gap-3">
-            {results.map(({ university, score, category }) => (
-              <div
-                key={university.id}
-                className="hover-lift glass-panel flex items-center gap-4 rounded-2xl p-5"
-              >
-                <UniversityLogo university={university} className="size-11 rounded-xl text-xs" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="truncate text-sm font-medium text-mk-ink">
-                      {university.name}
-                    </p>
-                    <span className="shrink-0 font-heading text-lg font-semibold text-mk-ink">
-                      {score}%
-                    </span>
+          <FadeIn delay={0.1} className="flex flex-col rounded-2xl border border-mk-ink/10 bg-mk-surface">
+            <p className="border-b border-mk-ink/10 px-6 py-4 font-mono text-[11px] tracking-[0.2em] text-mk-ink/50 uppercase">
+              {t.board}
+            </p>
+            <ul className="flex flex-1 flex-col divide-y divide-mk-ink/10">
+              {results.map(({ university, score, category }) => (
+                <li key={university.id} className="flex flex-1 items-center gap-4 px-6 py-4">
+                  <UniversityLogo university={university} className="size-11 rounded-xl text-xs" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-mk-ink">{university.name}</p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <span className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-mk-ink/10">
+                        <span
+                          className="absolute inset-y-0 left-0 rounded-full bg-mk-ink transition-[width] duration-500 ease-out"
+                          style={{ width: `${score}%` }}
+                        />
+                      </span>
+                      <MatchBadge category={category} className="hidden shrink-0 sm:inline-flex" />
+                    </div>
                   </div>
-                  <Progress value={score} className="mt-2">
-                    <ProgressTrack className="bg-mk-ink/10">
-                      <ProgressIndicator className="bg-gradient-brand" />
-                    </ProgressTrack>
-                  </Progress>
-                </div>
-                <MatchBadge category={category} className="shrink-0" />
-              </div>
-            ))}
+                  <Odometer value={score} />
+                </li>
+              ))}
+            </ul>
           </FadeIn>
         </div>
       </Container>
     </section>
+  );
+}
+
+const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+/** A number on rolling drums, each digit sliding to its place like a car's odometer. */
+function Odometer({ value }: { value: number }) {
+  const reduceMotion = useReducedMotion();
+  const digits = String(Math.max(0, Math.min(100, Math.round(value)))).padStart(2, "0").split("");
+  return (
+    <span className="flex shrink-0 items-baseline font-display text-3xl font-bold text-mk-ink tabular-nums" aria-label={`${value}`}>
+      <span className="flex overflow-hidden rounded-md bg-mk-ink px-1 text-mk-bg" aria-hidden="true">
+        {digits.map((digit, i) => (
+          <span key={digits.length - i} className="relative h-[1.2em] w-[0.72em] overflow-hidden leading-[1.2em]">
+            <span
+              className={cn("absolute inset-x-0 top-0 flex flex-col text-center", !reduceMotion && "transition-transform duration-700 ease-[cubic-bezier(.2,.9,.3,1.15)]")}
+              style={{ transform: `translateY(-${Number(digit) * 10}%)` }}
+            >
+              {DIGITS.map((d) => (
+                <span key={d} className="h-[1.2em]">
+                  {d}
+                </span>
+              ))}
+            </span>
+          </span>
+        ))}
+      </span>
+      <span className="ml-1 text-base text-mk-ink/40">%</span>
+    </span>
   );
 }
 
@@ -176,9 +210,9 @@ function DemoSlider({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-mk-ink">{label}</span>
-        <span className="font-mono text-mk-ink/60">{format(value)}</span>
+      <div className="flex items-baseline justify-between">
+        <span className="font-mono text-xs tracking-[0.15em] text-mk-ink/60 uppercase">{label}</span>
+        <span className="font-display text-2xl font-bold text-mk-ink tabular-nums">{format(value)}</span>
       </div>
       <Slider
         value={[value]}

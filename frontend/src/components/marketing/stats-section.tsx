@@ -1,8 +1,6 @@
-import { Landmark, Globe2, SlidersHorizontal, GraduationCap } from "lucide-react";
-
 import { Container } from "@/components/shared/container";
-import { AnimatedCounter } from "@/components/shared/animated-counter";
-import { FadeIn, FadeInStagger, FadeInStaggerItem } from "@/components/shared/fade-in";
+import { FadeIn } from "@/components/shared/fade-in";
+import { StatsBoard } from "@/components/marketing/stats-board";
 import { buildPlatformStats } from "@/data/stats";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
@@ -12,8 +10,6 @@ const copy = defineCopy({
   en: { heading: "What the platform actually holds today" },
   ru: { heading: "Что на платформе есть уже сегодня" },
 });
-
-const icons = [Landmark, Globe2, SlidersHorizontal, GraduationCap];
 
 export async function StatsSection({ universities }: { universities: University[] }) {
   const locale = await getLocale();
@@ -26,34 +22,11 @@ export async function StatsSection({ universities }: { universities: University[
   const stats = buildPlatformStats(universities, locale);
 
   return (
-    <section className="relative border-y border-mk-ink/10 bg-mk-deep py-16 sm:py-20">
-      <Container className="max-w-7xl">
-        <FadeIn className="mb-10 flex flex-col items-center gap-2 text-center">
-          <p className="text-sm font-medium text-mk-ink/50">
-            {copy[locale].heading}
-          </p>
+    <section className="relative bg-mk-bg py-16 sm:py-24">
+      <Container className="max-w-6xl">
+        <FadeIn>
+          <StatsBoard title={copy[locale].heading} stats={stats} />
         </FadeIn>
-
-        <FadeInStagger className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {stats.map((stat, index) => {
-            const Icon = icons[index % icons.length];
-            return (
-              <FadeInStaggerItem key={stat.id}>
-                <div className="hover-lift glass-panel flex h-full flex-col gap-4 rounded-2xl p-6">
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-brand/15 text-brand">
-                    <Icon className="size-4.5" />
-                  </span>
-                  <div>
-                    <p className="font-heading text-3xl font-semibold text-mk-ink">
-                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                    </p>
-                    <p className="mt-1 text-sm text-mk-ink/45">{stat.label}</p>
-                  </div>
-                </div>
-              </FadeInStaggerItem>
-            );
-          })}
-        </FadeInStagger>
       </Container>
     </section>
   );

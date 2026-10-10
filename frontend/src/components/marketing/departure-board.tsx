@@ -85,7 +85,7 @@ function noise(char: string): string {
 }
 
 /** Text that flips through random letters before settling, like a split-flap board. */
-function Flap({ value, width, delay, className }: { value: string; width: number; delay: number; className?: string }) {
+export function Flap({ value, width, delay, className }: { value: string; width: number; delay: number; className?: string }) {
   const target = value.toUpperCase().slice(0, width).padEnd(width, " ");
   const [shown, setShown] = useState(target);
   const reduceMotion = useReducedMotion();

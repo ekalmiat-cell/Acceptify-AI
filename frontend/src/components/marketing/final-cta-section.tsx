@@ -1,14 +1,16 @@
-import Link from "next/link";
-import { ArrowRight, Info } from "lucide-react";
+import { Info } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
-import { Button } from "@/components/ui/button";
 import { FadeIn } from "@/components/shared/fade-in";
+import { EnvelopeLetter } from "@/components/marketing/envelope-letter";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
 
 const copy = defineCopy({
   en: {
+    hello: "Hi there!",
+    signature: "— Acceptify & BRO",
+    postmark: ["ALMATY", "2027"] as [string, string],
     title: "Know your chances. Build your path.",
     text: "Add your scores, pick a university, and see where you stand — and what to fix before you apply.",
     cta: "Check my chances",
@@ -16,6 +18,9 @@ const copy = defineCopy({
     disclaimer: "Acceptify provides an estimate based on your profile and available university data. It is not an admission guarantee.",
   },
   ru: {
+    hello: "Привет!",
+    signature: "— Acceptify и BRO",
+    postmark: ["АЛМАТЫ", "2027"] as [string, string],
     title: "Узнай свои шансы. Построй свой путь.",
     text: "Добавь баллы, выбери университет и посмотри, где ты сейчас — и что исправить до подачи.",
     cta: "Проверить шансы",
@@ -27,34 +32,17 @@ const copy = defineCopy({
 export async function FinalCtaSection() {
   const t = copy[await getLocale()];
   return (
-    <section className="relative overflow-hidden bg-mk-bg pb-24 sm:pb-32">
+    <section className="relative overflow-hidden bg-mk-bg py-24 sm:py-32">
       <Container className="max-w-6xl">
-        <FadeIn>
-          <div className="relative overflow-hidden rounded-2xl border border-mk-ink/10 bg-mk-surface px-8 py-16 text-center sm:px-16 sm:py-20">
-            <h2 className="relative mx-auto max-w-xl text-balance font-heading text-3xl font-semibold text-mk-ink sm:text-4xl">
-              {t.title}
-            </h2>
-            <p className="relative mx-auto mt-4 max-w-md text-balance text-mk-ink/60">{t.text}</p>
-            <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button
-                render={<Link href="/sign-up" />}
-                size="lg"
-                className="h-11 bg-gradient-brand px-6 text-white hover:opacity-90"
-              >
-                {t.cta}
-                <ArrowRight />
-              </Button>
-              <Button
-                render={<Link href="#universities" />}
-                size="lg"
-                variant="outline"
-                className="h-11 border-mk-ink/15 bg-transparent px-6 text-mk-ink hover:bg-mk-ink/10"
-              >
-                {t.explore}
-              </Button>
-            </div>
-          </div>
-        </FadeIn>
+        <EnvelopeLetter
+          hello={t.hello}
+          title={t.title}
+          text={t.text}
+          cta={t.cta}
+          explore={t.explore}
+          signature={t.signature}
+          postmark={t.postmark}
+        />
 
         {/*
           Stated once, plainly, on the page that makes the promise. The same

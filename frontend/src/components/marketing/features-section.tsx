@@ -1,8 +1,6 @@
-import { Gauge, ListChecks, Route } from "lucide-react";
-
 import { Container } from "@/components/shared/container";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { FadeInStagger, FadeInStaggerItem } from "@/components/shared/fade-in";
+import { AnswerSheets } from "@/components/marketing/answer-sheets";
 import { achievementCatalog } from "@/data/achievement-catalog";
 import { ACADEMIC_CRITERIA } from "@/lib/criteria";
 import { defineCopy } from "@/lib/i18n/core";
@@ -11,15 +9,26 @@ import { getLocale } from "@/lib/i18n/server";
 /**
  * The three questions the product exists to answer, in the order a student
  * asks them. Supporting bullets are deliberately concrete and countable —
- * every figure here comes from the real catalogs, not from marketing.
+ * every figure here comes from the real catalogs, not from marketing. The
+ * samples on top of each sheet are labelled as examples.
  */
-const ICONS = [Gauge, ListChecks, Route];
 
 const copy = defineCopy({
   en: {
     eyebrow: "What you get",
     title: "Three answers, not one number",
     description: "A percentage on its own changes nothing. Acceptify shows where you stand, why, and what moves the needle next.",
+    examples: {
+      example: "example",
+      score: { programme: "NU · Computer Science", category: "Target" },
+      breakdown: {
+        rows: [["Academics", 84], ["Activities", 61], ["Leadership", 38], ["Achievements", 70]] as [string, number][],
+        weakest: "holds you back",
+      },
+      plan: {
+        items: [["Sit the SAT", true], ["Essay hook", true], ["Leadership: start a club", false]] as [string, boolean][],
+      },
+    },
     features: [
       {
         eyebrow: "Where do I stand?",
@@ -60,6 +69,17 @@ const copy = defineCopy({
     eyebrow: "Что ты получишь",
     title: "Три ответа, а не одна цифра",
     description: "Процент сам по себе ничего не меняет. Acceptify показывает, где ты сейчас, почему и что сдвинет результат дальше.",
+    examples: {
+      example: "пример",
+      score: { programme: "NU · Computer Science", category: "Целевой" },
+      breakdown: {
+        rows: [["Учёба", 84], ["Активности", 61], ["Лидерство", 38], ["Достижения", 70]] as [string, number][],
+        weakest: "тянет вниз",
+      },
+      plan: {
+        items: [["Сдать SAT", true], ["Хук для эссе", true], ["Лидерство: свой клуб", false]] as [string, boolean][],
+      },
+    },
     features: [
       {
         eyebrow: "Где я сейчас?",
@@ -100,7 +120,6 @@ const copy = defineCopy({
 
 export async function FeaturesSection() {
   const t = copy[await getLocale()];
-  const features = t.features.map((feature, index) => ({ ...feature, icon: ICONS[index] }));
   return (
     <section id="features" className="relative scroll-mt-16 border-y border-mk-ink/5 bg-mk-deep py-24 sm:py-32">
       <Container className="max-w-7xl">
@@ -112,37 +131,7 @@ export async function FeaturesSection() {
           dark
         />
 
-        <FadeInStagger className="grid grid-cols-1 gap-5 lg:grid-cols-3" staggerDelay={0.2}>
-          {features.map((feature) => (
-            <FadeInStaggerItem key={feature.title} className="h-full">
-              <div className="hover-lift glass-panel group flex h-full flex-col rounded-2xl p-7">
-                <span className="inline-flex size-12 items-center justify-center rounded-xl bg-gradient-brand text-white shadow-glow-brand transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
-                  <feature.icon className="size-5" />
-                </span>
-                <p className="mt-5 text-xs font-semibold tracking-wide text-mk-accent uppercase">
-                  {feature.eyebrow}
-                </p>
-                <h3 className="mt-1.5 font-heading text-xl font-semibold text-mk-ink">
-                  {feature.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed font-medium text-mk-ink/60">
-                  {feature.description}
-                </p>
-                <ul className="mt-5 flex flex-col gap-2.5 border-t border-mk-ink/10 pt-5">
-                  {feature.points.map((point) => (
-                    <li
-                      key={point}
-                      className="flex gap-2.5 text-sm leading-relaxed text-mk-ink/70"
-                    >
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#4a8bff]" />
-                      {point}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </FadeInStaggerItem>
-          ))}
-        </FadeInStagger>
+        <AnswerSheets sheets={t.features} examples={t.examples} />
       </Container>
     </section>
   );
