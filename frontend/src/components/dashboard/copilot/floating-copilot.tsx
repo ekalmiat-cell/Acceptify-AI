@@ -35,6 +35,9 @@ const INTRO_KEY = "acceptify-ars-intro";
 const STALE_VOICE_LANG_KEY = "acceptify-ars-voice-lang";
 const STYLE_KEY = "acceptify-bro-style";
 
+/** Kazakh shows as KZ, the code students know from the country. */
+const VOICE_LANG_LABEL: Record<VoiceLang, string> = { ru: "RU", kk: "KZ", en: "EN" };
+
 /** Signing out ends the session, so the next sign-in gets the entrance again. */
 export function forgetArsIntro() {
   try {
@@ -637,7 +640,7 @@ export function FloatingCopilot() {
                         title={t.speechLang}
                         className="flex rounded-full border border-border bg-background p-0.5 text-[11px] font-semibold"
                       >
-                        {(["ru", "en"] as const).map((lang) => (
+                        {(["ru", "kk", "en"] as const).map((lang) => (
                           <button
                             key={lang}
                             type="button"
@@ -649,7 +652,7 @@ export function FloatingCopilot() {
                               voiceLang === lang ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
                             )}
                           >
-                            {lang}
+                            {VOICE_LANG_LABEL[lang]}
                           </button>
                         ))}
                       </div>

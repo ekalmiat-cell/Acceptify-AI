@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { CopilotStyle } from "@/types/copilot";
+import type { CopilotLang, CopilotStyle } from "@/types/copilot";
 
 /**
  * Talking to the mentor: the browser's Web Speech API turns the student's
@@ -14,7 +14,7 @@ import type { CopilotStyle } from "@/types/copilot";
  * recognizer).
  */
 
-export type VoiceLang = "ru" | "en";
+export type VoiceLang = CopilotLang;
 export type ListenError = "unsupported" | "denied" | "no-speech" | "failed";
 /** "unavailable": nothing was played because the voice could not be had. */
 export type SpeakResult = "done" | "stopped" | "unavailable";
@@ -26,7 +26,7 @@ export interface SpokenWord {
   ms: number;
 }
 
-const LANG_TAG: Record<VoiceLang, string> = { ru: "ru-RU", en: "en-US" };
+const LANG_TAG: Record<VoiceLang, string> = { ru: "ru-RU", en: "en-US", kk: "kk-KZ" };
 
 interface RecognitionResultLike {
   isFinal: boolean;

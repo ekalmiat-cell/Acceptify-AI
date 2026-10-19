@@ -5,18 +5,20 @@ import type {
   ChatMessage,
   CopilotAllowance,
   CopilotChatResponse,
+  CopilotLang,
   CopilotMode,
   CopilotStyle,
 } from "@/types/copilot";
 
-const CHAT_TIMEOUT_MS = 100_000;
+/** The server gives up on Gemini after 40 s at most; this leaves room for the round trip. */
+const CHAT_TIMEOUT_MS = 60_000;
 
 /** Sends the conversation so far to the admissions copilot and returns its reply. */
 export async function sendCopilotMessage(
   messages: ChatMessage[],
   includeContext: boolean = true,
   mode: CopilotMode = "text",
-  lang?: "ru" | "en",
+  lang?: CopilotLang,
   style: CopilotStyle = "friendly",
 ): Promise<CopilotChatResponse> {
   return apiFetch<CopilotChatResponse>("/api/v1/copilot/chat", {

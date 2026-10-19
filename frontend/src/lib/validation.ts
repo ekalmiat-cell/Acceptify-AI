@@ -131,8 +131,8 @@ export const copilotChatSchema = z.object({
   include_context: z.boolean().default(true),
   /** "voice": the student is talking to Ars; the reply is read aloud. */
   mode: z.enum(["text", "voice"]).default("text"),
-  /** The language the student speaks (voice) or the interface language (text). */
-  lang: z.enum(["ru", "en"]).optional(),
+  /** The language the student speaks (voice, Kazakh included) or the interface language (text). */
+  lang: z.enum(["ru", "en", "kk"]).optional(),
   /** Voice only: "strict" is the blunt, no-excuses bro; "uncensored" adds real swearing (18+, self-confirmed). */
   style: z.enum(["friendly", "strict", "uncensored"]).default("friendly"),
 });

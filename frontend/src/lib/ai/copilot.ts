@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@/lib/ai/gemini";
 import { HttpError } from "@/lib/http-error";
-import type { ChatMessage, CopilotChatResponse, CopilotStyle } from "@/types/copilot";
+import type { ChatMessage, CopilotChatResponse, CopilotLang, CopilotStyle } from "@/types/copilot";
 
 const SYSTEM_PROMPT = `You are the student's personal admissions bro: an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform. Talk like a friendly older friend who has been through admissions, never like a formal office. Your name is BRO (written in capitals, said "Бро" in Russian); if asked your name, say you are BRO.
 Never claim special training, datasets of applicant profiles, or abilities you do not have.
@@ -145,18 +145,19 @@ export function toGeminiHistory(messages: ChatMessage[]): GeminiMessage[] {
   return history;
 }
 
-const LANGUAGE_NAME = { ru: "Russian", en: "English" } as const;
+const LANGUAGE_NAME: Record<CopilotLang, string> = { ru: "Russian", en: "English", kk: "Kazakh" };
 
 /**
  * The reply language, stated outright. Left to itself the model (the light
  * one especially) drifts into English under an English system prompt even
  * when the student asked in Russian.
  */
-export function languageRule(mode: "text" | "voice", lang: "ru" | "en" | undefined): string {
+export function languageRule(mode: "text" | "voice", lang: CopilotLang | undefined): string {
   if (!lang) return "";
   const name = LANGUAGE_NAME[lang];
+  const kazakh = lang === "kk" ? " Write Kazakh in Cyrillic, in plain everyday Kazakh the way young people speak it." : "";
   return mode === "voice"
-    ? `### Reply Language:\nThe student is speaking ${name}. Reply in ${name}, including suggested_followups.`
+    ? `### Reply Language:\nThe student is speaking ${name}. Reply in ${name}, including suggested_followups.${kazakh}`
     : `### Reply Language:\nReply in the language of the student's latest message. If it is unclear or mixed, reply in ${name} (the student's interface language). suggested_followups are in the same language as the reply.`;
 }
 
@@ -164,7 +165,7 @@ export async function runCopilotChat(
   messages: ChatMessage[],
   studentContext: string | null,
   mode: "text" | "voice" = "text",
-  lang?: "ru" | "en",
+  lang?: CopilotLang,
   style: CopilotStyle = "friendly",
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {

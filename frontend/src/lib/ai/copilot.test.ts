@@ -41,6 +41,13 @@ describe("languageRule", () => {
     expect(languageRule("voice", "ru")).toContain("Reply in Russian");
   });
 
+  it("answers Kazakh in Kazakh, written in Cyrillic", () => {
+    const rule = languageRule("voice", "kk");
+    expect(rule).toContain("Reply in Kazakh");
+    expect(rule).toContain("Cyrillic");
+    expect(languageRule("voice", "ru")).not.toContain("Cyrillic");
+  });
+
   it("lets a typed reply follow the message, falling back to the interface language", () => {
     const rule = languageRule("text", "ru");
     expect(rule).toContain("latest message");

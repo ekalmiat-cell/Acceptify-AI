@@ -1,3 +1,6 @@
+/** Russian, English or Kazakh: what the student speaks to BRO (voice) or the interface language (text). */
+export type CopilotLang = "ru" | "en" | "kk";
+
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
@@ -10,7 +13,7 @@ export interface CopilotChatRequest {
   messages: ChatMessage[];
   include_context?: boolean;
   mode?: CopilotMode;
-  lang?: "ru" | "en";
+  lang?: CopilotLang;
   style?: CopilotStyle;
 }
 
