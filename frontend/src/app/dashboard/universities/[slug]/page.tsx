@@ -316,15 +316,19 @@ export default async function UniversityDetailPage({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t.website}</span>
-                <a
-                  href={university.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 font-medium text-brand hover:underline"
-                >
-                  <Globe className="size-3.5" />
-                  {t.visit}
-                </a>
+                {university.website ? (
+                  <a
+                    href={university.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 font-medium text-brand hover:underline"
+                  >
+                    <Globe className="size-3.5" />
+                    {t.visit}
+                  </a>
+                ) : (
+                  <span className="font-medium">{t.noData}</span>
+                )}
               </div>
             </CardContent>
           </Card>

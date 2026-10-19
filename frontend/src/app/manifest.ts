@@ -15,7 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: siteConfig.name,
     short_name: siteConfig.shortName,
-    description: "Шансы на поступление в 826 университетов, эссе и подготовка — в одном приложении.",
+    description: "Шансы на поступление в 1010 университетов, эссе и подготовка — в одном приложении.",
     lang: "ru",
     start_url: "/dashboard",
     scope: "/",

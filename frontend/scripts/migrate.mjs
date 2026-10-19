@@ -78,11 +78,13 @@ async function applyMigrations(client) {
 
 /**
  * Where the catalog is seeded from: the hand-curated snapshot, then the US
- * universities built from the College Scorecard (scripts/import-scorecard.mjs).
+ * universities built from the College Scorecard (scripts/import-scorecard.mjs) and
+ * the French ones from Parcoursup (scripts/import-parcoursup.mjs).
  */
 const CATALOG_SEEDS = [
   path.join("src", "data", "universities.json"),
   path.join("db", "seed", "us-scorecard.json"),
+  path.join("db", "seed", "fr-parcoursup.json"),
 ];
 
 /**

@@ -13,6 +13,8 @@ const TAGS_RU: Record<string, string> = {
   Entrepreneurship: "Предпринимательство",
   Public: "Государственный",
   Private: "Частный",
+  Engineering: "Инженерная школа",
+  Parcoursup: "Parcoursup",
   "Large campus": "Большой кампус",
   "Co-op friendly": "Практика в компаниях",
   Collegiate: "Колледжная система",
@@ -109,6 +111,14 @@ const TEMPLATE = /^(.+) is a leading research university in (.+), recognized for
 /** The sentence scripts/import-scorecard.mjs writes for US universities from the College Scorecard. */
 const SCORECARD_TEMPLATE =
   /^(.+) is a (public|private nonprofit) university in (.+), with about ([\d,]+) undergraduates; (\d+)% of students graduate within six years\.$/;
+/** The sentence scripts/import-parcoursup.mjs writes for French institutions. */
+const PARCOURSUP_TEMPLATE =
+  /^(.+) is a (public|private) (university|engineering school|business school) in (.+), France; in Parcoursup 2025 it offered ([\d,]+) first-year places and ([\d.]+)% of its ([\d,]+) applications received an offer\.$/;
+const PARCOURSUP_KIND_RU: Record<string, [string, string]> = {
+  university: ["государственный университет", "частный университет"],
+  "engineering school": ["государственная инженерная школа", "частная инженерная школа"],
+  "business school": ["государственная бизнес-школа", "частная бизнес-школа"],
+};
 
 export function universityDescription(
   university: { id: string; description: string },
@@ -121,6 +131,13 @@ export function universityDescription(
     const [, name, control, place, students, graduate] = scorecard;
     const kind = control === "public" ? "государственный" : "частный некоммерческий";
     return `${name} — ${kind} университет (${place}): около ${students.replace(/,/g, " ")} студентов бакалавриата, за шесть лет выпускаются ${graduate}%.`;
+  }
+  const parcoursup = PARCOURSUP_TEMPLATE.exec(university.description);
+  if (parcoursup) {
+    const [, name, sector, kind, city, places, rate, applications] = parcoursup;
+    const what = PARCOURSUP_KIND_RU[kind][sector === "public" ? 0 : 1];
+    const n = (value: string) => value.replace(/,/g, " ");
+    return `${name} — ${what} (${city}, Франция). В Parcoursup 2025 — ${n(places)} мест на первый курс; предложение получили ${rate}% из ${n(applications)} заявок.`;
   }
   const match = TEMPLATE.exec(university.description);
   if (!match) return university.description;
@@ -155,6 +172,7 @@ const REQUIREMENT_LABELS_RU: Record<string, string> = {
   "EJU or equivalent exam": "EJU или аналогичный экзамен",
   "CSAT or international equivalent": "CSAT или международный аналог",
   "SAT/ACT of admitted students (middle 50%)": "SAT/ACT поступивших (средние 50%)",
+  "How to apply": "Как подать заявку",
 };
 
 const REQUIREMENT_VALUES_RU: Record<string, string> = {
@@ -214,6 +232,8 @@ const REQUIREMENT_VALUES_RU: Record<string, string> = {
   "Common for English-taught programs": "Часто на англоязычных программах",
   "Common for competitive programs": "Часто на конкурсных программах",
   "Not reported (often test-optional)": "Не указано (часто тесты по желанию)",
+  "Parcoursup; students from outside the EU apply through Études en France (Campus France)":
+    "Через Parcoursup; студенты не из ЕС подают через Études en France (Campus France)",
 };
 
 export function requirementText(requirement: { label: string; value: string }, locale: Locale) {

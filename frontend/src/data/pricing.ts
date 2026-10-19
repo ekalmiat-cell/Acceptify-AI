@@ -18,7 +18,7 @@ export const pricingTiers: Record<Locale, PricingTier[]> = {
       features: [
         "Unlimited admission analyses",
         "Safe / Target / Reach classification",
-        "Catalog of 826 universities in 12 countries",
+        "Catalog of 1,010 universities in 13 countries",
         "What-if simulator & PDF reports",
         "AI essay reviews (2 a day)",
         "Essay training with instant checks",
@@ -75,7 +75,7 @@ export const pricingTiers: Record<Locale, PricingTier[]> = {
       features: [
         "Анализ поступления без ограничений",
         "Категории: надёжный, целевой, амбициозный",
-        "Каталог из 826 университетов в 12 странах",
+        "Каталог из 1010 университетов в 13 странах",
         "Симулятор «что если» и PDF-отчёты",
         "Разборы эссе с ИИ (2 в день)",
         "Тренировка эссе с мгновенной проверкой",
