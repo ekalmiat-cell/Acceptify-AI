@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -23,45 +23,12 @@ import { useLocale } from "@/lib/i18n/client";
 import { UNITS } from "@/lib/training/drills";
 import { cn } from "@/lib/utils";
 import type { University } from "@/types/domain";
-import type {
-  EssayReviewRead,
-  EssayReviewV2,
-  LineFeedback,
-  LineFeedbackType,
-  ParagraphRole,
-} from "@/types/essay";
+import type { EssayReviewRead, EssayReviewV2 } from "@/types/essay";
 
-const TYPE_STYLE: Record<LineFeedbackType, { mark: string; dot: string }> = {
-  cliche: { mark: "bg-amber-400/20 shadow-[inset_0_-2px_0_0_rgb(251_191_36)]", dot: "bg-amber-400" },
-  vague: { mark: "bg-sky-400/15 shadow-[inset_0_-2px_0_0_rgb(56_189_248)]", dot: "bg-sky-400" },
-  telling: { mark: "bg-violet-400/15 shadow-[inset_0_-2px_0_0_rgb(167_139_250)]", dot: "bg-violet-400" },
-  passive: { mark: "bg-rose-400/15 shadow-[inset_0_-2px_0_0_rgb(251_113_133)]", dot: "bg-rose-400" },
-  wordy: { mark: "bg-slate-400/15 shadow-[inset_0_-2px_0_0_rgb(148_163_184)]", dot: "bg-slate-400" },
-  grammar: { mark: "bg-red-500/15 shadow-[inset_0_-2px_0_0_rgb(239_68_68)]", dot: "bg-red-500" },
-  strong: { mark: "bg-emerald-400/15 shadow-[inset_0_-2px_0_0_rgb(52_211_153)]", dot: "bg-emerald-400" },
-};
+import { RedPenEssay } from "./red-pen-essay";
 
 const copy = defineCopy({
   en: {
-    types: {
-      cliche: "Overused",
-      vague: "Vague",
-      telling: "Telling, not showing",
-      passive: "Passive",
-      wordy: "Wordy",
-      grammar: "Grammar",
-      strong: "Keep this",
-    } as Record<LineFeedbackType, string>,
-    roles: {
-      hook: "Hook",
-      context: "Context",
-      story: "Story",
-      turning_point: "Turning point",
-      reflection: "Reflection",
-      conclusion: "Conclusion",
-      other: "Other",
-    } as Record<ParagraphRole, string>,
-    strength: { strong: "strong", adequate: "adequate", weak: "weak" },
     howRead: "How a reader read it: ",
     heldAt: (max: number) => `Held at ${max}:`,
     without: (score: number) => `Without this, the criteria alone would give ${score}.`,
@@ -81,8 +48,6 @@ const copy = defineCopy({
     better: "Better than last draft",
     noImprovement: "No clear improvement yet.",
     stillToFix: "Still to fix",
-    sentenceBySentence: "Sentence by sentence",
-    forExample: "For example: ",
     copied: "Feedback copied",
     copyFailed: "Couldn't copy. Select the text and copy it instead.",
     copyFeedback: "Copy feedback",
@@ -92,25 +57,6 @@ const copy = defineCopy({
     copyComments: "Comments:",
   },
   ru: {
-    types: {
-      cliche: "Заезженно",
-      vague: "Размыто",
-      telling: "Рассказ вместо показа",
-      passive: "Пассив",
-      wordy: "Многословно",
-      grammar: "Грамматика",
-      strong: "Оставь так",
-    },
-    roles: {
-      hook: "Начало",
-      context: "Контекст",
-      story: "История",
-      turning_point: "Поворот",
-      reflection: "Рефлексия",
-      conclusion: "Концовка",
-      other: "Другое",
-    },
-    strength: { strong: "сильно", adequate: "нормально", weak: "слабо" },
     howRead: "Как это прочитал читатель: ",
     heldAt: (max: number) => `Потолок оценки — ${max}:`,
     without: (score: number) => `Без этого ограничения критерии дали бы ${score}.`,
@@ -130,8 +76,6 @@ const copy = defineCopy({
     better: "Лучше, чем в прошлом черновике",
     noImprovement: "Явных улучшений пока нет.",
     stillToFix: "Что ещё исправить",
-    sentenceBySentence: "По предложениям",
-    forExample: "Например: ",
     copied: "Отзыв скопирован",
     copyFailed: "Не удалось скопировать. Выдели текст и скопируй вручную.",
     copyFeedback: "Скопировать отзыв",
@@ -279,7 +223,7 @@ export function EssayReviewResults({
         </div>
       </section>
 
-      <AnnotatedEssay t={t} text={review.essay_text} result={result} />
+      <RedPenEssay text={review.essay_text} result={result} />
 
       <div className="grid gap-5 lg:grid-cols-2">
         {result.strengths.length ? (
@@ -428,135 +372,6 @@ function RevisionCard({ t, revision }: { t: Copy; revision: NonNullable<EssayRev
       </div>
     </section>
   );
-}
-
-interface Placed {
-  item: LineFeedback;
-  number: number;
-  start: number;
-  end: number;
-}
-
-/** The essay with every commented quote marked and numbered. */
-function AnnotatedEssay({ t, text, result }: { t: Copy; text: string; result: EssayReviewV2 }) {
-  const [active, setActive] = useState<number | null>(null);
-  const markRefs = useRef(new Map<number, HTMLElement>());
-
-  const placed = useMemo(() => placeFeedback(text, result.line_feedback), [text, result.line_feedback]);
-  const unplaced = result.line_feedback.filter((item) => !placed.some((p) => p.item === item));
-
-  const focus = (number: number) => {
-    setActive(number);
-    markRefs.current.get(number)?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
-  const body: React.ReactNode[] = [];
-  let cursor = 0;
-  for (const p of [...placed].sort((a, b) => a.start - b.start)) {
-    if (p.start > cursor) body.push(text.slice(cursor, p.start));
-    body.push(
-      <mark
-        key={p.number}
-        ref={(el) => {
-          if (el) markRefs.current.set(p.number, el);
-        }}
-        onClick={() => setActive(p.number)}
-        className={cn(
-          "cursor-pointer rounded-[3px] text-inherit transition-all",
-          TYPE_STYLE[p.item.type].mark,
-          active === p.number && "ring-2 ring-brand",
-        )}
-      >
-        {text.slice(p.start, p.end)}
-        <sup className="ml-0.5 font-sans text-[10px] font-bold text-brand">{p.number}</sup>
-      </mark>,
-    );
-    cursor = p.end;
-  }
-  body.push(text.slice(cursor));
-
-  return (
-    <section className="rounded-2xl border bg-card">
-      <div className="border-b p-5 sm:px-6">
-        <h3 className="font-heading text-lg font-semibold">{t.sentenceBySentence}</h3>
-        {result.paragraph_map.length ? (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {result.paragraph_map.map((p) => (
-              <span
-                key={p.paragraph}
-                title={p.note}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
-                  p.strength === "strong" && "border-emerald-400/40 text-emerald-400",
-                  p.strength === "weak" && "border-rose-400/40 text-rose-400",
-                )}
-              >
-                <span className="font-mono text-muted-foreground">¶{p.paragraph}</span>
-                <span className="font-semibold">{t.roles[p.role]}</span>
-                <span className="opacity-70">· {t.strength[p.strength]}</span>
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </div>
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div lang="en" className="p-5 font-serif text-[17px] leading-[1.9] whitespace-pre-wrap sm:px-6">
-          {body}
-        </div>
-        <ol className="flex max-h-[720px] flex-col gap-2 overflow-y-auto border-t p-4 lg:sticky lg:top-20 lg:border-t-0 lg:border-l">
-          {[...placed.map((p) => ({ item: p.item, number: p.number })), ...unplaced.map((item) => ({ item, number: null }))].map(
-            ({ item, number }) => (
-              <li key={`${number}-${item.quote}`}>
-                <button
-                  type="button"
-                  onClick={() => number !== null && focus(number)}
-                  className={cn(
-                    "w-full rounded-xl border p-3 text-left transition-colors hover:border-brand/40",
-                    active === number && number !== null && "border-brand/60 bg-brand/5",
-                  )}
-                >
-                  <div className="flex items-center gap-2 text-xs font-semibold">
-                    {number !== null ? (
-                      <span className="flex size-5 items-center justify-center rounded-full bg-brand/15 text-brand">{number}</span>
-                    ) : null}
-                    <span className={cn("size-2 rounded-full", TYPE_STYLE[item.type].dot)} />
-                    {t.types[item.type]}
-                  </div>
-                  <p lang="en" className="mt-1.5 line-clamp-2 font-serif text-[13px] text-muted-foreground italic">
-                    “{item.quote}”
-                  </p>
-                  <p className="mt-1.5 text-sm">{item.comment}</p>
-                  {item.suggestion ? <p className="mt-1 text-sm text-muted-foreground">{item.suggestion}</p> : null}
-                  {item.example ? (
-                    <p className="mt-2 rounded-lg bg-muted/50 px-2.5 py-1.5 text-[13px]">
-                      <span className="font-semibold text-brand">{t.forExample}</span>
-                      <span lang="en">{item.example}</span>
-                    </p>
-                  ) : null}
-                </button>
-              </li>
-            ),
-          )}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
-/** Finds each quote in the essay, skipping any that overlap an earlier one. */
-function placeFeedback(text: string, items: LineFeedback[]): Placed[] {
-  const lower = text.toLowerCase();
-  const placed: Placed[] = [];
-  let number = 1;
-  for (const item of items) {
-    let start = text.indexOf(item.quote);
-    if (start === -1) start = lower.indexOf(item.quote.toLowerCase());
-    if (start === -1) continue;
-    const end = start + item.quote.length;
-    if (placed.some((p) => start < p.end && end > p.start)) continue;
-    placed.push({ item, number: number++, start, end });
-  }
-  return placed;
 }
 
 function ChipList({ title, items, tone }: { title: string; items: string[]; tone: "good" | "gap" }) {
