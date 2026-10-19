@@ -13,17 +13,17 @@ import { getLocale } from "@/lib/i18n/server";
 const copy = defineCopy({
   en: {
     meta: "Pricing",
-    metaDescription: "Acceptify is free during beta. See what is available now and what is planned.",
+    metaDescription: "Start free. Plus and Pro are on a launch discount, paid in tenge with Kaspi.",
     eyebrow: "Pricing",
     title: "Simple plans that scale with your application",
-    description: "Acceptify is free while in beta. Paid plans with hands-on guidance are on the way.",
+    description: "Start free. Plus and Pro are on a launch discount — pay in tenge with a Kaspi transfer.",
   },
   ru: {
     meta: "Тарифы",
-    metaDescription: "Acceptify бесплатный, пока идёт бета. Смотри, что доступно сейчас и что в планах.",
+    metaDescription: "Начни бесплатно. Plus и Pro со скидкой на старте, оплата в тенге через Kaspi.",
     eyebrow: "Тарифы",
     title: "Простые тарифы, которые растут вместе с твоей заявкой",
-    description: "Пока идёт бета, Acceptify бесплатный. Платные тарифы с личным сопровождением уже в работе.",
+    description: "Начни бесплатно. Plus и Pro — со скидкой на старте, оплата в тенге переводом на Kaspi.",
   },
 });
 

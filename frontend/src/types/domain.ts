@@ -184,7 +184,10 @@ export interface ResolvedAchievement extends AchievementCatalogItem {
 export interface PricingTier {
   id: string;
   name: string;
+  /** In tenge. */
   price: number;
+  /** The regular price while a discount is on, in tenge. */
+  oldPrice?: number;
   billingPeriod: "month" | "one-time";
   description: string;
   features: string[];
