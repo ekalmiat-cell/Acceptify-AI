@@ -273,6 +273,12 @@ export async function generateJson(options: {
    */
   preferLite?: boolean;
   relaxedSafety?: boolean;
+  /**
+   * Overrides of the overall time budget and of each model call's timeout,
+   * for conversations, where a late answer is no answer.
+   */
+  budgetMs?: number;
+  attemptTimeoutMs?: number;
 }): Promise<unknown> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new HttpError(503, NOT_CONFIGURED_MESSAGE);
@@ -300,7 +306,8 @@ export async function generateJson(options: {
         : {}),
     });
 
-  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  const deadline = Date.now() + (options.budgetMs ?? TOTAL_BUDGET_MS);
+  const attemptTimeout = options.attemptTimeoutMs ?? REQUEST_TIMEOUT_MS;
   let models = options.preferLite ? liteFirst(modelsWithQuota()) : modelsWithQuota();
   let dailyQuotaHits = 0;
   let lastFailure: GeminiError | null = null;
@@ -325,7 +332,7 @@ export async function generateJson(options: {
     for (const model of models) {
       const remaining = deadline - Date.now();
       if (remaining < MIN_ATTEMPT_MS) break;
-      const timeout = Math.min(REQUEST_TIMEOUT_MS, remaining);
+      const timeout = Math.min(attemptTimeout, remaining);
 
       const useSchema = withSchema.get(model) ?? true;
       let result = await callModel(model, apiKey, buildBody(useSchema), timeout);

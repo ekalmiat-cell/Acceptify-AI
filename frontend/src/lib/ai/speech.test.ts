@@ -25,14 +25,17 @@ function quotaError(retry = "40s"): Response {
 }
 
 let models: string[] = [];
+let prompts: string[] = [];
 
 function fakeGemini(replies: Record<string, (() => Response)[]>) {
   models = [];
+  prompts = [];
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) => {
+    vi.fn(async (url: string, init?: RequestInit) => {
       const model = url.split("/models/")[1].split(":")[0];
       models.push(model);
+      prompts.push(JSON.parse(String(init?.body ?? "{}")).contents?.[0]?.parts?.[0]?.text);
       return replies[model]?.shift()?.() ?? new Response("{}", { status: 404 });
     }),
   );
@@ -85,15 +88,22 @@ describe("streamSpeech", () => {
   it("passes a normal-length reply through whole", async () => {
     const { streamSpeech } = await loadSpeech();
     fakeGemini({ "gemini-3.8-flash-lite-tts": [() => sse(4.4)] });
-    expect(await seconds(await streamSpeech(TEXT, "friendly"))).toBeCloseTo(4.4, 1);
+    expect(await seconds(await streamSpeech(TEXT))).toBeCloseTo(4.4, 1);
     expect(models).toEqual(["gemini-3.8-flash-lite-tts"]);
+  });
+
+  it("sends the reply alone, with nothing in front the model could read aloud", async () => {
+    const { streamSpeech } = await loadSpeech();
+    fakeGemini({ "gemini-3.8-flash-lite-tts": [() => sse(4.4)] });
+    await seconds(await streamSpeech(TEXT));
+    expect(prompts).toEqual([TEXT]);
   });
 
   it("cuts the babble a model adds after the last word", async () => {
     const { streamSpeech } = await loadSpeech();
     fakeGemini({ "gemini-3.8-flash-lite-tts": [() => sse(13.4)] });
     // 1.5 s + 67 characters at 11 per second.
-    expect(await seconds(await streamSpeech(TEXT, "uncensored"))).toBeCloseTo(1.5 + 67 / 11, 1);
+    expect(await seconds(await streamSpeech(TEXT))).toBeCloseTo(1.5 + 67 / 11, 1);
   });
 
   it("falls back to the next model when one is out of quota, and skips it afterwards", async () => {
@@ -102,8 +112,8 @@ describe("streamSpeech", () => {
       "gemini-3.8-flash-lite-tts": [quotaError],
       "gemini-3.8-flash-tts": [() => sse(4), () => sse(4)],
     });
-    await seconds(await streamSpeech(TEXT, "friendly"));
-    await seconds(await streamSpeech(TEXT, "friendly"));
+    await seconds(await streamSpeech(TEXT));
+    await seconds(await streamSpeech(TEXT));
     expect(models).toEqual(["gemini-3.8-flash-lite-tts", "gemini-3.8-flash-tts", "gemini-3.8-flash-tts"]);
   });
 
@@ -113,21 +123,21 @@ describe("streamSpeech", () => {
       "gemini-3.8-flash-lite-tts": [() => sse(4, "audio/l16; rate=16000")],
       "gemini-3.8-flash-tts": [() => sse(4)],
     });
-    expect(await seconds(await streamSpeech(TEXT, "friendly"))).toBeCloseTo(4, 1);
+    expect(await seconds(await streamSpeech(TEXT))).toBeCloseTo(4, 1);
     expect(models).toEqual(["gemini-3.8-flash-lite-tts", "gemini-3.8-flash-tts"]);
   });
 
   it("says the voice is busy when no model can speak", async () => {
     const { streamSpeech } = await loadSpeech();
     fakeGemini({});
-    await expect(streamSpeech(TEXT, "friendly")).rejects.toMatchObject({ status: 503 });
+    await expect(streamSpeech(TEXT)).rejects.toMatchObject({ status: 503 });
   });
 
   it("reports the voice as down once every model is out of quota, so no turn is spent on it", async () => {
     const { streamSpeech, speechAvailable, SPEECH_MODELS } = await loadSpeech();
     expect(speechAvailable()).toBe(true);
     fakeGemini(Object.fromEntries(SPEECH_MODELS.map((model) => [model, [() => quotaError("30677s")]])));
-    await expect(streamSpeech(TEXT, "friendly")).rejects.toMatchObject({ status: 503 });
+    await expect(streamSpeech(TEXT)).rejects.toMatchObject({ status: 503 });
     expect(speechAvailable()).toBe(false);
   });
 });

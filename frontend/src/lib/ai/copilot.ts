@@ -209,6 +209,11 @@ export async function runCopilotChat(
     // the price, which leaves the paid budget for essay reviews.
     preferLite: true,
     relaxedSafety: uncensored,
+    // A mentor who thinks for a minute has lost the conversation. A healthy
+    // Flash-Lite answer takes about a second; past this, Google is
+    // overloaded and the student is better told so straight away.
+    budgetMs: voice ? 25_000 : 40_000,
+    attemptTimeoutMs: voice ? 12_000 : 20_000,
   });
   const parsed = replySchema.safeParse(raw);
   if (!parsed.success) {

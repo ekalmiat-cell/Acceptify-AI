@@ -4,7 +4,6 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { env } from "@/lib/env.server";
 import { HttpError } from "@/lib/http-error";
-import type { CopilotStyle } from "@/types/copilot";
 
 /**
  * The mentor's voice: Gemini's text-to-speech, streamed. Even the cheapest
@@ -34,7 +33,8 @@ const SPEECH_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models
 export const SPEECH_SAMPLE_RATE = 24_000;
 /** Long enough to replay a reply a little later, short enough that a leaked token goes stale. */
 const TOKEN_TTL_MS = 30 * 60 * 1000;
-const FIRST_AUDIO_TIMEOUT_MS = 15_000;
+/** A voice that has not started by now is not coming in time for a conversation. */
+const FIRST_AUDIO_TIMEOUT_MS = 8_000;
 /** Bounds on how long a reply can take to say; see the cut in streamSpeech. */
 const MIN_SPEECH_SECONDS = 1.5;
 const SLOWEST_CHARS_PER_SECOND = 11;
@@ -43,14 +43,6 @@ const MAX_PAUSE_MS = 60 * 60 * 1000;
 
 /** Until when Google refuses each model (per server instance). */
 const limitedUntil = new Map<string, number>();
-
-/** How the voice should sound; the words themselves come from the copilot. */
-const DELIVERY: Record<CopilotStyle, string> = {
-  friendly: "Say this like a warm, relaxed young guy talking to his younger friend, natural and friendly:",
-  strict: "Say this like a blunt, confident older friend who is teasing and pushing his friend to get to work:",
-  uncensored:
-    "Say this like a cocky, energetic young guy from Almaty talking to his close friend: fast, casual, teasing, swearing naturally:",
-};
 
 function sign(userId: string, issuedAt: number, text: string): string {
   return createHmac("sha256", env.BETTER_AUTH_SECRET)
@@ -111,7 +103,7 @@ function audioReader(body: NonNullable<Response["body"]>) {
 }
 
 /** One model's stream, once its first audio is in; null if this model can't serve it now. */
-async function openStream(model: string, apiKey: string, text: string, style: CopilotStyle) {
+async function openStream(model: string, apiKey: string, text: string) {
   // A deadline for the first audio only: the rest of the clip keeps streaming.
   const abort = new AbortController();
   const deadline = setTimeout(() => abort.abort(), FIRST_AUDIO_TIMEOUT_MS);
@@ -120,7 +112,10 @@ async function openStream(model: string, apiKey: string, text: string, style: Co
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `${DELIVERY[style]}\n\n${text}` }] }],
+        // The reply alone, with no "say this like…" direction in front: the
+        // models read such a direction aloud (in English) and the cut below
+        // then drops the reply itself.
+        contents: [{ parts: [{ text }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: SPEECH_VOICE } } },
@@ -172,14 +167,14 @@ export function speechAvailable(): boolean {
  * first audio has arrived, so a failure before that is still an HTTP error
  * the client can answer with the browser's own voice.
  */
-export async function streamSpeech(text: string, style: CopilotStyle): Promise<ReadableStream<Uint8Array>> {
+export async function streamSpeech(text: string): Promise<ReadableStream<Uint8Array>> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new HttpError(503, "AI features are not set up on this server yet (GEMINI_API_KEY is missing).");
 
   const now = Date.now();
   let opened: Awaited<ReturnType<typeof openStream>> = null;
   for (const model of SPEECH_MODELS.filter((m) => (limitedUntil.get(m) ?? 0) <= now)) {
-    opened = await openStream(model, apiKey, text, style);
+    opened = await openStream(model, apiKey, text);
     if (opened) break;
   }
   if (!opened) throw new HttpError(503, "The voice is busy right now. Please try again later.");

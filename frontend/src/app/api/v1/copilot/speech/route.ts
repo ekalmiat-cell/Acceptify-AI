@@ -20,7 +20,7 @@ export const POST = route(async (request) => {
   // Locally without a key the browser's own voice reads the reply instead.
   if (isMockAi()) throw new HttpError(503, "Voice is not available in mock mode.");
 
-  const audio = await streamSpeech(input.text, input.style);
+  const audio = await streamSpeech(input.text);
   return new Response(audio, {
     headers: {
       "Content-Type": `audio/l16; rate=${SPEECH_SAMPLE_RATE}; channels=1`,
