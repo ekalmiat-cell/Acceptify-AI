@@ -13,6 +13,8 @@ import { getUniversities } from "@/lib/universities-server";
 
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
+import { byRanking, toCatalogEntry } from "@/lib/universities";
+import { DEMO_UNIVERSITY_IDS } from "@/data/demo-universities";
 
 const universitiesWithLogo = new Set<string>(logoIds);
 
@@ -44,7 +46,7 @@ export default async function LandingPage() {
   // Only those with a real logo, so the strip reads as a wall of logos.
   const byRank = [...universities]
     .filter((university) => universitiesWithLogo.has(university.id))
-    .sort((a, b) => a.worldRanking - b.worldRanking);
+    .sort(byRanking);
   const marqueeUniversities = Array.from(
     new Map(
       [...byRank.slice(0, 24), ...byRank.filter((u) => u.country === "Kazakhstan")].map(
@@ -64,16 +66,17 @@ export default async function LandingPage() {
         universityCount={universities.length}
         countryCount={countryCount}
         marqueeUniversities={marqueeUniversities}
-        boardFlights={universities.map((u) => ({
-          name: u.shortName || u.name,
-          city: u.city,
-          country: u.country,
-          deadline: u.applicationDeadline,
-        }))}
+        boardFlights={universities.flatMap((u) =>
+          u.applicationDeadline
+            ? [{ name: u.shortName || u.name, city: u.city, country: u.country, deadline: u.applicationDeadline }]
+            : [],
+        )}
       />
       <HowItWorksSection />
       <FeaturesSection />
-      <AiDemoSection universities={universities} />
+      <AiDemoSection
+        universities={universities.filter((u) => DEMO_UNIVERSITY_IDS.includes(u.id)).map(toCatalogEntry)}
+      />
       <UniversitiesSection universities={universities} />
       <StatsSection universities={universities} />
       <FaqSection />

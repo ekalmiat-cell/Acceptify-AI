@@ -36,12 +36,13 @@ import { createPrediction } from "@/lib/predictions-client";
 import { downloadAdmissionReport } from "@/lib/pdf-report";
 import { groupUniversitiesByCountry } from "@/lib/universities";
 import { fetchEvaluationProfile, fetchPrograms } from "@/lib/programs-client";
-import type { Program, University } from "@/types/domain";
+import type { Program, CatalogUniversity } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
 import { fieldName } from "@/lib/catalog-copy";
 import { countryName } from "@/lib/countries";
 import { defineCopy } from "@/lib/i18n/core";
 import { useLocale } from "@/lib/i18n/client";
+import { UniversityCombobox } from "@/components/shared/university-combobox";
 
 const copy = defineCopy({
   en: {
@@ -118,7 +119,7 @@ interface Flight {
 }
 
 /** The flight to a university, or null when it is in or next to Almaty. */
-function flightTo(university: University): Flight | null {
+function flightTo(university: CatalogUniversity): Flight | null {
   const to = placeOf(university.country, university.city);
   if (!to || Math.hypot(to[0] - ALMATY[0], to[1] - ALMATY[1]) < SAME_CITY_DEGREES) return null;
   return { to, city: cityName(university.city), universityName: university.name };
@@ -137,7 +138,7 @@ export function AnalysisView({
 }: {
   studentName: string;
   studentEmail: string;
-  universities: University[];
+  universities: CatalogUniversity[];
   profile: StudentProfileInput | null;
   profileCompleteness: number;
   dreamUniversityId: string | null;
@@ -361,25 +362,15 @@ export function AnalysisView({
               </SelectContent>
             </Select>
 
-            <Select
-              value={universityId}
-              onValueChange={(v) => setUniversityId(v as string)}
+            <UniversityCombobox
+              universities={universitiesInCountry}
+              value={universityId || null}
+              onChange={setUniversityId}
+              placeholder={t.university}
               disabled={!country}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t.university}>
-                  {(value: string) => universities.find((u) => u.id === value)?.name ?? t.university}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {universitiesInCountry.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.name}
-                    {u.id === dreamUniversityId ? t.dream : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              marked={dreamUniversityId}
+              markLabel={t.dream}
+            />
 
             <Select
               value={programId}

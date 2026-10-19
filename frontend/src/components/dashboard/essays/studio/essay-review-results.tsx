@@ -22,7 +22,7 @@ import { defineCopy, type Locale } from "@/lib/i18n/core";
 import { useLocale } from "@/lib/i18n/client";
 import { UNITS } from "@/lib/training/drills";
 import { cn } from "@/lib/utils";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 import type { EssayReviewRead, EssayReviewV2 } from "@/types/essay";
 
 import { RedPenEssay } from "./red-pen-essay";
@@ -109,7 +109,7 @@ export function EssayReviewResults({
   onNewEssay,
 }: {
   review: EssayReviewRead;
-  university: University | null;
+  university: CatalogUniversity | null;
   onRevise: () => void;
   onNewEssay: () => void;
 }) {

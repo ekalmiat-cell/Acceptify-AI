@@ -10,7 +10,7 @@ import { countryName } from "@/lib/countries";
 import { defineCopy, plural } from "@/lib/i18n/core";
 import { useCopy, useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 
 const copy = defineCopy({
   en: {
@@ -97,7 +97,7 @@ export function UniversityPicker({
   value,
   onChange,
 }: {
-  universities: University[];
+  universities: CatalogUniversity[];
   value: string | null;
   onChange: (id: string | null) => void;
 }) {
@@ -159,7 +159,7 @@ export function UniversityPicker({
               </span>
             </Option>
           ) : null}
-          {matches.map((university) => (
+          {matches.slice(0, 100).map((university) => (
             <Option
               key={university.id}
               selected={university.id === value}

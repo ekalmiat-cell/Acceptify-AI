@@ -12,6 +12,7 @@ const TAGS_RU: Record<string, string> = {
   Research: "Исследовательский",
   Entrepreneurship: "Предпринимательство",
   Public: "Государственный",
+  Private: "Частный",
   "Large campus": "Большой кампус",
   "Co-op friendly": "Практика в компаниях",
   Collegiate: "Колледжная система",
@@ -105,6 +106,9 @@ const IN_COUNTRY_RU: Record<string, string> = {
 };
 
 const TEMPLATE = /^(.+) is a leading research university in (.+), recognized for strong academics and an active student community\.$/;
+/** The sentence scripts/import-scorecard.mjs writes for US universities from the College Scorecard. */
+const SCORECARD_TEMPLATE =
+  /^(.+) is a (public|private nonprofit) university in (.+), with about ([\d,]+) undergraduates; (\d+)% of students graduate within six years\.$/;
 
 export function universityDescription(
   university: { id: string; description: string },
@@ -112,6 +116,12 @@ export function universityDescription(
 ): string {
   if (locale === "en") return university.description;
   if (DESCRIPTIONS_RU[university.id]) return DESCRIPTIONS_RU[university.id];
+  const scorecard = SCORECARD_TEMPLATE.exec(university.description);
+  if (scorecard) {
+    const [, name, control, place, students, graduate] = scorecard;
+    const kind = control === "public" ? "государственный" : "частный некоммерческий";
+    return `${name} — ${kind} университет (${place}): около ${students.replace(/,/g, " ")} студентов бакалавриата, за шесть лет выпускаются ${graduate}%.`;
+  }
   const match = TEMPLATE.exec(university.description);
   if (!match) return university.description;
   const where = IN_COUNTRY_RU[match[2]] ?? `(${match[2]})`;
@@ -144,6 +154,7 @@ const REQUIREMENT_LABELS_RU: Record<string, string> = {
   "Admissions test (TOLC or similar)": "Вступительный тест (TOLC или аналог)",
   "EJU or equivalent exam": "EJU или аналогичный экзамен",
   "CSAT or international equivalent": "CSAT или международный аналог",
+  "SAT/ACT of admitted students (middle 50%)": "SAT/ACT поступивших (средние 50%)",
 };
 
 const REQUIREMENT_VALUES_RU: Record<string, string> = {
@@ -202,6 +213,7 @@ const REQUIREMENT_VALUES_RU: Record<string, string> = {
   "1-2 academic references": "1–2 академические рекомендации",
   "Common for English-taught programs": "Часто на англоязычных программах",
   "Common for competitive programs": "Часто на конкурсных программах",
+  "Not reported (often test-optional)": "Не указано (часто тесты по желанию)",
 };
 
 export function requirementText(requirement: { label: string; value: string }, locale: Locale) {

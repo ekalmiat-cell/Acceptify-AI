@@ -19,7 +19,7 @@ import { analyzeEssay, deleteEssayReview, getEssayReview } from "@/lib/essays-cl
 import { defineCopy, plural } from "@/lib/i18n/core";
 import { useCopy, useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 import { isReviewV2, type EssayReviewRead, type EssayReviewSummaryRead } from "@/types/essay";
 
 const copy = defineCopy({
@@ -92,7 +92,7 @@ export function EssayStudio({
   initialUniversityId,
   initialReviewsLeft,
 }: {
-  universities: University[];
+  universities: CatalogUniversity[];
   initialHistory: EssayReviewSummaryRead[];
   initialUniversityId: string | null;
   initialReviewsLeft: number;

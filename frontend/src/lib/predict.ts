@@ -5,7 +5,7 @@ import type {
   CriterionKey,
 } from "@/lib/criteria";
 import { academicBenchmark } from "@/lib/benchmarks";
-import type { MatchCategory, University } from "@/types/domain";
+import type { MatchCategory, CatalogUniversity } from "@/types/domain";
 
 export interface StudentProfileInput {
   /** Any of these six may be null — only the ones the student has actually
@@ -171,7 +171,7 @@ export function withAcademicValue(
  * the requirements-gap card shows the student. */
 function computeSignal(
   criterion: CriterionKey,
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput
 ): number | null {
   if (!isAcademicCriterion(criterion)) {
@@ -221,7 +221,7 @@ function weightedAverage(
  * used across the app) and `lib/scoring.ts`, so both always agree.
  */
 export function computeScoreBreakdown(
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput,
   weights: CriterionWeights = DEFAULT_WEIGHTS
 ): ScoreBreakdown {
@@ -286,7 +286,7 @@ export function computeBreakdownWeights(
  * a 4%-acceptance school.
  */
 export function predictMatch(
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput,
   weights: CriterionWeights = DEFAULT_WEIGHTS
 ): MatchResult {

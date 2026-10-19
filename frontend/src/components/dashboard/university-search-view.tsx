@@ -22,7 +22,8 @@ import { countryName } from "@/lib/countries";
 import { defineCopy } from "@/lib/i18n/core";
 import { useLocale } from "@/lib/i18n/client";
 import { selectivityName } from "@/lib/university-copy";
-import type { MatchCategory, University } from "@/types/domain";
+import type { MatchCategory, CatalogUniversity } from "@/types/domain";
+import { byRanking } from "@/lib/universities";
 
 type CategoryFilter = "all" | MatchCategory;
 
@@ -77,7 +78,7 @@ export function UniversitySearchView({
   declaredField,
 }: {
   profile: StudentProfileInput | null;
-  universities: University[];
+  universities: CatalogUniversity[];
   /** Per-university evaluation weights for the student's declared field of
    * study, keyed by university id. Universities absent from the map are
    * scored with the platform defaults — resolved server-side so this list
@@ -146,7 +147,7 @@ export function UniversitySearchView({
           if (a.score !== null && b.score !== null) {
             return b.score - a.score;
           }
-          return a.university.worldRanking - b.university.worldRanking;
+          return byRanking(a.university, b.university);
         }),
     [matched, category]
   );

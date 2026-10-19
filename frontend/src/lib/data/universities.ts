@@ -23,22 +23,22 @@ interface UniversityRow {
   country: string;
   city: string;
   logo_initials: string;
-  world_ranking: number;
+  world_ranking: number | null;
   national_ranking: number | null;
   acceptance_rate: number;
   selectivity_level: string;
-  min_gpa: number;
-  sat_low: number;
-  sat_high: number;
+  min_gpa: number | null;
+  sat_low: number | null;
+  sat_high: number | null;
   act_min: number | null;
   act_max: number | null;
-  ielts_min: number;
-  toefl_min: number;
-  tuition_per_year_usd: number;
-  living_cost_per_year_usd: number;
-  scholarship_available: boolean;
-  scholarship_coverage: string;
-  application_deadline: string;
+  ielts_min: number | null;
+  toefl_min: number | null;
+  tuition_per_year_usd: number | null;
+  living_cost_per_year_usd: number | null;
+  scholarship_available: boolean | null;
+  scholarship_coverage: string | null;
+  application_deadline: string | null;
   decision_type: University["decisionType"];
   tags: string[];
   description: string;
@@ -88,7 +88,7 @@ function toUniversity(row: UniversityRow): University {
 const loadCatalog = unstable_cache(
   async (): Promise<University[]> => {
     const result = await pgPool.query<UniversityRow>(
-      "SELECT * FROM universities ORDER BY world_ranking ASC",
+      "SELECT * FROM universities ORDER BY world_ranking ASC NULLS LAST, acceptance_rate ASC, name ASC",
     );
     return result.rows.map(toUniversity);
   },

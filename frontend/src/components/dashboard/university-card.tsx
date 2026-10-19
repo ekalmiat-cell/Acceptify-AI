@@ -5,7 +5,7 @@ import { MapPin, GraduationCap, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { MatchBadge } from "@/components/shared/match-badge";
-import type { MatchCategory, University } from "@/types/domain";
+import type { MatchCategory, CatalogUniversity } from "@/types/domain";
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { countryName } from "@/lib/countries";
 import { defineCopy } from "@/lib/i18n/core";
@@ -13,8 +13,8 @@ import { useLocale } from "@/lib/i18n/client";
 import { tagName } from "@/lib/university-copy";
 
 const copy = defineCopy({
-  en: { general: "General", rank: (n: number) => `Rank #${n}`, match: "Your match", details: "Details", analyze: "Analyze" },
-  ru: { general: "Без оценки", rank: (n: number) => `Место #${n}`, match: "Твоё соответствие", details: "Подробнее", analyze: "Анализ" },
+  en: { general: "General", rank: (n: number | null) => (n === null ? "Unranked" : `Rank #${n}`), match: "Your match", details: "Details", analyze: "Analyze" },
+  ru: { general: "Без оценки", rank: (n: number | null) => (n === null ? "Без рейтинга" : `Место #${n}`), match: "Твоё соответствие", details: "Подробнее", analyze: "Анализ" },
 });
 
 export function UniversityCard({
@@ -22,7 +22,7 @@ export function UniversityCard({
   score,
   category,
 }: {
-  university: University;
+  university: CatalogUniversity;
   score: number | null;
   category: MatchCategory | null;
 }) {

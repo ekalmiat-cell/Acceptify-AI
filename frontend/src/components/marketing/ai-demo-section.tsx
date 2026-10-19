@@ -10,11 +10,12 @@ import { MatchBadge } from "@/components/shared/match-badge";
 import { Slider } from "@/components/ui/slider";
 import { predictMatch } from "@/lib/predict";
 import type { AchievementCriterionKey } from "@/lib/criteria";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { defineCopy } from "@/lib/i18n/core";
 import { useCopy } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
+import { DEMO_UNIVERSITY_IDS } from "@/data/demo-universities";
 
 const copy = defineCopy({
   en: {
@@ -43,7 +44,6 @@ const copy = defineCopy({
   },
 });
 
-const demoUniversityIds = ["uni-mit", "uni-toronto", "uni-nu", "uni-eth"];
 
 // Half of the achievement criteria "achieved", for a representative
 // mid-strength demo profile on the marketing page's interactive slider.
@@ -58,14 +58,14 @@ const DEMO_ACHIEVEMENTS: Partial<Record<AchievementCriterionKey, boolean>> = {
   recommendationLetters: true,
 };
 
-export function AiDemoSection({ universities }: { universities: University[] }) {
+export function AiDemoSection({ universities }: { universities: CatalogUniversity[] }) {
   const t = useCopy(copy);
   const [gpa, setGpa] = useState(3.6);
   const [sat, setSat] = useState(1380);
   const [ielts, setIelts] = useState(7.0);
 
   const results = useMemo(() => {
-    return demoUniversityIds
+    return DEMO_UNIVERSITY_IDS
       .map((id) => universities.find((u) => u.id === id))
       .filter((u): u is NonNullable<typeof u> => Boolean(u))
       .map((university) => ({

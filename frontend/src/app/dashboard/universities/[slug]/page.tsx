@@ -56,6 +56,7 @@ const copy = defineCopy({
     completeToSee: "Complete your profile to see your match score",
     completeProfile: "Complete profile",
     worldRanking: "World ranking",
+    noData: "No data",
     nationalRanking: "National ranking",
     acceptance: "Acceptance rate",
     selectivity: "Selectivity",
@@ -83,6 +84,7 @@ const copy = defineCopy({
     completeToSee: "Заполни профиль, чтобы увидеть своё соответствие",
     completeProfile: "Заполнить профиль",
     worldRanking: "Мировой рейтинг",
+    noData: "Нет данных",
     nationalRanking: "Национальный рейтинг",
     acceptance: "Доля принятых",
     selectivity: "Отбор",
@@ -130,7 +132,7 @@ export default async function UniversityDetailPage({
     getLocale(),
   ]);
   const t = copy[locale];
-  const money = (usd: number) => `$${formatNumber(locale, usd)}`;
+  const money = (usd: number | null) => (usd === null ? t.noData : `$${formatNumber(locale, usd)}`);
   const university = getUniversityBySlug(universities, slug);
 
   if (!university) {
@@ -209,7 +211,9 @@ export default async function UniversityDetailPage({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label={t.worldRanking} value={`#${university.worldRanking}`} icon={Trophy} accent="brand" />
+        {university.worldRanking !== null ? (
+          <StatCard label={t.worldRanking} value={`#${university.worldRanking}`} icon={Trophy} accent="brand" />
+        ) : null}
         {university.nationalRanking ? (
           <StatCard label={t.nationalRanking} value={`#${university.nationalRanking}`} icon={Gauge} accent="amber" />
         ) : null}
@@ -221,12 +225,12 @@ export default async function UniversityDetailPage({
           icon={Wallet}
           accent="emerald"
         />
-        <StatCard label={t.deadline} value={deadlineText(university.applicationDeadline, locale)} icon={CalendarClock} accent="rose" />
+        <StatCard label={t.deadline} value={(university.applicationDeadline ? deadlineText(university.applicationDeadline, locale) : t.noData)} icon={CalendarClock} accent="rose" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="flex flex-col gap-4 xl:col-span-2">
-          <AcceptanceTrendChart data={university.acceptRateTrend} />
+          {university.acceptRateTrend.length ? <AcceptanceTrendChart data={university.acceptRateTrend} /> : null}
 
           <Card>
             <CardHeader>
@@ -275,8 +279,16 @@ export default async function UniversityDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              <p className="text-sm font-medium">{university.scholarshipAvailable ? t.available : t.notAvailable}</p>
-              <p className="text-sm text-muted-foreground">{scholarshipText(university.scholarshipCoverage, locale)}</p>
+              <p className="text-sm font-medium">
+                {university.scholarshipAvailable === null
+                  ? t.noData
+                  : university.scholarshipAvailable
+                    ? t.available
+                    : t.notAvailable}
+              </p>
+              {university.scholarshipCoverage ? (
+                <p className="text-sm text-muted-foreground">{scholarshipText(university.scholarshipCoverage, locale)}</p>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -290,11 +302,13 @@ export default async function UniversityDetailPage({
             <CardContent className="flex flex-col gap-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t.decisionType}</span>
-                <span className="font-medium">{decisionName(university.decisionType, locale)}</span>
+                <span className="font-medium">
+                  {university.decisionType ? decisionName(university.decisionType, locale) : t.noData}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t.deadline}</span>
-                <span className="font-medium">{deadlineText(university.applicationDeadline, locale)}</span>
+                <span className="font-medium">{(university.applicationDeadline ? deadlineText(university.applicationDeadline, locale) : t.noData)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">{t.living}</span>

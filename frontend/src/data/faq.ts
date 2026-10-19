@@ -25,7 +25,7 @@ export const faqItems: Record<Locale, FaqItem[]> = {
       id: "faq-4",
       question: "Can I use Acceptify for universities outside the US?",
       answer:
-        "Yes. The catalog currently covers 239 universities across the United States, United Kingdom, South Korea, Kazakhstan, Japan, China, Germany, Italy, Singapore, Canada, Switzerland, and Australia, with country-specific inputs like the ENT and English proficiency thresholds built in. It grows over time — if a university is not listed yet, its data is simply not there rather than estimated.",
+        "Yes. The catalog currently covers 826 universities across the United States, United Kingdom, South Korea, Kazakhstan, Japan, China, Germany, Italy, Singapore, Canada, Switzerland, and Australia, with country-specific inputs like the ENT and English proficiency thresholds built in. It grows over time — if a university is not listed yet, its data is simply not there rather than estimated.",
     },
     {
       id: "faq-5",
@@ -69,7 +69,7 @@ export const faqItems: Record<Locale, FaqItem[]> = {
       id: "faq-4",
       question: "Подойдёт ли Acceptify для университетов не в США?",
       answer:
-        "Да. Сейчас в каталоге 239 университетов из США, Великобритании, Южной Кореи, Казахстана, Японии, Китая, Германии, Италии, Сингапура, Канады, Швейцарии и Австралии, с учётом местной специфики вроде ЕНТ и требований к английскому. Каталог растёт — если университета пока нет, значит, его данных просто нет, а не что они придуманы.",
+        "Да. Сейчас в каталоге 826 университетов из США, Великобритании, Южной Кореи, Казахстана, Японии, Китая, Германии, Италии, Сингапура, Канады, Швейцарии и Австралии, с учётом местной специфики вроде ЕНТ и требований к английскому. Каталог растёт — если университета пока нет, значит, его данных просто нет, а не что они придуманы.",
     },
     {
       id: "faq-5",

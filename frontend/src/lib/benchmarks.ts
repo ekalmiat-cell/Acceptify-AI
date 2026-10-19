@@ -21,7 +21,7 @@ import {
   type AcademicCriterionKey,
 } from "@/lib/criteria";
 import type { Locale } from "@/lib/i18n/core";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 
 export type BenchmarkSource =
   /** The university publishes this bar itself. */
@@ -65,7 +65,7 @@ function rangeMidpoint(low: number | null, high: number | null): number | null {
  */
 export function academicBenchmark(
   criterion: AcademicCriterionKey,
-  university: University,
+  university: CatalogUniversity,
   locale: Locale = "en"
 ): AcademicBenchmark | null {
   const ru = locale === "ru";

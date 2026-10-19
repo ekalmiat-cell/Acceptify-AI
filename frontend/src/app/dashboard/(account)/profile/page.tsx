@@ -13,6 +13,7 @@ import type { AchievementCatalogItem } from "@/types/domain";
 import { groupName } from "@/lib/catalog-copy";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
+import { toCatalogEntry } from "@/lib/universities";
 
 const copy = defineCopy({
   en: {
@@ -74,7 +75,7 @@ export default async function ProfilePage() {
 
       <AcademicProfileForm profile={academic} />
 
-      <DreamUniversitySelect profile={academic} universities={universities} />
+      <DreamUniversitySelect profile={academic} universities={universities.map(toCatalogEntry)} />
 
       {groups.map((group) => {
         const items = achievements.filter((a) => a.group === group);

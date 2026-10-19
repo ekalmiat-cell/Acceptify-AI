@@ -9,6 +9,7 @@ import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
 import { getCurrentUserId } from "@/lib/session";
 import { getUniversities } from "@/lib/universities-server";
+import { toCatalogEntry } from "@/lib/universities";
 
 const copy = defineCopy({
   en: {
@@ -39,7 +40,7 @@ export default async function EssaysPage() {
 
   return (
     <EssayStudio
-      universities={universities}
+      universities={universities.map(toCatalogEntry)}
       initialHistory={history}
       initialUniversityId={academic.dreamUniversityId}
       initialReviewsLeft={reviewsLeft}

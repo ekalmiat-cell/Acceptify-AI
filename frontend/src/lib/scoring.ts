@@ -7,7 +7,7 @@ import {
 } from "@/lib/predict";
 import { DEFAULT_WEIGHTS } from "@/lib/criteria";
 import type { Locale } from "@/lib/i18n/core";
-import type { AdmissionAnalysis, University } from "@/types/domain";
+import type { AdmissionAnalysis, CatalogUniversity } from "@/types/domain";
 
 const STRONG = 70;
 const WEAK = 45;
@@ -79,7 +79,7 @@ const ANALYSIS_COPY = {
 } satisfies Record<Locale, unknown>;
 
 export function computeAdmissionAnalysis(
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput,
   profileCompleteness: number,
   weights: CriterionWeights = DEFAULT_WEIGHTS,

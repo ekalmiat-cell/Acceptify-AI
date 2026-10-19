@@ -22,11 +22,12 @@ import {
 } from "@/components/ui/select";
 import { updateAcademicProfile } from "@/lib/profile-client";
 import { groupUniversitiesByCountry } from "@/lib/universities";
-import type { AcademicProfile, University } from "@/types/domain";
+import type { AcademicProfile, CatalogUniversity } from "@/types/domain";
 import { describeApiError } from "@/lib/api-error";
 import { countryName } from "@/lib/countries";
 import { defineCopy } from "@/lib/i18n/core";
 import { useLocale } from "@/lib/i18n/client";
+import { UniversityCombobox } from "@/components/shared/university-combobox";
 
 const copy = defineCopy({
   en: {
@@ -54,7 +55,7 @@ export function DreamUniversitySelect({
   universities,
 }: {
   profile: AcademicProfile;
-  universities: University[];
+  universities: CatalogUniversity[];
 }) {
   const locale = useLocale();
   const t = copy[locale];
@@ -120,24 +121,14 @@ export function DreamUniversitySelect({
           </SelectContent>
         </Select>
 
-        <Select
-          value={selected}
-          onValueChange={(v) => setSelected(v as string)}
+        <UniversityCombobox
+          universities={universitiesInCountry}
+          value={selected || null}
+          onChange={setSelected}
+          placeholder={t.university}
           disabled={!country}
-        >
-          <SelectTrigger className="w-full sm:max-w-sm">
-            <SelectValue placeholder={t.university}>
-              {(value: string) => universities.find((u) => u.id === value)?.name ?? t.university}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {universitiesInCountry.map((u) => (
-              <SelectItem key={u.id} value={u.id}>
-                {u.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          className="sm:max-w-sm"
+        />
 
         <Button onClick={handleSave} disabled={!dirty || isSaving}>
           {isSaving ? <Loader2 className="animate-spin" /> : null}

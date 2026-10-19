@@ -10,6 +10,7 @@ import { cityName } from "@/lib/geo";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
 import type { University } from "@/types/domain";
+import { byRanking } from "@/lib/universities";
 
 const copy = defineCopy({
   en: {
@@ -62,7 +63,7 @@ function barcode(id: string): number[] {
 export async function UniversitiesSection({ universities }: { universities: University[] }) {
   const locale = await getLocale();
   const t = copy[locale];
-  const featured = [...universities].sort((a, b) => a.worldRanking - b.worldRanking).slice(0, 8);
+  const featured = [...universities].sort(byRanking).slice(0, 8);
   const rest = universities.length - featured.length;
 
   return (

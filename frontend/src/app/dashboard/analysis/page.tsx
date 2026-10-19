@@ -14,6 +14,7 @@ import { getUniversities } from "@/lib/universities-server";
 import { getDeclaredField } from "@/lib/weights-server";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
+import { toCatalogEntry } from "@/lib/universities";
 
 const copy = defineCopy({ en: { title: "Analysis" }, ru: { title: "Анализ" } });
 
@@ -57,7 +58,7 @@ export default async function AnalysisPage({
     <AnalysisView
       studentName={session?.user?.name ?? "Your name"}
       studentEmail={session?.user?.email ?? ""}
-      universities={safeUniversities}
+      universities={safeUniversities.map(toCatalogEntry)}
       profile={profile}
       profileCompleteness={completeness}
       dreamUniversityId={safeAcademic.dreamUniversityId}

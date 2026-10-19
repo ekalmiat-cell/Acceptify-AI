@@ -77,13 +77,22 @@ async function applyMigrations(client) {
 }
 
 /**
+ * Where the catalog is seeded from: the hand-curated snapshot, then the US
+ * universities built from the College Scorecard (scripts/import-scorecard.mjs).
+ */
+const CATALOG_SEEDS = [
+  path.join("src", "data", "universities.json"),
+  path.join("db", "seed", "us-scorecard.json"),
+];
+
+/**
  * Inserts catalog universities the database does not have yet. Existing rows
  * are left alone, so a value corrected directly in the database is not
  * overwritten by the snapshot on the next deploy.
  */
 async function seedUniversities(client) {
-  const universities = JSON.parse(
-    readFileSync(path.join(root, "src", "data", "universities.json"), "utf8"),
+  const universities = CATALOG_SEEDS.filter((file) => existsSync(path.join(root, file))).flatMap((file) =>
+    JSON.parse(readFileSync(path.join(root, file), "utf8")),
   );
 
   let inserted = 0;

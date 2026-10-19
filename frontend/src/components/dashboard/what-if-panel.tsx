@@ -31,7 +31,7 @@ import {
   type StudentProfileInput,
 } from "@/lib/predict";
 import { planToTarget, simulateLevers } from "@/lib/what-if";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 
 /** Slider granularity per scale — a GPA that moves in whole points and an
  * IELTS that moves in tenths would both be untrue to the exam. */
@@ -113,7 +113,7 @@ export function WhatIfPanel({
   profile,
   weights,
 }: {
-  university: University;
+  university: CatalogUniversity;
   profile: StudentProfileInput;
   weights: CriterionWeights;
 }) {

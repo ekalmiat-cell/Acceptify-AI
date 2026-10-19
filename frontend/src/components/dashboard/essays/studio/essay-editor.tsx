@@ -11,7 +11,7 @@ import type { CheckIssue, CheckKind, EssayCheck } from "@/lib/essay-check";
 import { defineCopy, plural, type Locale } from "@/lib/i18n/core";
 import { useLocale } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 
 export interface EssayDraft {
   title: string;
@@ -106,7 +106,7 @@ export function EssayEditor({
 }: {
   draft: EssayDraft;
   onChange: (patch: Partial<EssayDraft>) => void;
-  universities: University[];
+  universities: CatalogUniversity[];
   check: EssayCheck;
   liveCheck: boolean;
   onToggleLiveCheck: () => void;

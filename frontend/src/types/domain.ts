@@ -19,31 +19,42 @@ export interface University {
   country: string;
   city: string;
   logoInitials: string;
-  worldRanking: number;
+  /** Null for universities added from public data that carries no ranking. */
+  worldRanking: number | null;
   nationalRanking: number | null;
   acceptanceRate: number;
   selectivityLevel: string;
-  tuitionPerYearUsd: number;
-  livingCostPerYearUsd: number;
-  scholarshipAvailable: boolean;
-  scholarshipCoverage: string;
-  applicationDeadline: string;
-  decisionType: "Early Decision" | "Early Action" | "Regular Decision" | "Rolling";
+  // Null wherever the source publishes nothing (College Scorecard imports):
+  // shown as "no data", never guessed.
+  tuitionPerYearUsd: number | null;
+  livingCostPerYearUsd: number | null;
+  scholarshipAvailable: boolean | null;
+  scholarshipCoverage: string | null;
+  applicationDeadline: string | null;
+  decisionType: "Early Decision" | "Early Action" | "Regular Decision" | "Rolling" | null;
   tags: string[];
   description: string;
-  minGpa: number;
-  satLow: number;
-  satHigh: number;
+  minGpa: number | null;
+  satLow: number | null;
+  satHigh: number | null;
   actMin: number | null;
   actMax: number | null;
-  ieltsMin: number;
-  toeflMin: number;
+  ieltsMin: number | null;
+  toeflMin: number | null;
   requirements: UniversityRequirement[];
   acceptRateTrend: { year: string; rate: number }[];
   gradientFrom: string;
   gradientTo: string;
   website: string;
 }
+
+/**
+ * A university as pages send it to the browser: everything but the long text
+ * (description, requirements, acceptance history), which only the
+ * university's own page shows. With hundreds of universities that text is
+ * most of the weight.
+ */
+export type CatalogUniversity = Omit<University, "description" | "requirements" | "acceptRateTrend">;
 
 /** A field of study offered at a university — sits between University and
  * EvaluationProfile. `parentProgramId`/`level` are unused today but let a

@@ -7,6 +7,7 @@ import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } fro
 import { getDeclaredField, resolveWeightsByUniversity } from "@/lib/weights-server";
 import { defineCopy } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
+import { toCatalogEntry } from "@/lib/universities";
 
 const copy = defineCopy({ en: { title: "Universities" }, ru: { title: "Университеты" } });
 
@@ -35,7 +36,7 @@ export default async function UniversitiesPage() {
   return (
     <UniversitySearchView
       profile={profile}
-      universities={universities}
+      universities={universities.map(toCatalogEntry)}
       weightsByUniversity={weightsByUniversity}
       declaredField={declaredField}
     />

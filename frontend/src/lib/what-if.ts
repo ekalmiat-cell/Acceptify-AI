@@ -34,7 +34,7 @@ import {
   type CriterionWeights,
   type StudentProfileInput,
 } from "@/lib/predict";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 
 export interface Lever {
   /** Stable within one simulation — safe as a React key. */
@@ -174,7 +174,7 @@ const LEVER_COPY = {
 } satisfies Record<Locale, unknown>;
 
 function candidateProfiles(
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput,
   weights: CriterionWeights,
   locale: Locale
@@ -257,7 +257,7 @@ function candidateProfiles(
  * strongest first. Ties break towards the cheaper action.
  */
 export function simulateLevers(
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput,
   weights: CriterionWeights,
   { limit, locale = "en" }: { limit?: number; locale?: Locale } = {}
@@ -301,7 +301,7 @@ export interface ImprovementPlan {
  * exhaustively would compute a precise answer to an imprecise question.
  */
 export function planToTarget(
-  university: University,
+  university: CatalogUniversity,
   profile: StudentProfileInput,
   weights: CriterionWeights,
   target: number,

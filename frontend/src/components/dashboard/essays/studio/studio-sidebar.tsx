@@ -14,7 +14,7 @@ import { defineCopy, plural, type Locale } from "@/lib/i18n/core";
 import { useLocale } from "@/lib/i18n/client";
 import { tagName } from "@/lib/university-copy";
 import { cn } from "@/lib/utils";
-import type { University } from "@/types/domain";
+import type { CatalogUniversity } from "@/types/domain";
 
 export const MIN_WORDS = 25;
 
@@ -104,7 +104,7 @@ export function StudioSidebar({
   isReviewing,
   onReview,
 }: {
-  university: University | null;
+  university: CatalogUniversity | null;
   check: EssayCheck;
   liveCheck: boolean;
   includeProfile: boolean;
@@ -177,7 +177,7 @@ export function StudioSidebar({
   );
 }
 
-function UniversityCard({ t, locale, university }: { t: Copy; locale: Locale; university: University | null }) {
+function UniversityCard({ t, locale, university }: { t: Copy; locale: Locale; university: CatalogUniversity | null }) {
   if (!university) {
     return (
       <section className="flex items-start gap-3 rounded-2xl border border-dashed bg-card/50 p-4">
