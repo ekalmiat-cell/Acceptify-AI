@@ -9,9 +9,11 @@ import { ArsFace, type ArsMood } from "@/components/dashboard/copilot/ars-face";
 import {
   useArsVoice,
   type ListenError,
+  type SpeakResult,
   type SpokenWord,
   type VoiceLang,
 } from "@/components/dashboard/copilot/use-ars-voice";
+import { useVoiceActivity } from "@/components/dashboard/copilot/use-voice-activity";
 import { AI_LIMITS } from "@/lib/ai-limits";
 import { ApiError, describeApiError } from "@/lib/api-error";
 import { useSession } from "@/lib/auth-client";
@@ -73,10 +75,10 @@ const copy = defineCopy({
     open: "BRO, your admissions mentor (drag to any corner)",
     tapToTalk: "Tap me and start talking",
     tapFace: "Talk to BRO",
-    listening: "Listening... tap me when you're done",
+    listening: "Listening... just talk. Tap me to end the chat",
     pondering: "Thinking...",
-    speaking: "Talking... tap me to stop",
-    idle: "Tap me to ask something else",
+    speaking: "Talking... speak up to cut in, tap me to end",
+    idle: "Tap me and we just talk, no more tapping",
     outTitle: "Out of credits",
     outBody: "You've used up today's credits on the free plan. Get Plus from 990 ₸ to keep going.",
     getPro: "Get Plus",
@@ -90,6 +92,7 @@ const copy = defineCopy({
     micDenied: "Allow the microphone for this site, then tap me again.",
     unsupported: "This browser can't hear you. Voice works in Chrome, Edge and Safari — or just type.",
     didntHear: "Couldn't catch that. Tap me and try again.",
+    quiet: "It went quiet, so I stopped listening. Tap me to keep talking.",
     replay: "Hear the answer again",
     speechLang: "Language you speak",
     strict: "Strict",
@@ -123,10 +126,10 @@ const copy = defineCopy({
     open: "BRO, твой наставник по поступлению (можно перетащить в любой угол)",
     tapToTalk: "Нажми на меня и говори",
     tapFace: "Поговорить с BRO",
-    listening: "Слушаю... нажми, когда закончишь",
+    listening: "Слушаю... просто говори. Нажми, чтобы закончить",
     pondering: "Думаю...",
-    speaking: "Говорю... нажми, чтобы остановить",
-    idle: "Нажми, чтобы спросить ещё",
+    speaking: "Говорю... перебей голосом или нажми, чтобы закончить",
+    idle: "Нажми — и просто болтаем, без нажатий",
     outTitle: "Кредиты закончились",
     outBody: "На бесплатном тарифе кредиты на сегодня закончились. Возьми Plus за 990 ₸, чтобы продолжить.",
     getPro: "Купить Plus",
@@ -140,6 +143,7 @@ const copy = defineCopy({
     micDenied: "Разреши доступ к микрофону для этого сайта и нажми на меня снова.",
     unsupported: "Этот браузер не умеет слушать. Голос работает в Chrome, Edge и Safari — или просто напиши.",
     didntHear: "Не получилось расслышать. Нажми на меня и попробуй ещё раз.",
+    quiet: "Тишина — я перестал слушать. Нажми на меня, чтобы продолжить.",
     replay: "Послушать ответ ещё раз",
     speechLang: "Язык, на котором ты говоришь",
     strict: "Строгий",
@@ -155,6 +159,9 @@ export function FloatingCopilot() {
   const t = useCopy(copy);
   const locale = useLocale();
   const voice = useArsVoice();
+  const vad = useVoiceActivity();
+  /** True while a hands-free conversation runs: BRO listens again after each reply. */
+  const talkingRef = useRef(false);
   const dragControls = useDragControls();
   const { data: session } = useSession();
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || null;
@@ -226,8 +233,7 @@ export function FloatingCopilot() {
   }
 
   function closePanel() {
-    voice.stopListening();
-    voice.stopSpeaking();
+    endConversation();
     setIsOpen(false);
     // Ars always greets by voice; typing is one tap away.
     setView("voice");
@@ -259,6 +265,13 @@ export function FloatingCopilot() {
     setUncensored(next);
     saveStyle(next ? "uncensored" : "strict");
   }
+
+  // The conversation loop outlives the render that started it; it reads the
+  // chips' current state from here, so switching mid-conversation applies.
+  const chipsRef = useRef({ voiceLang, strict, uncensored });
+  useEffect(() => {
+    chipsRef.current = { voiceLang, strict, uncensored };
+  }, [voiceLang, strict, uncensored]);
 
   // Speech follows the site's language; the RU/EN chip switches it only
   // until the page is reloaded.
@@ -357,14 +370,18 @@ export function FloatingCopilot() {
   }
 
   /** Reads a reply aloud in Gemini's voice, moving the mouth with it. No voice, no reading. */
-  async function readAloud(text: string) {
+  async function readAloud(text: string): Promise<SpeakResult> {
     const speech = lastSpeechRef.current;
-    if (!voice.canSpeak || !speech) return setVoiceDown(true);
+    if (!voice.canSpeak || !speech) {
+      setVoiceDown(true);
+      return "unavailable";
+    }
     setPhase("speaking");
     const result = await voice.speak(text, speech.token, speech.style, setWord);
     setWord(null);
     if (result === "unavailable") setVoiceDown(true);
     setPhase((current) => (current === "speaking" ? "idle" : current));
+    return result;
   }
 
   /** The speaker button: a fresh tap, so it works even where autoplay was blocked. */
@@ -375,56 +392,92 @@ export function FloatingCopilot() {
     void readAloud(lastReply);
   }
 
-  /** One spoken turn: listen, ask, read the answer aloud. Tapping again stops. */
+  /** Stops the hands-free conversation wherever it is and lets go of the microphone. */
+  function endConversation() {
+    talkingRef.current = false;
+    vad.close();
+    voice.stopListening();
+    voice.stopSpeaking();
+    setWord(null);
+    setPhase("idle");
+  }
+
+  /**
+   * Tapping the face starts a hands-free conversation: BRO listens, answers,
+   * and listens again by himself, and if the student starts talking while he
+   * speaks he stops and listens. Tapping again, closing the card or going
+   * quiet ends it.
+   */
   async function handleFaceTap() {
     if (voiceTired || voiceDown) return;
-    if (phase === "listening") return voice.stopListening();
-    if (phase === "speaking") {
-      voice.stopSpeaking();
-      setWord(null);
-      return setPhase("idle");
-    }
-    if (phase === "thinking") return;
+    if (talkingRef.current || phase !== "idle") return endConversation();
 
     setStarted(true);
     setNote(null);
     if (!voice.canListen) return setNote(t.unsupported);
 
     voice.unlockSpeech();
-    setHeard("");
-    setPhase("listening");
+    talkingRef.current = true;
+    // For hearing the student over BRO; without it the turns still work, just without interrupting.
+    await vad.open();
+    if (talkingRef.current) await converse();
+  }
 
-    let text: string;
-    try {
-      text = await voice.listen(voiceLang, { onInterim: setHeard });
-    } catch (reason) {
-      const error = reason as ListenError;
-      setPhase("idle");
-      setNote(error === "denied" ? t.micDenied : error === "unsupported" ? t.unsupported : t.didntHear);
-      return;
-    }
+  async function converse() {
+    let history = messages;
+    let first = true;
+    while (talkingRef.current) {
+      setHeard("");
+      setPhase("listening");
+      let text: string;
+      try {
+        text = await voice.listen(chipsRef.current.voiceLang, { onInterim: setHeard });
+      } catch (reason) {
+        if (!talkingRef.current) return;
+        const error = reason as ListenError;
+        endConversation();
+        setNote(
+          error === "denied" ? t.micDenied : error === "unsupported" ? t.unsupported : first ? t.didntHear : t.quiet,
+        );
+        return;
+      }
+      if (!talkingRef.current) return;
+      first = false;
 
-    setHeard(text);
-    setLastReply("");
-    setPhase("thinking");
-    const updated: ChatMessage[] = [...messages, { role: "user", content: text }];
-    setMessages(updated);
+      setHeard(text);
+      setLastReply("");
+      setPhase("thinking");
+      history = [...history, { role: "user", content: text }];
+      setMessages(history);
 
-    const style: CopilotStyle = uncensored ? "uncensored" : strict ? "strict" : "friendly";
-    try {
-      const res = await sendCopilotMessage(updated, true, "voice", voiceLang, style);
-      setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
-      lastSpeechRef.current = res.speech_token ? { token: res.speech_token, style } : null;
-      setLastReply(res.reply);
-      noteLeft("voice", res.left);
-      if (res.suggested_followups?.length) setFollowups(res.suggested_followups);
-      await readAloud(res.reply);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 429) markSpent("voice");
-      else if (err instanceof ApiError && err.status === 503) setVoiceDown(true);
-      else setNote(describeApiError(err, t.error));
-    } finally {
-      setPhase((current) => (current === "listening" ? current : "idle"));
+      const chips = chipsRef.current;
+      const style: CopilotStyle = chips.uncensored ? "uncensored" : chips.strict ? "strict" : "friendly";
+      let left: number | undefined;
+      try {
+        const res = await sendCopilotMessage(history, true, "voice", chips.voiceLang, style);
+        if (!talkingRef.current) return;
+        history = [...history, { role: "assistant", content: res.reply }];
+        setMessages(history);
+        lastSpeechRef.current = res.speech_token ? { token: res.speech_token, style } : null;
+        setLastReply(res.reply);
+        noteLeft("voice", res.left);
+        left = res.left;
+        if (res.suggested_followups?.length) setFollowups(res.suggested_followups);
+
+        // The student talking over BRO cuts him off and starts the next turn.
+        vad.watch(() => voice.stopSpeaking());
+        const result = await readAloud(res.reply);
+        vad.unwatch();
+        if (result === "unavailable") return endConversation();
+      } catch (err) {
+        endConversation();
+        if (err instanceof ApiError && err.status === 429) markSpent("voice");
+        else if (err instanceof ApiError && err.status === 503) setVoiceDown(true);
+        else setNote(describeApiError(err, t.error));
+        return;
+      }
+      // Out of voice turns for today: the sad face takes over.
+      if (left === 0) return endConversation();
     }
   }
 
@@ -436,9 +489,7 @@ export function FloatingCopilot() {
   }
 
   function switchView(next: View) {
-    voice.stopListening();
-    voice.stopSpeaking();
-    setPhase("idle");
+    endConversation();
     setView(next);
     if (next === "text") setTimeout(() => inputRef.current?.focus(), 150);
   }

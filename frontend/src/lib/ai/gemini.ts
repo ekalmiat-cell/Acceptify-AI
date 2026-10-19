@@ -335,14 +335,25 @@ export async function generateJson(options: {
       const timeout = Math.min(attemptTimeout, remaining);
 
       const useSchema = withSchema.get(model) ?? true;
-      let result = await callModel(model, apiKey, buildBody(useSchema), timeout);
+      let result: Awaited<ReturnType<typeof callModel>>;
+      try {
+        result = await callModel(model, apiKey, buildBody(useSchema), timeout);
 
-      // A model that rejects the structured-output schema still answers
-      // well with the JSON described in the prompt alone; retry without it.
-      if (!result.ok && result.status === 400 && useSchema && options.schema && /schema/i.test(result.text)) {
-        console.error(`[gemini] ${model} rejected the response schema: ${result.text.slice(0, 300)}`);
-        withSchema.set(model, false);
-        result = await callModel(model, apiKey, buildBody(false), timeout);
+        // A model that rejects the structured-output schema still answers
+        // well with the JSON described in the prompt alone; retry without it.
+        if (!result.ok && result.status === 400 && useSchema && options.schema && /schema/i.test(result.text)) {
+          console.error(`[gemini] ${model} rejected the response schema: ${result.text.slice(0, 300)}`);
+          withSchema.set(model, false);
+          result = await callModel(model, apiKey, buildBody(false), timeout);
+        }
+      } catch (error) {
+        // One slow model is not the whole service: give the next one the
+        // time that is left.
+        if (!(error instanceof GeminiError) || error.status !== 504) throw error;
+        console.error(`[gemini] ${model}: ${error.upstream}`);
+        lastFailure = error;
+        lastFailureWasTransient = true;
+        continue;
       }
 
       if (!result.ok) {

@@ -92,6 +92,24 @@ describe("generateJson", () => {
     expect(calls[1].body.generationConfig).not.toHaveProperty("responseSchema");
   });
 
+  it("hands over to the next model when one takes too long", async () => {
+    const tried: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const model = url.split("/models/")[1].split(":")[0];
+        tried.push(model);
+        if (model === "gemini-3.8-flash") throw new DOMException("timed out", "TimeoutError");
+        const reply = geminiOk({ ok: true });
+        return new Response(JSON.stringify(reply.body), { status: reply.status });
+      }),
+    );
+    const { generateJson } = await loadGemini();
+
+    await expect(generateJson({ ...request, attemptTimeoutMs: 10_000 })).resolves.toEqual({ ok: true });
+    expect(tried).toEqual(["gemini-3.8-flash", "gemini-3.7-flash"]);
+  });
+
   it("moves on when a model is overloaded or rate-limited (quotas are per model)", async () => {
     fakeGemini({
       "gemini-3.8-flash": [geminiError(503, "This model is currently experiencing high demand.", "UNAVAILABLE")],
