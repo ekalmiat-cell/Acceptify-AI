@@ -27,7 +27,12 @@ type Phase = "idle" | "listening" | "thinking" | "speaking";
 
 /** Set once the mentor has made its entrance this browser session (cleared on sign-out). */
 const INTRO_KEY = "acceptify-ars-intro";
-const VOICE_LANG_KEY = "acceptify-ars-voice-lang";
+/**
+ * Where the RU/EN voice choice used to be remembered. It is no longer kept:
+ * an EN left over from one tap made the browser hear Russian speech as
+ * English gibberish, and BRO answered it in English.
+ */
+const STALE_VOICE_LANG_KEY = "acceptify-ars-voice-lang";
 const STYLE_KEY = "acceptify-bro-style";
 
 /** Signing out ends the session, so the next sign-in gets the entrance again. */
@@ -185,8 +190,7 @@ export function FloatingCopilot() {
   useEffect(() => {
     setMounted(true);
     try {
-      const saved = localStorage.getItem(VOICE_LANG_KEY);
-      if (saved === "ru" || saved === "en") setVoiceLang(saved);
+      localStorage.removeItem(STALE_VOICE_LANG_KEY);
       const style = localStorage.getItem(STYLE_KEY);
       setStrict(style === "strict" || style === "uncensored");
       setUncensored(style === "uncensored");
@@ -253,11 +257,12 @@ export function FloatingCopilot() {
     saveStyle(next ? "uncensored" : "strict");
   }
 
+  // Speech follows the site's language; the RU/EN chip switches it only
+  // until the page is reloaded.
+  useEffect(() => setVoiceLang(locale), [locale]);
+
   function chooseVoiceLang(lang: VoiceLang) {
     setVoiceLang(lang);
-    try {
-      localStorage.setItem(VOICE_LANG_KEY, lang);
-    } catch {}
   }
 
   // Corner positioning coordinates relative to viewport
