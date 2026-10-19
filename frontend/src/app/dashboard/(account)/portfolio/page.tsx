@@ -105,5 +105,7 @@ export default async function PortfolioPage() {
 
   const portfolio = buildPortfolio(shortlist, profile, weightsByUniversity, completeness, locale);
 
-  return <PortfolioView portfolio={portfolio} isSuggested={isSuggested} />;
+  return (
+    <PortfolioView portfolio={portfolio} isSuggested={isSuggested} dreamUniversityId={academic.dreamUniversityId} />
+  );
 }

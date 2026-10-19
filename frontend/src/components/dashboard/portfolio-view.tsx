@@ -10,18 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { MatchBadge } from "@/components/shared/match-badge";
+import { StickerBoard } from "@/components/dashboard/sticker-board";
 import { formatProbability } from "@/lib/probability";
 import type { Portfolio } from "@/lib/portfolio";
-import { UniversityLogo } from "@/components/shared/university-logo";
 import { defineCopy, plural } from "@/lib/i18n/core";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -40,14 +31,9 @@ const copy = defineCopy({
     target: "Target",
     reach: "Reach",
     worthFixing: "Worth fixing about this list",
-    applications: "Applications",
+    applications: "Your board",
     applicationsNote:
-      "Fit score is how closely you match what each programme asks for. The estimate beside it combines that fit with the university's acceptance rate.",
-    university: "University",
-    fit: "Fit score",
-    category: "Category",
-    chance: "Estimated chance",
-    acceptance: (rate: number) => `${rate}% acceptance rate`,
+      "Each sticker is one application. Fit is how closely you match what the programme asks for; the chance combines that fit with the university's acceptance rate.",
     disclaimer:
       "These probabilities are model estimates, not measured rates — the model has not yet been fitted against real admission outcomes.",
     how: "How this is calculated",
@@ -67,14 +53,9 @@ const copy = defineCopy({
     target: "Целевые",
     reach: "Амбициозные",
     worthFixing: "Что стоит поправить в списке",
-    applications: "Заявки",
+    applications: "Твоя доска",
     applicationsNote:
-      "Балл соответствия показывает, насколько ты подходишь под требования программы. Оценка рядом объединяет его с долей принятых в университет.",
-    university: "Университет",
-    fit: "Соответствие",
-    category: "Категория",
-    chance: "Оценка шанса",
-    acceptance: (rate: number) => `принимают ${rate}%`,
+      "Каждый стикер — одна заявка. Соответствие показывает, насколько ты подходишь под требования программы; шанс объединяет его с долей принятых в университет.",
     disclaimer:
       "Эти вероятности — оценки модели, а не измеренные доли: модель ещё не сверена с реальными результатами поступления.",
     how: "Как это считается",
@@ -85,8 +66,10 @@ const copy = defineCopy({
 export async function PortfolioView({
   portfolio,
   isSuggested,
+  dreamUniversityId,
 }: {
   portfolio: Portfolio;
+  dreamUniversityId: string | null;
   /** True when the student hasn't saved enough reports yet and the list
    * below is a suggestion rather than their own shortlist. Said plainly:
    * presenting a suggestion as "your applications" would be a fiction the
@@ -172,49 +155,8 @@ export async function PortfolioView({
           <CardTitle>{t.applications}</CardTitle>
           <CardDescription>{t.applicationsNote}</CardDescription>
         </CardHeader>
-        <CardContent className="px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-4">{t.university}</TableHead>
-                <TableHead>{t.fit}</TableHead>
-                <TableHead>{t.category}</TableHead>
-                <TableHead className="pr-4 text-right">{t.chance}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {entries.map(({ university, fitScore, category, probability }) => (
-                <TableRow key={university.id}>
-                  <TableCell className="pl-4">
-                    <Link
-                      href={`/dashboard/universities/${university.slug}`}
-                      className="flex items-center gap-2.5 font-medium text-foreground hover:text-brand"
-                    >
-                      <UniversityLogo university={university} className="size-7 rounded-md p-0.5 text-[0.55rem]" />
-                      <span className="flex flex-col">
-                        {university.shortName}
-                        <span className="text-xs font-normal text-muted-foreground">
-                          {t.acceptance(university.acceptanceRate)}
-                        </span>
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{fitScore}</TableCell>
-                  <TableCell>
-                    <MatchBadge category={category} />
-                  </TableCell>
-                  <TableCell className="pr-4 text-right">
-                    <span className="font-mono text-sm font-medium">
-                      {formatProbability(probability.p)}
-                    </span>
-                    <span className="block font-mono text-xs text-muted-foreground">
-                      {formatProbability(probability.low)}–{formatProbability(probability.high)}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <CardContent>
+          <StickerBoard entries={entries} dreamUniversityId={dreamUniversityId} />
         </CardContent>
       </Card>
 
