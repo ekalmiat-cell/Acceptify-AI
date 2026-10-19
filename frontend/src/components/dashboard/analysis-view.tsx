@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MatchBadge } from "@/components/shared/match-badge";
 import { WhatIfPanel } from "@/components/dashboard/what-if-panel";
 import { AcceptedStamp } from "@/components/dashboard/acceptance/accepted-stamp";
+import { BroReaction } from "@/components/dashboard/acceptance/bro-reaction";
 import { FlightOverlay } from "@/components/dashboard/acceptance/flight-overlay";
 import { ALMATY, cityName, placeOf, type LonLat } from "@/lib/geo";
 import { computeAdmissionAnalysis } from "@/lib/scoring";
@@ -343,7 +344,7 @@ export function AnalysisView({
       )}
 
       <Card>
-        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardContent className="flex flex-col gap-3 2xl:flex-row 2xl:items-center 2xl:justify-between">
           <div className="flex w-full flex-col gap-2 sm:max-w-2xl sm:flex-row">
             <Select value={country} onValueChange={(v) => handleCountryChange(v as string)}>
               <SelectTrigger className="w-full sm:max-w-44">
@@ -403,7 +404,7 @@ export function AnalysisView({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={handleDownloadPdf} disabled={!analysis}>
               <Download />
               {t.download}
@@ -447,6 +448,12 @@ export function AnalysisView({
                 {t.confidence}
                 <span className="font-mono font-medium text-foreground">{analysis.confidence}%</span>
               </div>
+              <BroReaction
+                score={analysis.score}
+                resultKey={resultKey}
+                studentName={studentEmail ? studentName : null}
+                className="self-start px-5"
+              />
             </Card>
 
             <Card className="xl:col-span-2">
