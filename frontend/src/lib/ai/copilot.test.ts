@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { languageRule, toGeminiHistory, trimSpoken } from "@/lib/ai/copilot";
+import { conversationFlowRule, languageRule, studentTurns, toGeminiHistory, trimSpoken } from "@/lib/ai/copilot";
 
 describe("toGeminiHistory", () => {
   it("drops the widget's greeting so the conversation opens with the user", () => {
@@ -79,5 +79,40 @@ describe("trimSpoken", () => {
   it("never cuts a reply that points to the helpline", () => {
     const crisis = `${long} Позвони по номеру 150, это бесплатно и круглосуточно.`;
     expect(trimSpoken(crisis)).toBe(crisis);
+  });
+});
+
+describe("conversationFlowRule", () => {
+  it("just talks for the first two messages", () => {
+    expect(conversationFlowRule(1, false)).toContain("Do NOT steer to studying");
+    expect(conversationFlowRule(2, true)).toContain("Do NOT steer to studying");
+  });
+
+  it("nudges on the third, pushes on the fourth, and harder after that", () => {
+    expect(conversationFlowRule(3, false)).toContain("light, casual nudge");
+    expect(conversationFlowRule(4, false)).toContain("push clearly");
+    expect(conversationFlowRule(6, false)).toContain("push harder than in your last reply");
+  });
+
+  it("swears harder while pushing only in the 18+ style", () => {
+    expect(conversationFlowRule(6, true)).toContain("Swear harder");
+    expect(conversationFlowRule(6, false)).not.toContain("Swear");
+  });
+
+  it("never pushes someone in distress", () => {
+    expect(conversationFlowRule(7, true)).toContain("never push");
+  });
+});
+
+describe("studentTurns", () => {
+  it("counts what the student said, not BRO's replies or greeting", () => {
+    expect(
+      studentTurns([
+        { role: "assistant", content: "Hi" },
+        { role: "user", content: "1" },
+        { role: "assistant", content: "A" },
+        { role: "user", content: "2" },
+      ]),
+    ).toBe(2);
   });
 });

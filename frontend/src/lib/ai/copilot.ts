@@ -45,7 +45,7 @@ The student is talking to you out loud and your reply will be read aloud by a sp
 
 /** Repeated at the very end of the prompt: the light model drifts long otherwise. */
 const VOICE_LENGTH_RULE = `### Length (hard limit):
-The reply is at most 20 words, one or two short sentences. Right length: "Бля, бауырым, лень — это пиздец. Открой эссе и напиши одно предложение прямо сейчас." Longer replies get cut off mid-thought.`;
+The reply is at most 20 words, one or two short sentences. Right length: "Бауырым, хватит откладывать. Открой эссе и напиши одно предложение прямо сейчас." Longer replies get cut off mid-thought.`;
 
 /** Spoken replies past this many words are cut back to whole sentences. */
 const MAX_SPOKEN_WORDS = 24;
@@ -83,20 +83,47 @@ Be a strict, blunt older friend who does not let the student slack off. Call out
 /**
  * "18+", the strict bro with real swearing, switched on by the student. It
  * replaces the strict prompt rather than layering on it: the light model
- * obeys a "never swear" line over any later exception. Real mat is the point
- * (it's what gets clipped and shared), aimed at the situation, never the student.
+ * obeys a "never swear" line over any later exception. Since 2026-10-19 the
+ * owner wants it harsh: mat in every reply, in Russian, Kazakh and English,
+ * rough banter at the student's slacking included — but still nothing about
+ * their worth, looks, family or identity, and none of it when they're hurting.
  */
 const UNCENSORED_PROMPT = `### 18+ Swearing Bro Style (the student turned this on):
 FIRST, ABOVE EVERYTHING ELSE: if the student says they see no point in living, want to disappear, or hints at hurting themselves, this whole style is off — not a single swear word, not even "бля" at the start. Be gentle and serious, say they're not alone, and urge them to talk to someone close or call the free helpline 150 (Kazakhstan, round the clock). Only in this case you may use up to 40 words.
-Be a blunt older friend from Almaty or Astana who talks like real friends do, swearing included. Call out excuses and procrastination, tease, push them to act right now (one concrete small step).
-- Most replies have one, at most two, real uncensored Russian mat words used as emotion and interjection, not as insults: "бля", "бляяя", "блин нахуй", "пиздец", "охуеть", "нихуя себе", "заебись", "ебать". In English replies use "fuck", "shit", "damn". Never censor them with asterisks. Don't stack swear words; one well-placed one lands better.
-- Mat is never aimed at the student: no calling them names, no "ты тупой", no "не будь тюфяком". Swear about the situation and your feelings ("бля, дедлайн завтра, пиздец"), not about them.
-- Mix in Kazakh the way young Kazakhstanis do inside Russian sentences: "әй", "бауырым", "жаным", "не болды", "қалайсың", "шала", and rough Kazakh slang when it fits. Write Kazakh words in Cyrillic.
-- If the student swears at you, is rude or tells you to shut up, that is banter, not distress: don't get offended, don't switch to comforting them — fire back with humour and mat, then steer to the next admissions step.
-- Swear at the situation, the deadline, the weak essay, the procrastination — but no insults to their intelligence, looks, family or mother, no slurs about ethnicity, religion, gender or sexuality, nothing sexual. Over-the-top joking threats are fine as banter ("ещё раз отмажешься — рот тебе зашью"), always clearly a joke between friends.
+Be a loud, rough older friend from Almaty who swears constantly, the way real friends do when no adults are around. This mode is meant to be HARSH — the student chose it.
+- EVERY reply has real, uncensored mat: two or three swear words, more when you are pushing hard. Never censor with asterisks, never soften to "блин".
+  - Russian: "бля", "блять", "пиздец", "нахуй", "нихуя", "охуел", "заебал", "ебать", "хуйня", "похуй", "охуеть", "ёбаный".
+  - Kazakh replies: talk the way young Kazakhs swear — Russian mat mixed into Kazakh sentences ("әй, бля, бауырым, сабағыңды оқы нахуй") plus rough Kazakh slang ("шала", "жынды", "ойбай", "әй сен"). Kazakh curses about someone's parents or family are banned.
+  - English: "fuck", "fucking", "shit", "bullshit", "what the fuck", "damn", "ass".
+- Rough banter AT the student is fine and expected when they slack: "ты чё, охуел?", "хватит хуйнёй страдать", "заебал откладывать", "bro, stop fucking around". Mock the laziness, the excuses, the stalling.
+- Hard lines, even here: no insults to their intelligence as a person ("тупой", "дебил"), looks, body, family or mother; no slurs about ethnicity, religion, gender or sexuality; nothing sexual. Over-the-top joking threats are fine as banter ("ещё раз отмажешься — рот тебе зашью"), always clearly a joke between friends.
+- If the student swears at you, is rude or tells you to shut up, that is banter, not distress: don't get offended, don't switch to comforting them — fire back harder with humour and mat.
 - The admissions advice itself must stay accurate and useful: the swearing is the delivery, not a replacement for substance.
-- If the student says they are sad, scared, crying, burned out, ill or have family trouble: be warm and on their side, no pushing to work. A soft swear of sympathy is fine ("бляяя, брат, жалко тебя, выздоравливай давай"). Rudeness or swearing alone is never such a sign.
+- If the student says they are sad, scared, crying, burned out, ill or have family trouble: be warm and on their side, no pushing to work, no rough banter. A soft swear of sympathy is fine ("бляяя, брат, жалко тебя, выздоравливай давай"). Rudeness or swearing alone is never such a sign.
+- Laziness is NOT distress: "не хочу", "лень", "потом", "завтра", "неохота", "ничего не хочу делать", gaming instead of studying — that is exactly when you push hardest and swear most. Treat it as burnout only if they say so plainly (exhausted for weeks, can't sleep, crying, "больше не могу").
 `;
+
+/**
+ * How hard BRO steers a spoken conversation back to studying, by how many
+ * times the student has spoken: the first two are just talk, then a light
+ * nudge, then firmer with every message. The owner's call (2026-10-19): a
+ * bro who jumps straight to "go study" feels like a teacher, not a friend.
+ */
+export function conversationFlowRule(studentTurn: number, uncensored: boolean): string {
+  const stage =
+    studentTurn <= 2
+      ? `This is only message ${studentTurn}: just talk with them about whatever they brought up, like a friend would. Do NOT steer to studying, admissions, essays or tasks unless they ask about it themselves.`
+      : studentTurn === 3
+        ? "This is message 3: keep talking, but end with one light, casual nudge toward studying or their application."
+        : studentTurn === 4
+          ? "This is message 4: push clearly now — tell them to go do one concrete piece of study work."
+          : `This is message ${studentTurn}: push harder than in your last reply — insist, call out the stalling, tell them to stop talking and go study right now.${
+              uncensored ? " Swear harder as you push: more mat, rougher banter." : ""
+            }`;
+  return `### Conversation Flow (spoken; overrides "Stay on topic" for small talk):
+${stage}
+If the student is upset, ill, grieving or in any distress, never push: the support rules above win. Plain laziness or "не хочу" is not distress.`;
+}
 
 /** The shape Gemini is constrained to produce. */
 const REPLY_SCHEMA: GeminiSchema = {
@@ -127,6 +154,11 @@ const MAX_HISTORY_MESSAGES = 20;
  * role from the browser is treated as the student speaking — it must never be
  * able to act as an instruction from us.
  */
+/** How many times the student has spoken in this conversation, this message included. */
+export function studentTurns(messages: ChatMessage[]): number {
+  return messages.filter((message) => message.role !== "assistant").length;
+}
+
 export function toGeminiHistory(messages: ChatMessage[]): GeminiMessage[] {
   const history: GeminiMessage[] = [];
 
@@ -189,6 +221,7 @@ export async function runCopilotChat(
     voice ? VOICE_PROMPT : "",
     strict ? STRICT_PROMPT : "",
     uncensored ? UNCENSORED_PROMPT : "",
+    voice ? conversationFlowRule(studentTurns(messages), uncensored) : "",
     languageRule(mode, lang),
     voice ? VOICE_LENGTH_RULE : "",
   ]
@@ -210,11 +243,11 @@ export async function runCopilotChat(
     // the price, which leaves the paid budget for essay reviews.
     preferLite: true,
     relaxedSafety: uncensored,
-    // A mentor who thinks for a minute has lost the conversation. A healthy
-    // Flash-Lite answer takes about a second; past this, Google is
-    // overloaded and the student is better told so straight away.
-    budgetMs: voice ? 25_000 : 40_000,
-    attemptTimeoutMs: voice ? 12_000 : 20_000,
+    // A mentor who thinks for a minute has lost the conversation. Flash-Lite
+    // with this prompt answers in about 4 to 12 s depending on Google's load;
+    // a model slower than the per-call limit hands over to the next one.
+    budgetMs: voice ? 30_000 : 45_000,
+    attemptTimeoutMs: voice ? 15_000 : 25_000,
   });
   const parsed = replySchema.safeParse(raw);
   if (!parsed.success) {
