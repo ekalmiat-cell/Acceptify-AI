@@ -124,6 +124,14 @@ function syllableFinder() {
   };
 }
 
+/** Loudness (RMS, 0..1) of what an analyser is hearing right now. */
+export function rmsOf(analyser: AnalyserNode, buffer: Float32Array<ArrayBuffer>): number {
+  analyser.getFloatTimeDomainData(buffer);
+  let sum = 0;
+  for (const sample of buffer) sum += sample * sample;
+  return Math.sqrt(sum / buffer.length);
+}
+
 /** A reply already voiced once, so the replay button costs nothing. */
 interface VoicedReply {
   text: string;
@@ -144,6 +152,8 @@ export function useArsVoice() {
     abort: null,
   });
   const voicedRef = useRef<VoicedReply | null>(null);
+  /** Everything BRO says passes through this on its way out, so the face can swell with his voice. */
+  const meterRef = useRef<{ node: AnalyserNode; buffer: Float32Array<ArrayBuffer> } | null>(null);
 
   useEffect(() => {
     setCanListen(recognitionCtor() !== null);
@@ -180,6 +190,23 @@ export function useArsVoice() {
     if (!Ctor) return;
     audioRef.current ??= new Ctor();
     void audioRef.current.resume().catch(() => {});
+  }, []);
+
+  /** Where playback goes: the speakers, through the level meter. */
+  const output = useCallback((ctx: AudioContext): AudioNode => {
+    if (meterRef.current?.node.context !== ctx) {
+      const node = ctx.createAnalyser();
+      node.fftSize = 512;
+      node.connect(ctx.destination);
+      meterRef.current = { node, buffer: new Float32Array(node.fftSize) };
+    }
+    return meterRef.current.node;
+  }, []);
+
+  /** How loud BRO is right now (RMS, 0..1); 0 when he is silent. */
+  const outputLevel = useCallback((): number => {
+    const meter = meterRef.current;
+    return meter ? rmsOf(meter.node, meter.buffer) : 0;
   }, []);
 
   const listen = useCallback(
@@ -286,7 +313,7 @@ export function useArsVoice() {
         buffer.getChannelData(0).set(samples);
         const source = ctx.createBufferSource();
         source.buffer = buffer;
-        source.connect(ctx.destination);
+        source.connect(output(ctx));
         playAt = Math.max(playAt, ctx.currentTime + (played === 0 ? START_DELAY_SECONDS : 0.02));
         source.start(playAt);
         playback.sources.push(source);
@@ -309,7 +336,7 @@ export function useArsVoice() {
       while (alive() && ctx.currentTime < playAt) await pause(100);
       return alive() ? "done" : "stopped";
     },
-    [],
+    [output],
   );
 
   /**
@@ -377,5 +404,5 @@ export function useArsVoice() {
     [stopPlayback],
   );
 
-  return { canListen, canSpeak, listen, stopListening, speak, stopSpeaking, unlockSpeech };
+  return { canListen, canSpeak, listen, stopListening, speak, stopSpeaking, unlockSpeech, outputLevel };
 }

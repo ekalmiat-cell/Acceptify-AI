@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { rmsOf } from "@/components/dashboard/copilot/use-ars-voice";
+
 /**
  * Hears when the student starts talking over BRO, so he can stop and listen.
  *
@@ -29,6 +31,8 @@ interface Meter {
   stream: MediaStream;
   analyser: AnalyserNode;
   buffer: Float32Array<ArrayBuffer>;
+  /** A second buffer for `level`, which runs on its own clock next to `watch`. */
+  levelBuffer: Float32Array<ArrayBuffer>;
 }
 
 export function useVoiceActivity() {
@@ -63,7 +67,13 @@ export function useVoiceActivity() {
     const analyser = ctx.createAnalyser();
     analyser.fftSize = 1024;
     source.connect(highpass).connect(lowpass).connect(analyser);
-    meterRef.current = { ctx, stream, analyser, buffer: new Float32Array(analyser.fftSize) };
+    meterRef.current = {
+      ctx,
+      stream,
+      analyser,
+      buffer: new Float32Array(analyser.fftSize),
+      levelBuffer: new Float32Array(analyser.fftSize),
+    };
     return true;
   }, []);
 
@@ -92,10 +102,7 @@ export function useVoiceActivity() {
       let loudFor = 0;
 
       watchRef.current = window.setInterval(() => {
-        meter.analyser.getFloatTimeDomainData(meter.buffer);
-        let sum = 0;
-        for (const sample of meter.buffer) sum += sample * sample;
-        const rms = Math.sqrt(sum / meter.buffer.length);
+        const rms = rmsOf(meter.analyser, meter.buffer);
 
         const threshold = Math.max(MIN_VOICE_RMS, background * ABOVE_BACKGROUND);
         if (performance.now() - started < WARMUP_MS || rms < threshold) {
@@ -115,7 +122,13 @@ export function useVoiceActivity() {
     [unwatch],
   );
 
+  /** How loud the student is right now (RMS, 0..1); 0 while the microphone is closed. */
+  const level = useCallback((): number => {
+    const meter = meterRef.current;
+    return meter ? rmsOf(meter.analyser, meter.levelBuffer) : 0;
+  }, []);
+
   useEffect(() => close, [close]);
 
-  return { open, watch, unwatch, close };
+  return { open, watch, unwatch, close, level };
 }

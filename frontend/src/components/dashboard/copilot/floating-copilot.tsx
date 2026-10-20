@@ -14,6 +14,7 @@ import {
   type VoiceLang,
 } from "@/components/dashboard/copilot/use-ars-voice";
 import { useVoiceActivity } from "@/components/dashboard/copilot/use-voice-activity";
+import { VoicePulse } from "@/components/dashboard/copilot/voice-pulse";
 import { AI_LIMITS } from "@/lib/ai-limits";
 import { ApiError, describeApiError } from "@/lib/api-error";
 import { useSession } from "@/lib/auth-client";
@@ -26,6 +27,9 @@ import type { ChatMessage, CopilotAllowance, CopilotStyle } from "@/types/copilo
 type Corner = "bottom-right" | "bottom-left" | "top-right" | "top-left";
 type View = "voice" | "text";
 type Phase = "idle" | "listening" | "thinking" | "speaking";
+
+/** Listening that breaks this many times in a row (not silence: errors) ends the conversation. */
+const MAX_LISTEN_FAILURES = 3;
 
 /** Set once the mentor has made its entrance this browser session (cleared on sign-out). */
 const INTRO_KEY = "acceptify-ars-intro";
@@ -73,12 +77,12 @@ const copy = defineCopy({
     placeholder: "Ask about your chances, essays or deadlines...",
     send: "Send",
     open: "BRO, your admissions mentor (drag to any corner)",
-    tapToTalk: "Tap me and start talking",
+    tapToTalk: "Just talk, I'm listening",
     tapFace: "Talk to BRO",
-    listening: "Listening... just talk. Tap me to end the chat",
+    listening: "Listening... just talk",
     pondering: "Thinking...",
-    speaking: "Talking... speak up to cut in, tap me to end",
-    idle: "Tap me and we just talk, no more tapping",
+    speaking: "Talking... just speak up to cut in",
+    idle: "Tap me to keep talking",
     outTitle: "Out of credits",
     outBody: "You've used up today's credits on the free plan. Get Plus from 990 ₸ to keep going.",
     getPro: "Get Plus",
@@ -89,10 +93,9 @@ const copy = defineCopy({
     typeInstead: "Type instead",
     talkInstead: "Talk by voice",
     voiceLeft: (left: number, total: number) => `Voice: ${left}/${total} today`,
-    micDenied: "Allow the microphone for this site, then tap me again.",
+    micDenied: "Allow the microphone for this site, then tap me.",
     unsupported: "This browser can't hear you. Voice works in Chrome, Edge and Safari — or just type.",
-    didntHear: "Couldn't catch that. Tap me and try again.",
-    quiet: "It went quiet, so I stopped listening. Tap me to keep talking.",
+    micTrouble: "The microphone isn't working. Tap me to try again.",
     replay: "Hear the answer again",
     speechLang: "Language you speak",
     strict: "Strict",
@@ -121,12 +124,12 @@ const copy = defineCopy({
     placeholder: "Спроси о шансах, эссе или дедлайнах...",
     send: "Отправить",
     open: "BRO, твой наставник по поступлению (можно перетащить в любой угол)",
-    tapToTalk: "Нажми на меня и говори",
+    tapToTalk: "Просто говори, я слушаю",
     tapFace: "Поговорить с BRO",
-    listening: "Слушаю... просто говори. Нажми, чтобы закончить",
+    listening: "Слушаю... просто говори",
     pondering: "Думаю...",
-    speaking: "Говорю... перебей голосом или нажми, чтобы закончить",
-    idle: "Нажми — и просто болтаем, без нажатий",
+    speaking: "Говорю... перебей голосом, если надо",
+    idle: "Нажми на меня, чтобы продолжить",
     outTitle: "Кредиты закончились",
     outBody: "На бесплатном тарифе кредиты на сегодня закончились. Возьми Plus за 990 ₸, чтобы продолжить.",
     getPro: "Купить Plus",
@@ -137,10 +140,9 @@ const copy = defineCopy({
     typeInstead: "Написать",
     talkInstead: "Говорить голосом",
     voiceLeft: (left: number, total: number) => `Голос: ${left}/${total} на сегодня`,
-    micDenied: "Разреши доступ к микрофону для этого сайта и нажми на меня снова.",
+    micDenied: "Разреши доступ к микрофону для этого сайта и нажми на меня.",
     unsupported: "Этот браузер не умеет слушать. Голос работает в Chrome, Edge и Safari — или просто напиши.",
-    didntHear: "Не получилось расслышать. Нажми на меня и попробуй ещё раз.",
-    quiet: "Тишина — я перестал слушать. Нажми на меня, чтобы продолжить.",
+    micTrouble: "Микрофон не отвечает. Нажми на меня, чтобы попробовать снова.",
     replay: "Послушать ответ ещё раз",
     speechLang: "Язык, на котором ты говоришь",
     strict: "Строгий",
@@ -220,6 +222,8 @@ export function FloatingCopilot() {
     } catch {}
     setPlayIntro(firstTime);
     setIsOpen(true);
+    // Like ChatGPT's voice mode: opening BRO is the only tap, he starts listening by himself.
+    void startConversation();
     getCopilotAllowance()
       .then(setAllowance)
       .catch(() => {});
@@ -387,18 +391,20 @@ export function FloatingCopilot() {
   }
 
   /**
-   * Tapping the face starts a hands-free conversation: BRO listens, answers,
-   * and listens again by himself, and if the student starts talking while he
-   * speaks he stops and listens. Tapping again, closing the card or going
-   * quiet ends it.
+   * A hands-free conversation, started by opening the card (or switching
+   * back to voice) — no tapping: BRO listens, answers, and listens again by
+   * himself, through silences too, and if the student starts talking while
+   * he speaks he stops and listens. Closing the card or switching to typing
+   * ends it. Call it inside the tap that opened the card: that is what lets
+   * the browser play his voice later.
    */
-  async function handleFaceTap() {
-    if (voiceTired || voiceDown) return;
-    if (talkingRef.current || phase !== "idle") return endConversation();
-
-    setStarted(true);
+  async function startConversation() {
+    if (voiceTired || voiceDown || talkingRef.current) return;
     setNote(null);
-    if (!voice.canListen) return setNote(t.unsupported);
+    if (!voice.canListen) {
+      setStarted(true);
+      return setNote(t.unsupported);
+    }
 
     voice.unlockSpeech();
     talkingRef.current = true;
@@ -407,26 +413,47 @@ export function FloatingCopilot() {
     if (talkingRef.current) await converse();
   }
 
+  /** The face is no button any more, except to cut BRO off or to pick up a conversation that stopped. */
+  function handleFaceTap() {
+    if (phase === "speaking") return voice.stopSpeaking();
+    if (!talkingRef.current) void startConversation();
+  }
+
   async function converse() {
     let history = messages;
-    let first = true;
+    let failures = 0;
     while (talkingRef.current) {
       setHeard("");
       setPhase("listening");
       let text: string;
+      const listenedAt = performance.now();
       try {
-        text = await voice.listen(chipsRef.current.voiceLang, { onInterim: setHeard });
+        text = await voice.listen(chipsRef.current.voiceLang, {
+          onInterim: (interim) => {
+            setHeard(interim);
+            // The name caption stays up until the student first says something.
+            if (interim) setStarted(true);
+          },
+        });
       } catch (reason) {
         if (!talkingRef.current) return;
         const error = reason as ListenError;
+        // The browser gives up after a few quiet seconds: just listen again.
+        // Giving up at once is not silence (the mic is busy, say), so that counts as a failure.
+        const quiet = error === "no-speech" && performance.now() - listenedAt > 1500;
+        if (quiet) continue;
+        if ((error === "failed" || error === "no-speech") && ++failures < MAX_LISTEN_FAILURES) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          continue;
+        }
         endConversation();
-        setNote(
-          error === "denied" ? t.micDenied : error === "unsupported" ? t.unsupported : first ? t.didntHear : t.quiet,
-        );
+        setStarted(true);
+        setNote(error === "denied" ? t.micDenied : error === "unsupported" ? t.unsupported : t.micTrouble);
         return;
       }
       if (!talkingRef.current) return;
-      first = false;
+      failures = 0;
+      setStarted(true);
 
       setHeard(text);
       setLastReply("");
@@ -457,7 +484,10 @@ export function FloatingCopilot() {
         endConversation();
         if (err instanceof ApiError && err.status === 429) markSpent("voice");
         else if (err instanceof ApiError && err.status === 503) setVoiceDown(true);
-        else setNote(describeApiError(err, t.error));
+        else {
+          setStarted(true);
+          setNote(describeApiError(err, t.error));
+        }
         return;
       }
       // Out of voice turns for today: the sad face takes over.
@@ -476,6 +506,7 @@ export function FloatingCopilot() {
     endConversation();
     setView(next);
     if (next === "text") setTimeout(() => inputRef.current?.focus(), 150);
+    else void startConversation();
   }
 
   const isLeftCorner = corner.includes("left");
@@ -609,7 +640,14 @@ export function FloatingCopilot() {
                       aria-label={t.tapFace}
                       className="cursor-pointer rounded-[48px] outline-offset-4"
                     >
-                      <ArsFace mood={faceMood} word={word} strict={strict} className="w-[208px]" />
+                      <VoicePulse
+                        level={phase === "speaking" ? voice.outputLevel : phase === "listening" ? vad.level : null}
+                        loud={phase === "speaking" ? 0.2 : 0.1}
+                        grow={phase === "speaking" ? 0.14 : 0.07}
+                        breathing={phase === "thinking"}
+                      >
+                        <ArsFace mood={faceMood} word={word} strict={strict} className="w-[208px]" />
+                      </VoicePulse>
                     </motion.button>
 
                     <div className="mt-6 min-h-[92px] w-full text-center" aria-live="polite">
