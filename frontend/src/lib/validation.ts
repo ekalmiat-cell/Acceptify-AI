@@ -133,7 +133,7 @@ export const copilotChatSchema = z.object({
   mode: z.enum(["text", "voice"]).default("text"),
   /** The language the student speaks (voice, Kazakh included) or the interface language (text). */
   lang: z.enum(["ru", "en", "kk"]).optional(),
-  /** Voice only: "strict" is the blunt, no-excuses bro; "uncensored" adds real swearing (18+, self-confirmed). */
+  /** Voice only: "strict" is the no-excuses bro who swears for real; "uncensored" (the old 18+ chip) means the same. */
   style: z.enum(["friendly", "strict", "uncensored"]).default("friendly"),
 });
 

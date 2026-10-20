@@ -94,7 +94,7 @@ describe("conversationFlowRule", () => {
     expect(conversationFlowRule(6, false)).toContain("push harder than in your last reply");
   });
 
-  it("swears harder while pushing only in the 18+ style", () => {
+  it("swears harder while pushing only in the strict style", () => {
     expect(conversationFlowRule(6, true)).toContain("Swear harder");
     expect(conversationFlowRule(6, false)).not.toContain("Swear");
   });

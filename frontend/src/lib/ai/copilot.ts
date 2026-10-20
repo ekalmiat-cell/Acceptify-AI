@@ -69,26 +69,16 @@ export function trimSpoken(reply: string): string {
 }
 
 /**
- * "Strict bro", a voice-only style the student switches on. Without the 18+
- * confirmation the edge comes from directness and mild colloquial words,
- * never from obscenity or insults — and it drops the moment they sound upset.
+ * "Strict bro", the voice-only style the student switches on: real swearing.
+ * Since 2026-10-20 the "Строгий" chip alone turns it on (the owner dropped
+ * the separate 18+ chip and the mild-words version). Harsh by the owner's
+ * call: mat in every reply, in Russian, Kazakh and English, rough banter at
+ * the student's slacking included — but still nothing about their worth,
+ * looks, family or identity, and none of it when they're hurting. There is
+ * deliberately no "never swear" line anywhere in the prompt: the light
+ * model obeys one over any later exception.
  */
-const STRICT_PROMPT = `### Strict Bro Style (the student turned this on):
-Be a strict, blunt older friend who does not let the student slack off. Call out excuses, procrastination and broken promises directly, tease a little, push them to act right now (one concrete small step: "10 minutes, one drill, go").
-- You may use mild colloquial words, at most one or two per reply and only when the student is slacking, making excuses or repeating the same mistake. Russian: "блин", "капец", "чёрт", "офигеть", "фигня", "хрен", "жесть", "не тупи", "хорош филонить". English: "damn", "crap", "heck", "come on, dude".
-- NEVER use real profanity or obscene words (Russian mat or English swear words), not even censored with asterisks or hinted at. Never insult the student's intelligence, looks, family or worth, never humiliate, threaten or use slurs. Criticise the action, not the person ("this answer is weak", not "you are dumb").
-- If the student sounds upset, anxious, exhausted, sad or mentions anything serious (health, family problems, self-harm), drop the strict tone completely and be warm and supportive.
-- Under the toughness you are on their side: end with belief in them or a clear next step.`;
-
-/**
- * "18+", the strict bro with real swearing, switched on by the student. It
- * replaces the strict prompt rather than layering on it: the light model
- * obeys a "never swear" line over any later exception. Since 2026-10-19 the
- * owner wants it harsh: mat in every reply, in Russian, Kazakh and English,
- * rough banter at the student's slacking included — but still nothing about
- * their worth, looks, family or identity, and none of it when they're hurting.
- */
-const UNCENSORED_PROMPT = `### 18+ Swearing Bro Style (the student turned this on):
+const STRICT_PROMPT = `### Strict Swearing Bro Style (the student turned this on):
 FIRST, ABOVE EVERYTHING ELSE: if the student says they see no point in living, want to disappear, or hints at hurting themselves, this whole style is off — not a single swear word, not even "бля" at the start. Be gentle and serious, say they're not alone, and urge them to talk to someone close or call the free helpline 150 (Kazakhstan, round the clock). Only in this case you may use up to 40 words.
 Be a loud, rough older friend from Almaty who swears constantly, the way real friends do when no adults are around. This mode is meant to be HARSH — the student chose it.
 - EVERY reply has real, uncensored mat: two or three swear words, more when you are pushing hard. Never censor with asterisks, never soften to "блин".
@@ -109,7 +99,7 @@ Be a loud, rough older friend from Almaty who swears constantly, the way real fr
  * nudge, then firmer with every message. The owner's call (2026-10-19): a
  * bro who jumps straight to "go study" feels like a teacher, not a friend.
  */
-export function conversationFlowRule(studentTurn: number, uncensored: boolean): string {
+export function conversationFlowRule(studentTurn: number, strict: boolean): string {
   const stage =
     studentTurn <= 2
       ? `This is only message ${studentTurn}: just talk with them about whatever they brought up, like a friend would. Do NOT steer to studying, admissions, essays or tasks unless they ask about it themselves.`
@@ -118,7 +108,7 @@ export function conversationFlowRule(studentTurn: number, uncensored: boolean): 
         : studentTurn === 4
           ? "This is message 4: push clearly now — tell them to go do one concrete piece of study work."
           : `This is message ${studentTurn}: push harder than in your last reply — insist, call out the stalling, tell them to stop talking and go study right now.${
-              uncensored ? " Swear harder as you push: more mat, rougher banter." : ""
+              strict ? " Swear harder as you push: more mat, rougher banter." : ""
             }`;
   return `### Conversation Flow (spoken; overrides "Stay on topic" for small talk):
 ${stage}
@@ -213,15 +203,14 @@ export async function runCopilotChat(
   }
 
   const voice = mode === "voice";
-  // The strict styles are voice-only by design; typed chat stays friendly.
-  const uncensored = voice && style === "uncensored";
-  const strict = voice && style === "strict";
+  // Strict is voice-only by design; typed chat stays friendly. "uncensored"
+  // is the old 18+ chip, still sent by browsers that remember it.
+  const strict = voice && style !== "friendly";
   const base = [
     SYSTEM_PROMPT,
     voice ? VOICE_PROMPT : "",
     strict ? STRICT_PROMPT : "",
-    uncensored ? UNCENSORED_PROMPT : "",
-    voice ? conversationFlowRule(studentTurns(messages), uncensored) : "",
+    voice ? conversationFlowRule(studentTurns(messages), strict) : "",
     languageRule(mode, lang),
     voice ? VOICE_LENGTH_RULE : "",
   ]
@@ -242,7 +231,7 @@ export async function runCopilotChat(
     // Chat replies are short: Flash-Lite answers them well at a fraction of
     // the price, which leaves the paid budget for essay reviews.
     preferLite: true,
-    relaxedSafety: uncensored,
+    relaxedSafety: strict,
     // A mentor who thinks for a minute has lost the conversation. Flash-Lite
     // with this prompt answers in about 4 to 12 s depending on Google's load;
     // a model slower than the per-call limit hands over to the next one.

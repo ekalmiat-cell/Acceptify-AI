@@ -96,11 +96,8 @@ const copy = defineCopy({
     replay: "Hear the answer again",
     speechLang: "Language you speak",
     strict: "Strict",
-    strictOn: "Strict bro is on: blunt, no excuses, a few rough words. Tap to turn off.",
-    strictOff: "Turn on strict bro: blunt, no excuses, a few rough words (voice only).",
-    adult: "18+",
-    adultOn: "18+ is on: the bro swears for real. Tap to turn off.",
-    adultOff: "Turn on 18+: real swearing in Russian, Kazakh and English.",
+    strictOn: "Strict bro is on: no excuses and real swearing. Tap to turn off.",
+    strictOff: "Turn on strict bro: no excuses, real swearing in Russian, Kazakh and English (voice only).",
   },
   ru: {
     suggestions: [
@@ -147,11 +144,8 @@ const copy = defineCopy({
     replay: "Послушать ответ ещё раз",
     speechLang: "Язык, на котором ты говоришь",
     strict: "Строгий",
-    strictOn: "Строгий бро включён: прямо, без отмазок и с крепким словцом. Нажми, чтобы выключить.",
-    strictOff: "Включить строгого бро: прямо, без отмазок и с крепким словцом (только голосом).",
-    adult: "18+",
-    adultOn: "18+ включён: бро матерится по-настоящему. Нажми, чтобы выключить.",
-    adultOff: "Включить 18+: настоящий мат на русском, казахском и английском.",
+    strictOn: "Строгий бро включён: без отмазок и с настоящим матом. Нажми, чтобы выключить.",
+    strictOff: "Включить строгого бро: без отмазок, настоящий мат на русском, казахском и английском (только голосом).",
   },
 });
 
@@ -190,7 +184,6 @@ export function FloatingCopilot() {
   const [voiceLang, setVoiceLang] = useState<VoiceLang>(locale);
   const [word, setWord] = useState<SpokenWord | null>(null);
   const [strict, setStrict] = useState(false);
-  const [uncensored, setUncensored] = useState(false);
   /** Gemini's voice failed: the mentor stays silent and says so on screen. */
   const [voiceDown, setVoiceDown] = useState(false);
 
@@ -202,8 +195,8 @@ export function FloatingCopilot() {
     try {
       localStorage.removeItem(STALE_VOICE_LANG_KEY);
       const style = localStorage.getItem(STYLE_KEY);
+      // "uncensored" is what the old 18+ chip saved.
       setStrict(style === "strict" || style === "uncensored");
-      setUncensored(style === "uncensored");
     } catch {}
     getCopilotAllowance()
       .then(setAllowance)
@@ -254,24 +247,15 @@ export function FloatingCopilot() {
   function toggleStrict() {
     const next = !strict;
     setStrict(next);
-    // 18+ is a layer on top of strict, so it goes off with it.
-    setUncensored(false);
     saveStyle(next ? "strict" : "friendly");
-  }
-
-  // No age question: the owner's call. The chip itself says 18+.
-  function toggleUncensored() {
-    const next = !uncensored;
-    setUncensored(next);
-    saveStyle(next ? "uncensored" : "strict");
   }
 
   // The conversation loop outlives the render that started it; it reads the
   // chips' current state from here, so switching mid-conversation applies.
-  const chipsRef = useRef({ voiceLang, strict, uncensored });
+  const chipsRef = useRef({ voiceLang, strict });
   useEffect(() => {
-    chipsRef.current = { voiceLang, strict, uncensored };
-  }, [voiceLang, strict, uncensored]);
+    chipsRef.current = { voiceLang, strict };
+  }, [voiceLang, strict]);
 
   // Speech follows the site's language; the RU/EN chip switches it only
   // until the page is reloaded.
@@ -451,7 +435,7 @@ export function FloatingCopilot() {
       setMessages(history);
 
       const chips = chipsRef.current;
-      const style: CopilotStyle = chips.uncensored ? "uncensored" : chips.strict ? "strict" : "friendly";
+      const style: CopilotStyle = chips.strict ? "strict" : "friendly";
       let left: number | undefined;
       try {
         const res = await sendCopilotMessage(history, true, "voice", chips.voiceLang, style);
@@ -614,23 +598,6 @@ export function FloatingCopilot() {
                       <Flame className="h-3 w-3" />
                       {t.strict}
                     </button>
-                    {strict && (
-                      <button
-                        type="button"
-                        onClick={toggleUncensored}
-                        aria-pressed={uncensored}
-                        title={uncensored ? t.adultOn : t.adultOff}
-                        aria-label={uncensored ? t.adultOn : t.adultOff}
-                        className={cn(
-                          "rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors",
-                          uncensored
-                            ? "border-destructive bg-destructive text-white"
-                            : "border-border bg-background text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        {t.adult}
-                      </button>
-                    )}
                   </div>
 
                   <div className="flex flex-1 flex-col items-center justify-center px-6 pt-6">
