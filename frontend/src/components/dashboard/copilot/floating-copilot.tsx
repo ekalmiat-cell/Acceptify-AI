@@ -509,7 +509,6 @@ export function FloatingCopilot() {
         setMessages(history);
         lastSpeechRef.current = res.speech_token ? { token: res.speech_token, style } : null;
         setLastReply(res.reply);
-        noteLeft("voice", res.left);
         left = res.left;
         if (res.suggested_followups?.length) setFollowups(res.suggested_followups);
 
@@ -517,6 +516,9 @@ export function FloatingCopilot() {
         vad.watch(() => voice.stopSpeaking());
         const result = await readAloud(res.reply);
         vad.unwatch();
+        // Only now: on the last turn of the day the "out of turns" card would
+        // otherwise cover BRO while he is still saying his reply.
+        noteLeft("voice", left);
         if (result === "unavailable") return endConversation();
       } catch (err) {
         endConversation();
