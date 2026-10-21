@@ -52,9 +52,6 @@ const INTRO_KEY = "acceptify-ars-intro";
 const STALE_VOICE_LANG_KEY = "acceptify-ars-voice-lang";
 const STYLE_KEY = "acceptify-bro-style";
 
-/** Kazakh shows as KZ, the code students know from the country. */
-const VOICE_LANG_LABEL: Record<VoiceLang, string> = { ru: "RU", kk: "KZ", en: "EN" };
-
 /** Signing out ends the session, so the next sign-in gets the entrance again. */
 export function forgetArsIntro() {
   try {
@@ -108,7 +105,6 @@ const copy = defineCopy({
     unsupported: "This browser can't hear you. Voice works in Chrome, Edge and Safari — or just type.",
     micTrouble: "The microphone isn't working. Tap me to try again.",
     replay: "Hear the answer again",
-    speechLang: "Language you speak",
     strict: "Strict",
     strictOn: "Strict bro is on: no excuses and real swearing. Tap to turn off.",
     strictOff: "Turn on strict bro: no excuses, real swearing in Russian, Kazakh and English (voice only).",
@@ -155,7 +151,6 @@ const copy = defineCopy({
     unsupported: "Этот браузер не умеет слушать. Голос работает в Chrome, Edge и Safari — или просто напиши.",
     micTrouble: "Микрофон не отвечает. Нажми на меня, чтобы попробовать снова.",
     replay: "Послушать ответ ещё раз",
-    speechLang: "Язык, на котором ты говоришь",
     strict: "Строгий",
     strictOn: "Строгий бро включён: без отмазок и с настоящим матом. Нажми, чтобы выключить.",
     strictOff: "Включить строгого бро: без отмазок, настоящий мат на русском, казахском и английском (только голосом).",
@@ -200,7 +195,12 @@ export function FloatingCopilot() {
   /** Lets the last spoken reply be read in Gemini's voice (see the speech route). */
   const lastSpeechRef = useRef<{ token: string; style: CopilotStyle } | null>(null);
   const [note, setNote] = useState<string | null>(null);
-  const [voiceLang, setVoiceLang] = useState<VoiceLang>(locale);
+  /**
+   * The language the student last spoke, as Gemini heard it. Nobody picks it:
+   * it only tells the browser's recognizer what to expect, so the live
+   * caption is right; the reply follows whatever they actually say.
+   */
+  const spokenLangRef = useRef<VoiceLang>(locale);
   const [word, setWord] = useState<SpokenWord | null>(null);
   const [strict, setStrict] = useState(false);
   /** Gemini's voice failed: the mentor stays silent and says so on screen. */
@@ -273,18 +273,15 @@ export function FloatingCopilot() {
 
   // The conversation loop outlives the render that started it; it reads the
   // chips' current state from here, so switching mid-conversation applies.
-  const chipsRef = useRef({ voiceLang, strict });
+  const chipsRef = useRef({ strict });
   useEffect(() => {
-    chipsRef.current = { voiceLang, strict };
-  }, [voiceLang, strict]);
+    chipsRef.current = { strict };
+  }, [strict]);
 
-  // Speech follows the site's language; the RU/EN chip switches it only
-  // until the page is reloaded.
-  useEffect(() => setVoiceLang(locale), [locale]);
-
-  function chooseVoiceLang(lang: VoiceLang) {
-    setVoiceLang(lang);
-  }
+  // A new site language is the best first guess again.
+  useEffect(() => {
+    spokenLangRef.current = locale;
+  }, [locale]);
 
   // Determine which corner is closest when drag ends
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: { point: { x: number; y: number } }) => {
@@ -451,8 +448,10 @@ export function FloatingCopilot() {
       setPhase("listening");
       let text: string;
       const listenedAt = performance.now();
+      // The turn is recorded too, so Gemini can hear which language it is in.
+      const recording = vad.record();
       try {
-        text = await voice.listen(chipsRef.current.voiceLang, {
+        text = await voice.listen(spokenLangRef.current, {
           onInterim: (interim) => {
             setHeard(interim);
             // The name caption stays up until the student first says something.
@@ -460,6 +459,7 @@ export function FloatingCopilot() {
           },
         });
       } catch (reason) {
+        recording?.cancel();
         if (!talkingRef.current) return;
         const error = reason as ListenError;
         // The browser gives up after a few quiet seconds: just listen again.
@@ -475,6 +475,7 @@ export function FloatingCopilot() {
         setNote(error === "denied" ? t.micDenied : error === "unsupported" ? t.unsupported : t.micTrouble);
         return;
       }
+      const audio = recording?.stop() ?? null;
       if (!talkingRef.current) return;
       failures = 0;
       setStarted(true);
@@ -489,8 +490,21 @@ export function FloatingCopilot() {
       const style: CopilotStyle = chips.strict ? "strict" : "friendly";
       let left: number | undefined;
       try {
-        const res = await sendCopilotMessage(history, true, "voice", chips.voiceLang, style);
+        const res = await sendCopilotMessage(
+          history,
+          true,
+          "voice",
+          spokenLangRef.current,
+          style,
+          audio ? { mime_type: "audio/wav", data: audio } : undefined,
+        );
         if (!talkingRef.current) return;
+        // What Gemini heard beats the browser's guess, which listened for one language only.
+        if (res.heard) {
+          history = [...history.slice(0, -1), { role: "user", content: res.heard }];
+          setHeard(res.heard);
+        }
+        if (res.lang) spokenLangRef.current = res.lang;
         history = [...history, { role: "assistant", content: res.reply }];
         setMessages(history);
         lastSpeechRef.current = res.speech_token ? { token: res.speech_token, style } : null;
@@ -718,28 +732,6 @@ export function FloatingCopilot() {
 
                   <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div
-                        role="radiogroup"
-                        aria-label={t.speechLang}
-                        title={t.speechLang}
-                        className="flex rounded-full border border-border bg-background p-0.5 text-[11px] font-semibold"
-                      >
-                        {(["ru", "kk", "en"] as const).map((lang) => (
-                          <button
-                            key={lang}
-                            type="button"
-                            role="radio"
-                            aria-checked={voiceLang === lang}
-                            onClick={() => chooseVoiceLang(lang)}
-                            className={cn(
-                              "rounded-full px-2 py-0.5 uppercase transition-colors",
-                              voiceLang === lang ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                            )}
-                          >
-                            {VOICE_LANG_LABEL[lang]}
-                          </button>
-                        ))}
-                      </div>
                       {allowance && (
                         <span className="text-[11px] text-muted-foreground">
                           {t.voiceLeft(allowance.voice_left, allowance.voice_total ?? AI_LIMITS.copilot_voice.perDay)}

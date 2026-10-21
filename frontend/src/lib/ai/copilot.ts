@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@/lib/ai/gemini";
 import { HttpError } from "@/lib/http-error";
-import type { ChatMessage, CopilotChatResponse, CopilotLang, CopilotStyle } from "@/types/copilot";
+import type { ChatMessage, CopilotAudio, CopilotChatResponse, CopilotLang, CopilotStyle } from "@/types/copilot";
 
 const SYSTEM_PROMPT = `You are the student's personal admissions bro: an empathetic, brilliant, and proactive AI admissions mentor and college counselor embedded in the Acceptify AI platform. Talk like a friendly older friend who has been through admissions, never like a formal office. Your name is BRO (written in capitals, said "Бро" in Russian); if asked your name, say you are BRO.
 Never claim special training, datasets of applicant profiles, or abilities you do not have.
@@ -131,6 +131,24 @@ const replySchema = z.object({
   suggested_followups: z.array(z.coerce.string()).catch([]),
 });
 
+/** A spoken turn with its recording: also what was said, and in which language. */
+const HEARD_SCHEMA: GeminiSchema = {
+  type: "OBJECT",
+  properties: {
+    heard: { type: "STRING" },
+    lang: { type: "STRING", enum: ["ru", "kk", "en"] },
+    reply: { type: "STRING" },
+    suggested_followups: { type: "ARRAY", items: { type: "STRING" } },
+  },
+  required: ["heard", "lang", "reply", "suggested_followups"],
+  propertyOrdering: ["heard", "lang", "reply", "suggested_followups"],
+};
+
+const heardSchema = replySchema.extend({
+  heard: z.coerce.string().catch(""),
+  lang: z.enum(["ru", "kk", "en"]).optional().catch(undefined),
+});
+
 /** How much conversation is sent back to the model on each turn. */
 const MAX_HISTORY_MESSAGES = 20;
 
@@ -183,12 +201,28 @@ export function languageRule(mode: "text" | "voice", lang: CopilotLang | undefin
     : `### Reply Language:\nReply in the language of the student's latest message. If it is unclear or mixed, reply in ${name} (the student's interface language). suggested_followups are in the same language as the reply.`;
 }
 
+/**
+ * For a spoken turn that came with its recording. The browser's recognizer
+ * listens for one language only, so its transcript is a guess; Gemini hears
+ * the audio itself and answers in whatever the student actually spoke —
+ * nobody has to switch languages by hand.
+ */
+export function spokenLanguageRule(guess: CopilotLang | undefined): string {
+  const fallback = guess ? ` If you really can't tell, use ${LANGUAGE_NAME[guess]}.` : "";
+  return `### Reply Language (the student's voice is attached):
+The student's latest message is attached as audio. The text next to it is the browser's automatic transcript, made for one fixed language, so it may be wrong or garbled when they spoke another. Go by the audio.
+- Work out which language the student speaks in the audio: Russian ("ru"), Kazakh ("kk") or English ("en"). When they mix, pick the one most of the sentence is in. Put it in "lang".
+- Put in "heard" exactly what they said, written in that language (Kazakh and Russian in Cyrillic), with no comments.
+- Reply in that language, including suggested_followups. Write Kazakh in Cyrillic, in plain everyday Kazakh the way young people speak it.${fallback}`;
+}
+
 export async function runCopilotChat(
   messages: ChatMessage[],
   studentContext: string | null,
   mode: "text" | "voice" = "text",
   lang?: CopilotLang,
   style: CopilotStyle = "friendly",
+  audio?: CopilotAudio,
 ): Promise<CopilotChatResponse> {
   if (isMockAi()) {
     return {
@@ -203,6 +237,7 @@ export async function runCopilotChat(
   }
 
   const voice = mode === "voice";
+  const listened = voice && Boolean(audio);
   // Strict is voice-only by design; typed chat stays friendly. "uncensored"
   // is the old 18+ chip, still sent by browsers that remember it.
   const strict = voice && style !== "friendly";
@@ -211,7 +246,7 @@ export async function runCopilotChat(
     voice ? VOICE_PROMPT : "",
     strict ? STRICT_PROMPT : "",
     voice ? conversationFlowRule(studentTurns(messages), strict) : "",
-    languageRule(mode, lang),
+    listened ? spokenLanguageRule(lang) : languageRule(mode, lang),
     voice ? VOICE_LENGTH_RULE : "",
   ]
     .filter(Boolean)
@@ -222,12 +257,17 @@ export async function runCopilotChat(
   if (history.length === 0) {
     throw new HttpError(422, "Send a message to start the conversation.");
   }
+  // The history always ends with the student's turn: that is the one recorded.
+  const latest = history[history.length - 1];
+  if (listened && audio && latest.role === "user") {
+    latest.audio = { mimeType: audio.mime_type, data: audio.data };
+  }
 
   const raw = await generateJson({
     system,
     messages: history,
     temperature: 0.5,
-    schema: REPLY_SCHEMA,
+    schema: listened ? HEARD_SCHEMA : REPLY_SCHEMA,
     // Chat replies are short: Flash-Lite answers them well at a fraction of
     // the price, which leaves the paid budget for essay reviews.
     preferLite: true,
@@ -238,12 +278,14 @@ export async function runCopilotChat(
     budgetMs: voice ? 30_000 : 45_000,
     attemptTimeoutMs: voice ? 15_000 : 25_000,
   });
-  const parsed = replySchema.safeParse(raw);
+  const parsed = heardSchema.safeParse(raw);
   if (!parsed.success) {
     throw new HttpError(502, "The AI returned an answer we couldn't read. Please try again.");
   }
+  const heard = parsed.data.heard.trim();
   return {
     reply: voice ? trimSpoken(parsed.data.reply) : parsed.data.reply,
     suggested_followups: parsed.data.suggested_followups.slice(0, 3),
+    ...(listened ? { ...(heard ? { heard } : {}), ...(parsed.data.lang ? { lang: parsed.data.lang } : {}) } : {}),
   };
 }

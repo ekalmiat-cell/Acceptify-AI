@@ -135,6 +135,16 @@ export const copilotChatSchema = z.object({
   lang: z.enum(["ru", "en", "kk"]).optional(),
   /** Voice only: "strict" is the no-excuses bro who swears for real; "uncensored" (the old 18+ chip) means the same. */
   style: z.enum(["friendly", "strict", "uncensored"]).default("friendly"),
+  /**
+   * Voice only: the student's latest turn as recorded, 16 kHz mono WAV in
+   * base64, so Gemini hears which language they speak. About a minute at most.
+   */
+  audio: z
+    .object({
+      mime_type: z.literal("audio/wav"),
+      data: z.string().min(1).max(2_800_000).regex(/^[A-Za-z0-9+/]+={0,2}$/),
+    })
+    .optional(),
 });
 
 /** A spoken reply to read aloud, with the token the chat route signed it with. */

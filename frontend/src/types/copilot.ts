@@ -15,6 +15,13 @@ export interface CopilotChatRequest {
   mode?: CopilotMode;
   lang?: CopilotLang;
   style?: CopilotStyle;
+  /** Voice only: the student's latest turn as recorded (16 kHz mono WAV, base64). */
+  audio?: CopilotAudio;
+}
+
+export interface CopilotAudio {
+  mime_type: "audio/wav";
+  data: string;
 }
 
 export interface CopilotChatResponse {
@@ -24,6 +31,10 @@ export interface CopilotChatResponse {
   left?: number;
   /** Spoken replies only: lets the speech route read this reply aloud. */
   speech_token?: string;
+  /** When the turn came with audio: what the student actually said, as Gemini heard it. */
+  heard?: string;
+  /** When the turn came with audio: the language the student spoke in. */
+  lang?: CopilotLang;
 }
 
 export interface CopilotAllowance {

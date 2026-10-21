@@ -11,7 +11,7 @@ const copy = defineCopy({
     orEmail: "or email",
   },
   ru: {
-    updated: "Обновлено 29 сентября 2026 г.",
+    updated: "Обновлено 21 октября 2026 г.",
     orEmail: "или почта",
   },
 });

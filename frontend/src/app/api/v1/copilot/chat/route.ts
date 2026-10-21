@@ -39,7 +39,9 @@ export const POST = route(async (request) =>
     await consumeAiAllowance(user.id, feature, admin);
 
     const context = input.include_context ? await buildCopilotContext(user.id) : null;
-    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style);
+    // Only a spoken turn carries its recording; a stray one on a typed turn is ignored.
+    const audio = input.mode === "voice" ? input.audio : undefined;
+    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style, audio);
     return json({
       ...reply,
       left: await aiAllowanceLeft(user.id, feature, admin),

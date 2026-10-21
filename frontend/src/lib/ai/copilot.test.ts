@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { conversationFlowRule, languageRule, studentTurns, toGeminiHistory, trimSpoken } from "@/lib/ai/copilot";
+import {
+  conversationFlowRule,
+  languageRule,
+  spokenLanguageRule,
+  studentTurns,
+  toGeminiHistory,
+  trimSpoken,
+} from "@/lib/ai/copilot";
 
 describe("toGeminiHistory", () => {
   it("drops the widget's greeting so the conversation opens with the user", () => {
@@ -56,6 +63,26 @@ describe("languageRule", () => {
 
   it("adds nothing when the browser sent no language", () => {
     expect(languageRule("voice", undefined)).toBe("");
+  });
+});
+
+describe("spokenLanguageRule", () => {
+  it("goes by the recording, not the browser's one-language transcript", () => {
+    const rule = spokenLanguageRule("ru");
+    expect(rule).toContain("Go by the audio");
+    expect(rule).toContain('"heard"');
+    expect(rule).toContain('"lang"');
+  });
+
+  it("covers Kazakh, written in Cyrillic", () => {
+    const rule = spokenLanguageRule("ru");
+    expect(rule).toContain('Kazakh ("kk")');
+    expect(rule).toContain("Cyrillic");
+  });
+
+  it("falls back to the browser's guess only when the language can't be told", () => {
+    expect(spokenLanguageRule("en")).toContain("If you really can't tell, use English.");
+    expect(spokenLanguageRule(undefined)).not.toContain("If you really can't tell");
   });
 });
 

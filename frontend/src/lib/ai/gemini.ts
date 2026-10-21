@@ -75,6 +75,8 @@ export function liteFirst(models: string[]): string[] {
 export interface GeminiMessage {
   role: "user" | "model";
   text: string;
+  /** A recording sent with the text, e.g. the student's spoken turn (base64). */
+  audio?: { mimeType: string; data: string };
 }
 
 /**
@@ -288,7 +290,10 @@ export async function generateJson(options: {
       system_instruction: { parts: [{ text: options.system }] },
       contents: options.messages.map((message) => ({
         role: message.role,
-        parts: [{ text: message.text }],
+        parts: [
+          ...(message.audio ? [{ inline_data: { mime_type: message.audio.mimeType, data: message.audio.data } }] : []),
+          { text: message.text },
+        ],
       })),
       generationConfig: {
         temperature: options.temperature,

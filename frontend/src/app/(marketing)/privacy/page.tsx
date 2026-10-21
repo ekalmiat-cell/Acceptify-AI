@@ -124,12 +124,15 @@ function PrivacyEn() {
           questions.
         </p>
         <p>
-          <strong>Talking to Ars by voice.</strong> Your speech is turned into
-          text by your own browser’s speech recognition; in Chrome and Edge that
-          means the audio goes to Google or Microsoft for recognition, and in
-          Safari to Apple. We never record, receive or store audio — only the
-          recognised text reaches us, and it is handled like a typed question.
-          Ars’s replies are read aloud by your device.
+          <strong>Talking to BRO by voice.</strong> While you talk, your own
+          browser shows the words on screen with its speech recognition (in
+          Chrome and Edge the audio goes to Google or Microsoft for this, in
+          Safari to Apple). So that BRO understands which language you speak —
+          Russian, Kazakh or English — and answers in it without you switching
+          anything, the recording of each thing you say is also sent through our
+          server to Google Gemini together with your question. We do not keep
+          these recordings: they are not saved anywhere on our side and are gone
+          once the answer is ready. BRO’s replies are voiced by Google Gemini.
         </p>
       </LegalSection>
 
@@ -307,11 +310,13 @@ function PrivacyRu() {
           по которым можно узнать тебя или других людей.
         </p>
         <p>
-          <strong>Голосовой разговор с Арсом.</strong> Речь превращает в текст сам твой
-          браузер: в Chrome и Edge звук для распознавания уходит в Google или Microsoft, в
-          Safari — в Apple. Мы не записываем, не получаем и не храним звук — к нам приходит
-          только распознанный текст, и с ним мы обращаемся как с обычным вопросом. Ответы
-          Арса читает вслух твоё устройство.
+          <strong>Голосовой разговор с BRO.</strong> Пока ты говоришь, слова на экране
+          показывает распознавание речи твоего браузера (в Chrome и Edge звук для этого
+          уходит в Google или Microsoft, в Safari — в Apple). Чтобы BRO сам понял, на каком
+          языке ты говоришь — русском, казахском или английском, — и отвечал на нём без
+          всяких переключателей, запись каждой твоей реплики вместе с вопросом отправляется
+          через наш сервер в Google Gemini. Мы эти записи не храним: они нигде у нас не
+          сохраняются и исчезают, как только готов ответ. Ответы BRO озвучивает Google Gemini.
         </p>
       </LegalSection>
 

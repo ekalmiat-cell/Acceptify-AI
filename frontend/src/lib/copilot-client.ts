@@ -4,6 +4,7 @@ import { apiFetch } from "@/lib/api-client";
 import type {
   ChatMessage,
   CopilotAllowance,
+  CopilotAudio,
   CopilotChatResponse,
   CopilotLang,
   CopilotMode,
@@ -20,6 +21,8 @@ export async function sendCopilotMessage(
   mode: CopilotMode = "text",
   lang?: CopilotLang,
   style: CopilotStyle = "friendly",
+  /** Voice only: the recorded turn, so the reply follows the language actually spoken. */
+  audio?: CopilotAudio,
 ): Promise<CopilotChatResponse> {
   return apiFetch<CopilotChatResponse>("/api/v1/copilot/chat", {
     method: "POST",
@@ -29,6 +32,7 @@ export async function sendCopilotMessage(
       mode,
       lang,
       style,
+      audio,
     }),
     signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
   });
