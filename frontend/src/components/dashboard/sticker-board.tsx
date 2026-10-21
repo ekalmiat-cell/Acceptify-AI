@@ -72,7 +72,7 @@ export function StickerBoard({
 
   return (
     <div
-      className="grid gap-4 rounded-2xl border bg-mk-deep p-4 sm:p-5 md:grid-cols-3"
+      className="grid grid-cols-1 gap-4 rounded-2xl border bg-mk-deep p-4 sm:p-5 md:grid-cols-3"
       style={{
         backgroundImage: "radial-gradient(color-mix(in oklab, var(--mk-ink) 10%, transparent) 1px, transparent 1px)",
         backgroundSize: "18px 18px",

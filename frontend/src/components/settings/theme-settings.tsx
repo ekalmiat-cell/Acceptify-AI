@@ -52,7 +52,7 @@ export function ThemeSettings() {
         <CardDescription>{t.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {options.map((option) => {
             const isActive = mounted && theme === option.value;
             return (
@@ -61,7 +61,7 @@ export function ThemeSettings() {
                 type="button"
                 onClick={() => setTheme(option.value)}
                 className={cn(
-                  "relative flex flex-col items-center gap-2.5 rounded-xl border p-5 text-sm font-medium transition-all",
+                  "relative flex flex-col items-center gap-2.5 rounded-xl border px-2 py-4 text-sm font-medium transition-all sm:p-5",
                   isActive
                     ? "border-primary bg-primary/5 ring-1 ring-primary"
                     : "border-border hover:bg-muted"

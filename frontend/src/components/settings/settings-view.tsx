@@ -54,16 +54,18 @@ export function SettingsView({ predictionsUsed, isAdmin = false }: { predictions
   const defaultTab = tabs.some((t) => t.value === requestedTab) ? requestedTab! : "theme";
 
   return (
-    <Tabs defaultValue={defaultTab} orientation="vertical" className="flex-row gap-8">
+    // A side menu on a computer; on a phone it becomes a row on top that
+    // scrolls sideways, or it would leave the settings a sliver of the screen.
+    <Tabs defaultValue={defaultTab} orientation="vertical" className="flex-col gap-5 md:flex-row md:gap-8">
       <TabsList
         variant="line"
-        className="h-fit w-48 shrink-0 flex-col items-stretch bg-transparent p-0"
+        className="h-fit w-full shrink-0 items-stretch justify-start overflow-x-auto bg-transparent p-0 [scrollbar-width:none] max-md:flex-row! md:w-48 md:flex-col"
       >
         {tabs.map((tab) => (
           <TabsTrigger
             key={tab.value}
             value={tab.value}
-            className="justify-start gap-2 px-3 py-2 data-active:bg-muted"
+            className="flex-none justify-start gap-2 px-3 py-2 data-active:bg-muted max-md:w-auto! max-md:after:hidden md:flex-1"
           >
             <tab.icon className="size-4" />
             {t[tab.value]}
@@ -72,7 +74,7 @@ export function SettingsView({ predictionsUsed, isAdmin = false }: { predictions
         {isAdmin ? (
           <Link
             href="/dashboard/admin"
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <ShieldCheck className="size-4" />
             {t.admin}
