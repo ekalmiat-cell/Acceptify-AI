@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, animate, useDragControls, useMotionValue } from "framer-motion";
 import Link from "next/link";
 import { X, Send, Loader2, User, RotateCcw, Minimize2, Maximize2, Keyboard, Mic, Volume2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,17 @@ import { cn } from "@/lib/utils";
 import type { ChatMessage, CopilotAllowance, CopilotStyle } from "@/types/copilot";
 
 type Corner = "bottom-right" | "bottom-left" | "top-right" | "top-left";
+
+/**
+ * Where each corner sits. Plain classes rather than animated top/left: framer
+ * can't tween "auto", so animating them left Ars mid-screen on a phone.
+ */
+const CORNER_CLASS: Record<Corner, string> = {
+  "top-left": "top-20 left-6",
+  "top-right": "top-20 right-6",
+  "bottom-left": "bottom-6 left-6",
+  "bottom-right": "bottom-6 right-6",
+};
 type View = "voice" | "text";
 type Phase = "idle" | "listening" | "thinking" | "speaking";
 
@@ -175,6 +186,12 @@ export function FloatingCopilot() {
   const [isLoading, setIsLoading] = useState(false);
   const [followups, setFollowups] = useState<string[]>(INITIAL_SUGGESTIONS);
   const [isDragging, setIsDragging] = useState(false);
+  // The drag offset; after a drop it springs back to 0 at the new corner.
+  const dragX = useMotionValue(0);
+  const dragY = useMotionValue(0);
+  const moverRef = useRef<HTMLDivElement>(null);
+  const dropRect = useRef<DOMRect | null>(null);
+  const [drops, setDrops] = useState(0);
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [started, setStarted] = useState(false);
@@ -269,27 +286,17 @@ export function FloatingCopilot() {
     setVoiceLang(lang);
   }
 
-  // Corner positioning coordinates relative to viewport
-  const getCornerPosition = (c: Corner) => {
-    switch (c) {
-      case "top-left":
-        return { top: 80, left: 24, bottom: "auto", right: "auto" };
-      case "top-right":
-        return { top: 80, right: 24, bottom: "auto", left: "auto" };
-      case "bottom-left":
-        return { bottom: 24, left: 24, top: "auto", right: "auto" };
-      case "bottom-right":
-      default:
-        return { bottom: 24, right: 24, top: "auto", left: "auto" };
-    }
-  };
-
   // Determine which corner is closest when drag ends
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: { point: { x: number; y: number } }) => {
     setIsDragging(false);
     if (typeof window === "undefined") return;
 
-    const { x, y } = info.point;
+    dropRect.current = moverRef.current?.getBoundingClientRect() ?? null;
+    setDrops((n) => n + 1);
+
+    // info.point is on the page; Ars lives on the screen, so take the scroll off.
+    const x = info.point.x - window.scrollX;
+    const y = info.point.y - window.scrollY;
     const midX = window.innerWidth / 2;
     const midY = window.innerHeight / 2;
 
@@ -306,6 +313,23 @@ export function FloatingCopilot() {
       setCorner("bottom-right");
     }
   };
+
+  // Once the new corner is laid out, start Ars where he was dropped and let
+  // him glide in, instead of keeping the drag offset on top of the corner.
+  useLayoutEffect(() => {
+    const el = moverRef.current;
+    const from = dropRect.current;
+    dropRect.current = null;
+    if (!el || !from) return;
+    dragX.set(0);
+    dragY.set(0);
+    const to = el.getBoundingClientRect();
+    dragX.set(from.left - to.left);
+    dragY.set(from.top - to.top);
+    const spring = { type: "spring", stiffness: 350, damping: 28 } as const;
+    animate(dragX, 0, spring);
+    animate(dragY, 0, spring);
+  }, [drops, dragX, dragY]);
 
   function markSpent(mode: "text" | "voice") {
     setAllowance((prev) => ({
@@ -538,9 +562,13 @@ export function FloatingCopilot() {
         dragElastic={0.15}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={handleDragEnd}
-        animate={getCornerPosition(corner)}
-        transition={{ type: "spring", stiffness: 350, damping: 28 }}
-        className={cn("pointer-events-auto absolute flex flex-col", isLeftCorner ? "items-start" : "items-end")}
+        ref={moverRef}
+        style={{ x: dragX, y: dragY }}
+        className={cn(
+          "pointer-events-auto absolute flex flex-col",
+          CORNER_CLASS[corner],
+          isLeftCorner ? "items-start" : "items-end",
+        )}
       >
         <AnimatePresence>
           {isOpen && (

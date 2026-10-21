@@ -52,6 +52,9 @@ export async function generateMetadata(): Promise<Metadata> {
     // Lets iPhone "Add to Home Screen" open full-screen, like the installed
     // app on Android and Windows (see app/manifest.ts).
     appleWebApp: { capable: true, title: siteConfig.shortName, statusBarStyle: "default" },
+    // iPhone Safari otherwise turns scores, counts and dates into blue
+    // phone/date links, so the numbers look different than on a computer.
+    formatDetection: { telephone: false, date: false, address: false, email: false },
   };
 }
 

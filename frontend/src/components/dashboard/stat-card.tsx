@@ -27,13 +27,13 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <Card className="hover-lift">
-      <CardContent className="flex items-start justify-between gap-4">
-        <div>
+      <CardContent className="flex items-start justify-between gap-2 sm:gap-4">
+        <div className="min-w-0">
           <p className="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">
             <span className={cn("size-1.5 shrink-0 rounded-full", accentDot[accent])} />
             {label}
           </p>
-          <p className="mt-2.5 font-display text-[1.75rem] leading-none font-bold text-foreground">{value}</p>
+          <p className="mt-2.5 font-display text-2xl leading-none sm:text-[1.75rem] font-bold text-foreground">{value}</p>
           {trend ? (
             <p
               className={cn(

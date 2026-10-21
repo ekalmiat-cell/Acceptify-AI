@@ -24,7 +24,9 @@ export default async function DashboardLayout({
       {/* Warm paper behind the white cards, like sheets on a desk. */}
       <SidebarInset className="bg-mk-deep">
         <DashboardHeader />
-        <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
+        {/* overflow-x-clip: stickers and stamps that animate in tilted must
+            not widen the page on a phone. */}
+        <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-x-clip p-4 md:p-6">{children}</div>
       </SidebarInset>
       <FloatingCopilot />
     </SidebarProvider>

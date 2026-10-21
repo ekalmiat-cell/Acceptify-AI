@@ -115,7 +115,7 @@ export default async function DashboardOverviewPage() {
 
       <OutcomeReminder predictions={safePredictions} universities={safeUniversities} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <StatCard label={t.average} value={`${avgScore}/100`} icon={Sparkles} accent="brand" />
         <StatCard label={t.safe} value={String(safeCount)} icon={ShieldCheck} accent="emerald" />
         <StatCard label={t.target} value={String(targetCount)} icon={Target} accent="amber" />

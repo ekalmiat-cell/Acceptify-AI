@@ -94,7 +94,7 @@ export function AiDemoSection({ universities }: { universities: CatalogUniversit
           className="mb-16"
         />
 
-        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <FadeIn className="relative flex flex-col gap-7 rounded-2xl border border-mk-ink/10 bg-mk-deep p-7 sm:p-8">
             <p className="font-mono text-[11px] tracking-[0.2em] text-mk-ink/50 uppercase">{t.panel}</p>
             <span className="pointer-events-none absolute top-5 right-6 -rotate-6 font-hand text-2xl text-mk-accent" aria-hidden="true">

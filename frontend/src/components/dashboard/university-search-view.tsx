@@ -237,7 +237,12 @@ export function UniversitySearchView({
         </Select>
       </div>
 
-      <Tabs value={category} onValueChange={(v) => setCategory(v as CategoryFilter)}>
+      {/* Four counts don't fit a phone: the row scrolls sideways there. */}
+      <Tabs
+        value={category}
+        onValueChange={(v) => setCategory(v as CategoryFilter)}
+        className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0"
+      >
         <TabsList>
           <TabsTrigger value="all">
             {t.all} ({counts.all})

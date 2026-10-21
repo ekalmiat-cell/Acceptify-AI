@@ -45,7 +45,7 @@ export async function QuickStatusRow({
   const locale = await getLocale();
   const t = copy[locale];
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
       <Link href="/dashboard/profile">
         <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
@@ -53,7 +53,7 @@ export async function QuickStatusRow({
               <UserRound className="size-3.5" />
               {t.completion}
             </div>
-            <p className="font-display text-[1.75rem] leading-none font-bold text-foreground">
+            <p className="font-display text-2xl leading-none font-bold text-foreground sm:text-[1.75rem]">
               {profileCompleteness}%
             </p>
             <Progress value={profileCompleteness}>
@@ -72,7 +72,7 @@ export async function QuickStatusRow({
               <GraduationCap className="size-3.5" />
               {t.dream}
             </div>
-            <p className="truncate font-display text-lg font-bold text-foreground">
+            <p className="truncate font-display text-base font-bold text-foreground sm:text-lg">
               {dreamUniversity?.name ?? t.notSelected}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -84,14 +84,15 @@ export async function QuickStatusRow({
         </Card>
       </Link>
 
-      <Link href="/dashboard/analysis">
+      {/* Full width on a phone: "Not started" in the display face needs the room. */}
+      <Link href="/dashboard/analysis" className="col-span-2 sm:col-span-1">
         <Card className="hover-lift h-full">
           <CardContent className="flex flex-col gap-3">
             <div className="flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] text-muted-foreground uppercase">
               <ListChecks className="size-3.5" />
               {t.analysis}
             </div>
-            <p className="font-display text-[1.75rem] leading-none font-bold text-foreground">
+            <p className="font-display text-2xl leading-none font-bold text-foreground sm:text-[1.75rem]">
               {reportsCount > 0 ? t.reports(reportsCount) : t.notStarted}
             </p>
             <p className="text-xs text-muted-foreground">
