@@ -129,6 +129,11 @@ describe("conversationFlowRule", () => {
   it("never pushes someone in distress", () => {
     expect(conversationFlowRule(7, true)).toContain("never push");
   });
+
+  it("answers the question before pushing, and not toward the essay by default", () => {
+    expect(conversationFlowRule(5, false)).toContain("answer it first");
+    expect(conversationFlowRule(5, false)).toContain("not the essay by default");
+  });
 });
 
 describe("studentTurns", () => {
