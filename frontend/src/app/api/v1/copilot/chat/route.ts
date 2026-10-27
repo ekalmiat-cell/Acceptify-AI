@@ -5,7 +5,7 @@ import { speechAvailable, speechToken } from "@/lib/ai/speech";
 import { isAdminUser } from "@/lib/admin";
 import { dailyLimit } from "@/lib/ai-limits";
 import { withAiErrorLog } from "@/lib/data/ai-errors";
-import { aiAllowanceLeft, consumeAiAllowance } from "@/lib/data/ai-usage";
+import { aiAllowanceLeft, consumeAiAllowance, refundAiAllowance } from "@/lib/data/ai-usage";
 import { HttpError, json, readJson, requireUser, route } from "@/lib/route";
 import { copilotChatSchema } from "@/lib/validation";
 
@@ -38,10 +38,17 @@ export const POST = route(async (request) =>
     }
     await consumeAiAllowance(user.id, feature, admin);
 
-    const context = input.include_context ? await buildCopilotContext(user.id) : null;
     // Only a spoken turn carries its recording; a stray one on a typed turn is ignored.
     const audio = input.mode === "voice" ? input.audio : undefined;
-    const reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style, audio);
+    let reply: Awaited<ReturnType<typeof runCopilotChat>>;
+    try {
+      const context = input.include_context ? await buildCopilotContext(user.id) : null;
+      reply = await runCopilotChat(input.messages, context, input.mode, input.lang, input.style, audio);
+    } catch (error) {
+      // No answer, no turn spent.
+      await refundAiAllowance(user.id, feature);
+      throw error;
+    }
     return json({
       ...reply,
       left: await aiAllowanceLeft(user.id, feature, admin),

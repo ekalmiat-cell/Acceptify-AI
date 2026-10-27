@@ -274,11 +274,12 @@ export async function runCopilotChat(
     // the price, which leaves the paid budget for essay reviews.
     preferLite: true,
     relaxedSafety: strict,
-    // A mentor who thinks for a minute has lost the conversation. Flash-Lite
-    // with this prompt answers in about 4 to 12 s depending on Google's load;
-    // a model slower than the per-call limit hands over to the next one.
+    // A mentor who thinks for a minute has lost the conversation. A spoken
+    // reply takes 2 to 6 s when Google is fine; one that is not there by 8 s
+    // usually hangs until the timeout (measured 2026-10-27), so hand over to
+    // the next model early instead of spending half the budget waiting.
     budgetMs: voice ? 30_000 : 45_000,
-    attemptTimeoutMs: voice ? 15_000 : 25_000,
+    attemptTimeoutMs: voice ? 8_000 : 25_000,
   });
   const parsed = heardSchema.safeParse(raw);
   if (!parsed.success) {

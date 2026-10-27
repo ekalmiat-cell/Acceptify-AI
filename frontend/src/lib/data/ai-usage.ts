@@ -37,6 +37,21 @@ export async function consumeAiAllowance(userId: string, feature: AiFeature, adm
   }
 }
 
+/**
+ * Gives back the use counted for a request that then failed (the AI timed
+ * out, say): the student got no answer, so it should not cost them a turn.
+ * Best-effort, like the logging: a problem here is never a second error.
+ */
+export async function refundAiAllowance(userId: string, feature: AiFeature): Promise<void> {
+  await pgPool
+    .query(
+      `UPDATE ai_usage SET count = GREATEST(count - 1, 0)
+       WHERE user_id = $1 AND feature = $2 AND window_start = date_trunc('day', now())`,
+      [userId, feature],
+    )
+    .catch((error) => console.error("[ai-usage] could not refund", error));
+}
+
 /** How many uses of `feature` the user has left today. */
 export async function aiAllowanceLeft(userId: string, feature: AiFeature, admin = false): Promise<number> {
   const result = await pgPool.query<{ count: number }>(
