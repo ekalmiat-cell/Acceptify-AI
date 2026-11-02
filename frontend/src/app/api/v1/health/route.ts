@@ -45,7 +45,8 @@ const baseChecks = unstable_cache(
     try {
       const usage = await pgPool.query<{ feature: string; requests: string }>(
         `SELECT feature, sum(count)::text AS requests FROM ai_usage
-         WHERE window_start > now() - interval '24 hours' GROUP BY feature`,
+         WHERE window_start > now() - interval '24 hours' AND user_id <> '__site__'
+         GROUP BY feature`,
       );
       recent = {
         requestsLast24h: Object.fromEntries(

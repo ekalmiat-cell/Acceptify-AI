@@ -22,6 +22,19 @@ export const AI_LIMITS = {
 
 export type AiFeature = keyof typeof AI_LIMITS;
 
+/**
+ * Daily ceilings for the whole site, all students together. The per-user
+ * limits above stop one busy student; these stop many accounts (sign-up needs
+ * no verified email) from adding up to more than the Gemini credit can pay
+ * for. Sized for a few dozen active students; the admin is not held to them.
+ */
+export const SITE_AI_LIMITS: Record<AiFeature, number> = {
+  essay_review: 100,
+  copilot: 400,
+  copilot_voice: 100,
+  training_feedback: 200,
+};
+
 /** The day's allowance for one user. */
 export function dailyLimit(feature: AiFeature, admin = false): number {
   const limit: Limit = AI_LIMITS[feature];

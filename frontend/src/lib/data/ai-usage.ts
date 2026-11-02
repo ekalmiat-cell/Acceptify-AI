@@ -1,16 +1,40 @@
 import "server-only";
 
-import { dailyLimit, type AiFeature } from "@/lib/ai-limits";
+import { dailyLimit, SITE_AI_LIMITS, type AiFeature } from "@/lib/ai-limits";
 import { pgPool } from "@/lib/db";
 import { HttpError } from "@/lib/http-error";
 
+/** The counter row that totals a feature across every user (not a real user id). */
+export const SITE_USER_ID = "__site__";
+
 /**
  * Counts one use of `feature` against the user's allowance for the current
- * hour, or throws a 429 when it is already spent. Atomic: the increment and
- * the read are one statement, so parallel requests cannot both slip under.
+ * day and the whole site's, or throws a 429 when either is already spent.
+ * Atomic: each increment and its check are one statement, so parallel
+ * requests cannot both slip under.
  */
 export async function consumeAiAllowance(userId: string, feature: AiFeature, admin = false): Promise<void> {
   const perDay = dailyLimit(feature, admin);
+
+  // The site-wide counter goes first, and only moves while it is under the
+  // cap, so a refused request never inflates it. The admin is counted but
+  // never refused, so they can still look into a day that ran out.
+  const siteCap = admin ? 2_147_483_647 : SITE_AI_LIMITS[feature];
+  const site = await pgPool.query(
+    `INSERT INTO ai_usage (user_id, feature, window_start, count)
+     VALUES ($1, $2, date_trunc('day', now()), 1)
+     ON CONFLICT (user_id, feature, window_start)
+       DO UPDATE SET count = ai_usage.count + 1
+       WHERE ai_usage.count < $3
+     RETURNING count`,
+    [SITE_USER_ID, feature, siteCap],
+  );
+  if (site.rowCount === 0) {
+    throw new HttpError(
+      429,
+      "Today's free AI allowance for the whole site is used up. It resets overnight — please try again tomorrow.",
+    );
+  }
 
   const result = await pgPool.query<{ count: number }>(
     `INSERT INTO ai_usage (user_id, feature, window_start, count)
@@ -22,6 +46,8 @@ export async function consumeAiAllowance(userId: string, feature: AiFeature, adm
   );
 
   if (result.rows[0].count > perDay) {
+    // The student's own ceiling refused this one: give the site its slot back.
+    await refundCounter(SITE_USER_ID, feature);
     throw new HttpError(
       429,
       `You've used today's ${perDay} for this feature. It refills tomorrow.`,
@@ -43,6 +69,10 @@ export async function consumeAiAllowance(userId: string, feature: AiFeature, adm
  * Best-effort, like the logging: a problem here is never a second error.
  */
 export async function refundAiAllowance(userId: string, feature: AiFeature): Promise<void> {
+  await Promise.all([refundCounter(userId, feature), refundCounter(SITE_USER_ID, feature)]);
+}
+
+async function refundCounter(userId: string, feature: AiFeature): Promise<void> {
   await pgPool
     .query(
       `UPDATE ai_usage SET count = GREATEST(count - 1, 0)
