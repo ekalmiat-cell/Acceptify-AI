@@ -17,10 +17,11 @@ export const pgPool =
   globalForDb.pgPool ??
   new Pool({
     connectionString: env.DATABASE_URL,
+    // TLS with the server's certificate verified (Neon's is publicly signed).
     ssl:
       env.DATABASE_URL.includes("neon.tech") ||
       env.DATABASE_URL.includes("sslmode=require")
-        ? { rejectUnauthorized: false }
+        ? { rejectUnauthorized: true }
         : undefined,
     // Serverless functions each hold their own pool; keep them small so a
     // burst of instances cannot exhaust a free-tier connection limit.

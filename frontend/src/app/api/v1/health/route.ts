@@ -2,28 +2,26 @@ import { unstable_cache } from "next/cache";
 
 import { runCopilotChat } from "@/lib/ai/copilot";
 import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
-import { adminEmails } from "@/lib/admin";
+import { adminEmails, isAdminUser } from "@/lib/admin";
 import { recentAiErrors } from "@/lib/data/ai-errors";
 import { pgPool } from "@/lib/db";
 import { isMailConfigured, isMailDeliverable } from "@/lib/email";
 import { env } from "@/lib/env.server";
 import { json, route } from "@/lib/route";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 /**
- * Public health check: can this deployment reach its database, is it
- * migrated, is mail and AI configured, and how did recent AI calls fail?
+ * Health check. Anyone gets a bare "is the database up" answer, which is all
+ * an uptime monitor needs. The detail — migrations, mail and AI setup, recent
+ * AI failures, Google's error text, the admin allow-list — is for the signed-in
+ * admin only: it describes the deployment, and `?probe=1` spends the Gemini
+ * quota, so neither belongs on an open URL.
  *
- * Public so a broken deployment can be diagnosed without signing in. It
- * reveals no secrets — only whether they are set, migration names, and
- * Google's error text.
- *
- * It does not call Gemini by default: the free tier allows only ~20
- * requests a minute per model for the whole site, and a live probe costs
- * five. Add `?probe=1` to test the models for real; that result is cached
- * for five minutes so the endpoint cannot be used to burn the quota.
+ * The probe does not run by default: the free tier is small and a live probe
+ * costs five calls. Its result is cached for five minutes.
  */
 const baseChecks = unstable_cache(
   async () => {
@@ -117,7 +115,27 @@ const aiProbe = unstable_cache(
   { revalidate: 300 },
 );
 
+/** Just whether the database answers; cached so a flood of pings costs one query. */
+const publicStatus = unstable_cache(
+  async () => {
+    try {
+      await pgPool.query("SELECT 1");
+      return { ok: true };
+    } catch {
+      return { ok: false };
+    }
+  },
+  ["health-public"],
+  { revalidate: 30 },
+);
+
 export const GET = route(async (request) => {
+  const session = await getSession();
+  if (!session || !isAdminUser(session.user)) {
+    const status = await publicStatus();
+    return json({ ...status, checkedAt: new Date().toISOString() }, status.ok ? 200 : 503);
+  }
+
   const base = await baseChecks();
   if (new URL(request.url).searchParams.get("probe") !== "1") return json(base);
   return json({ ...base, ai: { ...base.ai, ...(await aiProbe()) } });

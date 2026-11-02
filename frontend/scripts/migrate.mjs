@@ -35,7 +35,7 @@ const needsSsl =
 
 const pool = new pg.Pool({
   connectionString,
-  ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
+  ssl: needsSsl ? { rejectUnauthorized: true } : undefined,
   connectionTimeoutMillis: 15_000,
 });
 
