@@ -4,6 +4,7 @@ import { ChevronRight, ShieldCheck } from "lucide-react";
 
 import { AdminResetLink } from "@/components/admin/admin-reset-link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { listUsersForAdmin, type AdminUser } from "@/lib/data/admin-users";
 import { getBetaStats, type BetaStats } from "@/lib/data/beta-stats";
 import { getUniversities } from "@/lib/universities-server";
 import { UniversityLogo } from "@/components/shared/university-logo";
@@ -23,6 +24,10 @@ const copy = defineCopy({
     steps: ["Signed up", "Filled in scores", "Ran an analysis", "Reviewed an essay"],
     ofSignups: (percent: string) => `${percent} of sign-ups`,
     perDay: "Sign-ups per day, last 14 days",
+    users: "Students",
+    usersNote: (total: number) => `${total} signed up, newest first. Names and sign-in method only.`,
+    unnamed: "No name",
+    methods: { google: "Google", apple: "Apple", credential: "Email" } as Record<string, string>,
   },
   ru: {
     title: "Админка",
@@ -35,6 +40,10 @@ const copy = defineCopy({
     steps: ["Зарегистрировались", "Заполнили баллы", "Сделали анализ", "Отправили эссе на разбор"],
     ofSignups: (percent: string) => `${percent} от регистраций`,
     perDay: "Регистрации по дням, последние 14 дней",
+    users: "Ученики",
+    usersNote: (total: number) => `Зарегистрировано ${total}, сначала новые. Только имена и способ входа.`,
+    unnamed: "Без имени",
+    methods: { google: "Google", apple: "Apple", credential: "Почта" } as Record<string, string>,
   },
 });
 
@@ -45,7 +54,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AdminPage() {
-  const [universities, stats, locale] = await Promise.all([getUniversities(), getBetaStats(), getLocale()]);
+  const [universities, stats, users, locale] = await Promise.all([
+    getUniversities(),
+    getBetaStats(),
+    listUsersForAdmin(),
+    getLocale(),
+  ]);
   const t = copy[locale];
 
   return (
@@ -61,6 +75,8 @@ export default async function AdminPage() {
       </div>
 
       <BetaFunnelCard t={t} stats={stats} />
+
+      <UsersCard t={t} users={users} total={stats.users} locale={locale} />
 
       <AdminResetLink />
 
@@ -89,6 +105,44 @@ export default async function AdminPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function UsersCard({
+  t,
+  users,
+  total,
+  locale,
+}: {
+  t: Copy;
+  users: AdminUser[];
+  total: number;
+  locale: string;
+}) {
+  const date = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t.users}</CardTitle>
+        <CardDescription>{t.usersNote(total)}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ul className="flex max-h-96 flex-col divide-y overflow-y-auto text-sm">
+          {users.map((user, index) => (
+            <li key={index} className="flex items-center gap-3 py-2">
+              <span className="min-w-0 flex-1 truncate font-medium">{user.name.trim() || t.unnamed}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {user.methods.map((method) => t.methods[method] ?? method).join(", ")}
+              </span>
+              <span className="w-24 shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums">
+                {date.format(new Date(user.createdAt))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 
