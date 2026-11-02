@@ -18,6 +18,12 @@ export const AI_LIMITS = {
   /** Spoken turns with Ars. Each is voiced by Gemini and paid per second, so students get half the admin's. */
   copilot_voice: { perDay: 5, adminPerDay: 10 },
   training_feedback: { perDay: 3 },
+  /**
+   * AI admission-chance estimates. Only a cache miss is counted: looking at
+   * an estimate that was already made, by anyone, is free. The admin gets
+   * more to look into odd results.
+   */
+  chance: { perDay: 12, adminPerDay: 60 },
 } satisfies Record<string, Limit>;
 
 export type AiFeature = keyof typeof AI_LIMITS;
@@ -33,6 +39,7 @@ export const SITE_AI_LIMITS: Record<AiFeature, number> = {
   copilot: 400,
   copilot_voice: 100,
   training_feedback: 200,
+  chance: 300,
 };
 
 /** The day's allowance for one user. */

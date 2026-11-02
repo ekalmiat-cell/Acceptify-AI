@@ -1,6 +1,6 @@
 import { buildCopilotContext } from "@/lib/ai/context";
 import { runCopilotChat } from "@/lib/ai/copilot";
-import { assertAiAvailable } from "@/lib/ai/gemini";
+import { assertAiAvailable } from "@/lib/ai/llm";
 import { speechAvailable, speechToken } from "@/lib/ai/speech";
 import { isAdminUser } from "@/lib/admin";
 import { dailyLimit } from "@/lib/ai-limits";

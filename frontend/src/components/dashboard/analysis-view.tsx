@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchBadge } from "@/components/shared/match-badge";
+import { ChanceCard } from "@/components/dashboard/chance-card";
 import { WhatIfPanel } from "@/components/dashboard/what-if-panel";
 import { AcceptedStamp } from "@/components/dashboard/acceptance/accepted-stamp";
 import { BroReaction } from "@/components/dashboard/acceptance/bro-reaction";
@@ -484,6 +485,13 @@ export function AnalysisView({
               </CardContent>
             </Card>
           </div>
+
+          <ChanceCard
+            key={`chance:${university.id}:${programId}`}
+            universityId={university.id}
+            programId={programId || null}
+            hasProfile={Boolean(profile)}
+          />
 
           {/* Keyed on the evaluation model: switching university or programme
               starts a fresh hypothetical rather than carrying one student's

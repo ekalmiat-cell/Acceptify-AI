@@ -1,7 +1,8 @@
 import { unstable_cache } from "next/cache";
 
 import { runCopilotChat } from "@/lib/ai/copilot";
-import { candidateModels, GeminiError, isMockAi, probeModels } from "@/lib/ai/gemini";
+import { GeminiError } from "@/lib/ai/gemini";
+import { aiStatus, configuredProviders, isMockAi, probeAi } from "@/lib/ai/llm";
 import { adminEmails, isAdminUser } from "@/lib/admin";
 import { recentAiErrors } from "@/lib/data/ai-errors";
 import { pgPool } from "@/lib/db";
@@ -77,10 +78,7 @@ const baseChecks = unstable_cache(
         senderDomain: process.env.EMAIL_FROM?.match(/@([^\s>]+)/)?.[1] ?? null,
       },
       ai: {
-        provider: env.AI_PROVIDER,
-        apiKeySet: Boolean(env.GEMINI_API_KEY),
-        configuredModel: env.GEMINI_MODEL ?? null,
-        modelsTried: candidateModels(),
+        ...aiStatus(),
       },
     };
   },
@@ -91,9 +89,9 @@ const baseChecks = unstable_cache(
 /** Live calls to every model plus the copilot's real code path. */
 const aiProbe = unstable_cache(
   async () => {
-    if (isMockAi() || !env.GEMINI_API_KEY) return { skipped: true, working: isMockAi() };
+    if (isMockAi() || configuredProviders().length === 0) return { skipped: true, working: isMockAi() };
 
-    const probes = await probeModels();
+    const probes = await probeAi();
     const started = Date.now();
     let copilot: Record<string, unknown>;
     try {

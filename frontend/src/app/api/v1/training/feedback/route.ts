@@ -1,5 +1,5 @@
 import { coachDrill } from "@/lib/ai/drill-feedback";
-import { assertAiAvailable } from "@/lib/ai/gemini";
+import { assertAiAvailable } from "@/lib/ai/llm";
 import { withAiErrorLog } from "@/lib/data/ai-errors";
 import { aiAllowanceLeft, consumeAiAllowance } from "@/lib/data/ai-usage";
 import { resolveDrill } from "@/lib/data/training";

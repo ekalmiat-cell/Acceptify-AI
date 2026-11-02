@@ -44,9 +44,25 @@ const EXACT: Record<string, string> = {
   "The AI coach only reviews written answers.": "ИИ-тренер проверяет только письменные ответы.",
   "Send a message to start the conversation.": "Напиши сообщение, чтобы начать разговор.",
 
+  "Add at least one score to your profile to get an estimate.":
+    "Добавь в профиль хотя бы один балл, чтобы получить оценку.",
+  "That program was not found.": "Эта программа не найдена.",
+  "That university was not found.": "Этот университет не найден.",
   // The AI service
   "AI features are not set up on this server yet (GEMINI_API_KEY is missing).":
     "ИИ-функции на этом сервере ещё не настроены (нет GEMINI_API_KEY).",
+  "AI features are not set up on this server yet (no AI provider key is set).":
+    "ИИ-функции на этом сервере ещё не настроены (не задан ключ ИИ-провайдера).",
+  "Voice is not available on this server yet (it needs a Gemini key).":
+    "Голос на этом сервере пока недоступен (нужен ключ Gemini).",
+  "The AI service is misconfigured: the Groq API key was rejected.":
+    "ИИ-сервис настроен неверно: ключ Groq отклонён.",
+  "The AI service is misconfigured: the Cerebras API key was rejected.":
+    "ИИ-сервис настроен неверно: ключ Cerebras отклонён.",
+  "The AI service is misconfigured: the OpenRouter API key was rejected.":
+    "ИИ-сервис настроен неверно: ключ OpenRouter отклонён.",
+  "The AI is overloaded right now. Please try again in a minute.":
+    "ИИ сейчас перегружен. Попробуй через минуту.",
   "The AI is handling too many requests right now. Please wait a minute and try again.":
     "У ИИ сейчас слишком много запросов. Подожди минуту и попробуй снова.",
   "The AI service is misconfigured: the GEMINI_API_KEY was rejected.":

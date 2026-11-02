@@ -2,7 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 
-import { generateJson, isMockAi, type GeminiMessage, type GeminiSchema } from "@/lib/ai/gemini";
+import type { GeminiMessage, GeminiSchema } from "@/lib/ai/gemini";
+import { generateJson, isMockAi } from "@/lib/ai/llm";
 import { HttpError } from "@/lib/http-error";
 import type { ChatMessage, CopilotAudio, CopilotChatResponse, CopilotLang, CopilotStyle } from "@/types/copilot";
 

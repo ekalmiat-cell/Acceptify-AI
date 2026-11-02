@@ -2,7 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 
-import { generateJson, isMockAi, type GeminiSchema } from "@/lib/ai/gemini";
+import type { GeminiSchema } from "@/lib/ai/gemini";
+import { generateJson, isMockAi } from "@/lib/ai/llm";
 import { checkEssay, splitSentences } from "@/lib/essay-check";
 import {
   CRITERIA,

@@ -1,4 +1,4 @@
-import { candidateModels, isMockAi, probeModels } from "@/lib/ai/gemini";
+import { aiStatus, isMockAi, probeAi } from "@/lib/ai/llm";
 import { pgPool } from "@/lib/db";
 import { env } from "@/lib/env.server";
 import { isMailConfigured } from "@/lib/email";
@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * Admin-only health check: is the database migrated, and which Gemini models
- * does this deployment's API key actually have access to? Answers the "the
- * AI doesn't work" question with Google's own error message instead of a
+ * Admin-only health check: is the database migrated, and which AI models
+ * does this deployment's API keys actually have access to? Answers the "the
+ * AI doesn't work" question with the provider's own error message instead of a
  * guess. Never includes secret values — only whether they are set.
  */
 export const GET = route(async () => {
@@ -32,15 +32,12 @@ export const GET = route(async () => {
     database.error = error instanceof Error ? error.message : String(error);
   }
 
-  const probes = isMockAi() ? [] : await probeModels();
+  const probes = isMockAi() ? [] : await probeAi();
 
   return json({
     database,
     ai: {
-      provider: env.AI_PROVIDER,
-      apiKeySet: Boolean(env.GEMINI_API_KEY),
-      configuredModel: env.GEMINI_MODEL ?? null,
-      modelsTried: candidateModels(),
+      ...aiStatus(),
       probes,
       working: probes.some((probe) => probe.ok),
     },

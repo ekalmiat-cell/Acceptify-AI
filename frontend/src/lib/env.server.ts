@@ -45,9 +45,18 @@ const schema = z.object({
   ADMIN_EMAILS: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().optional(),
-  // An unrecognised value falls back to the default instead of failing the
-  // whole parse (which would drop every other variable with it).
-  AI_PROVIDER: z.enum(["gemini", "mock"]).optional().catch(undefined),
+  // Free OpenAI-compatible providers. Each key variable may hold several
+  // keys separated by commas; they are rotated when one hits its limit.
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().optional(),
+  CEREBRAS_API_KEY: z.string().optional(),
+  CEREBRAS_MODEL: z.string().optional(),
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_MODEL: z.string().optional(),
+  // Comma-separated providers in the order they are tried — e.g.
+  // "groq,cerebras,gemini" — or "mock". Unset: every provider that has a key,
+  // in that same order. Parsed in lib/ai/llm.ts, which ignores unknown names.
+  AI_PROVIDER: z.string().optional(),
 });
 
 const raw: Record<string, string | undefined> = Object.fromEntries(
@@ -85,5 +94,5 @@ export const env = {
       "local-development-secret-not-for-production",
     );
   },
-  AI_PROVIDER: values.AI_PROVIDER ?? "gemini",
+  AI_PROVIDER: values.AI_PROVIDER ?? "",
 };

@@ -1,6 +1,6 @@
 import { buildStudentContext, buildUniversityContext } from "@/lib/ai/context";
 import { reviewEssay, type PreviousDraft } from "@/lib/ai/essay-review";
-import { assertAiAvailable } from "@/lib/ai/gemini";
+import { assertAiAvailable } from "@/lib/ai/llm";
 import { withAiErrorLog } from "@/lib/data/ai-errors";
 import { consumeAiAllowance } from "@/lib/data/ai-usage";
 import { createEssayReview, getEssayReview } from "@/lib/data/essays";

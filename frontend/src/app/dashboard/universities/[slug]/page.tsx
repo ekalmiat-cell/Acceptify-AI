@@ -35,6 +35,7 @@ import { predictMatch } from "@/lib/predict";
 import { getAcademicProfile, getAchievementRecords } from "@/lib/profile-server";
 import { resolveWeightsForUniversity } from "@/lib/weights-server";
 import { hasAnyAcademicProfile, resolveAchievements, toStudentProfileInput } from "@/lib/profile";
+import { ChanceCard } from "@/components/dashboard/chance-card";
 import { UniversityLogo } from "@/components/shared/university-logo";
 import { countryName } from "@/lib/countries";
 import { defineCopy, formatNumber } from "@/lib/i18n/core";
@@ -209,6 +210,8 @@ export default async function UniversityDetailPage({
           <UniversityActions universityName={university.shortName} />
         </div>
       </div>
+
+      <ChanceCard universityId={university.id} hasProfile={hasProfile} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {university.worldRanking !== null ? (

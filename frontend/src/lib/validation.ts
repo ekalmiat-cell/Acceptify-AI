@@ -54,6 +54,14 @@ export const predictionSchema = z.object({
   status: z.enum(["Saved", "Applied", "Considering", "Analyzed"]).default("Analyzed"),
 });
 
+/** An AI admission-chance request. The profile is read from the database, never from the body. */
+export const chanceRequestSchema = z.object({
+  universityId: z.string().trim().min(1).max(200),
+  programId: optionalId,
+  /** Only look for an estimate that already exists; never spend a model call. */
+  cacheOnly: z.boolean().optional().default(false),
+});
+
 export const outcomeSchema = z.object({
   outcome: z.enum(["admitted", "rejected", "waitlisted", "withdrawn"]),
 });
